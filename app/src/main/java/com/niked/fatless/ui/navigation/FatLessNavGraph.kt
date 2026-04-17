@@ -1,7 +1,6 @@
 package com.niked.fatless.ui.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -19,10 +18,9 @@ fun FatLessNavGraph() {
         navController = navController,
         startDestination = Screen.WorkoutList.route
     ) {
-        // 1. Список тренировок
+        // Список тренировок
         composable(Screen.WorkoutList.route) {
             WorkoutListScreen(
-                viewModel = hiltViewModel(),
                 onWorkoutClick = { id ->
                     navController.navigate(Screen.WorkoutTimer.createRoute(id))
                 },
@@ -32,15 +30,14 @@ fun FatLessNavGraph() {
             )
         }
 
-        // 2. Конструктор (Создание)
+        // Конструктор (Создание)
         composable(Screen.WorkoutCreate.route) {
             WorkoutCreateScreen(
-                viewModel = hiltViewModel(),
                 onBackClick = { navController.popBackStack() }
             )
         }
 
-        // 3. Сам таймер (Процесс)
+        // Сам таймер (Процесс)
         composable(
             route = Screen.WorkoutTimer.route,
             arguments = listOf(
@@ -48,7 +45,6 @@ fun FatLessNavGraph() {
             )
         ) {
             WorkoutScreen(
-                viewModel = hiltViewModel(), // Хилт сам прокинет ID во вьюмодель!
                 onBackClick = { navController.popBackStack() }
             )
         }

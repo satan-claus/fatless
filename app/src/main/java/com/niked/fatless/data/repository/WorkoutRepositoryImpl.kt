@@ -18,38 +18,69 @@ class WorkoutRepositoryImpl @Inject constructor(
 
     override fun observeAllWorkouts(): Flow<List<Workout>> {
         return dao.observeAllWorkouts().map { entities ->
-            entities.map { Workout(id = it.id, title = it.title, intervals = emptyList()) }
+            entities.map { entity ->
+                // Для списка подгружаем только заголовки (интервалы пустые для скорости)
+                Workout(id = entity.id, title = entity.title, intervals = emptyList())
+            }
         }
     }
 
     override suspend fun getWorkoutById(id: String): Workout? {
-        // Тут можно будет оптимизировать через Room @Relation, но пока по-простому
+        // 1. Получаем заголовок тренировки
+        val entity = dao.getWorkoutById(id) ?: return null
+
+        // 2. Получаем интервалы
         val intervals = dao.getIntervalsForWorkout(id).map {
-            Interval(name = it.name, seconds = it.seconds, type = IntervalType.valueOf(it.type))
+            Interval(
+                name = it.name,
+                seconds = it.seconds,
+                type = IntervalType.valueOf(it.type)
+            )
         }
-        // Временно возвращаем так, пока не добавим метод получения WorkoutEntity по ID в Dao
-        return null
+
+        // 3. Собираем полную доменную модель
+        return Workout(
+            id = entity.id,
+            title = entity.title,
+            intervals = intervals
+        )
     }
 
     override suspend fun saveWorkout(workout: Workout) {
         val workoutEntity = WorkoutEntity(id = workout.id, title = workout.title)
+
+        // Генерируем сущности интервалов с привязкой к ID тренировки
         val intervalEntities = workout.intervals.mapIndexed { index, interval ->
             IntervalEntity(
                 id = UUID.randomUUID().toString(),
                 workoutId = workout.id,
                 name = interval.name,
                 seconds = interval.seconds,
-                type = interval.type.name,
+                type = interval.type.name, // Храним Enum как String
                 sortOrder = index
             )
         }
+
         dao.insertWorkout(workoutEntity)
         dao.insertIntervals(intervalEntities)
     }
 
-    override suspend fun deleteWorkout(id: String) = dao.deleteWorkoutById(id)
+    override suspend fun deleteWorkout(id: String) {
+        dao.deleteWorkoutById(id)
+    }
 
     override suspend fun initializeDefaultData() {
-        // Проверка на пустоту и вставка дефолтов (код возьмем из вчерашних наработок)
+        val existing = dao.getWorkoutsOnce()
+        if (existing.isEmpty()) {
+            val firstWorkout = Workout(
+                title = "Базовая разминка",
+                intervals = listOf(
+                    Interval("Подготовка", 5, IntervalType.PREPARATION),
+                    Interval("Работа", 5, IntervalType.WORK),
+                    Interval("Отдых", 5, IntervalType.REST)
+                )
+            )
+            saveWorkout(firstWorkout)
+        }
     }
 }

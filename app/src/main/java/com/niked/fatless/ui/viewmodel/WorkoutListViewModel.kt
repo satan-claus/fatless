@@ -25,7 +25,7 @@ class WorkoutListViewModel @Inject constructor(
 
     private fun observeWorkouts() {
         viewModelScope.launch {
-            // Инициализируем дефолты (те самые "Ходьба и бег")
+            // Инициализируем дефолты
             repository.initializeDefaultData()
 
             // Подписываемся на реактивный поток из БД

@@ -1,17 +1,20 @@
 package com.niked.fatless.ui.screen
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.niked.fatless.ui.components.EditableIntervalRow
+import com.niked.fatless.ui.component.EditableIntervalRow
 import com.niked.fatless.ui.theme.*
 import com.niked.fatless.ui.viewmodel.WorkoutCreateViewModel
 
@@ -21,26 +24,42 @@ fun WorkoutCreateScreen(
     onBackClick: () -> Unit,
     viewModel: WorkoutCreateViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Новая тренировка", style = AppTypography.titleMedium) },
+                title = {
+                    Text(
+                        text = "Новая тренировка",
+                        style = AppTypography.titleMedium // Используем нашу Roboto 16 SemiBold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = null)
+                        Icon(Icons.Default.Close, contentDescription = null, tint = AppTextSecondary)
                     }
                 },
                 actions = {
                     IconButton(
-                        onClick = { viewModel.save { onBackClick() } },
-                        enabled = state.title.isNotBlank()
+                        onClick = { viewModel.saveWorkout { onBackClick() } },
+                        enabled = state.title.isNotBlank() && !state.isSaving
                     ) {
-                        Icon(Icons.Default.Check, contentDescription = null, tint = AppPrimary)
+                        if (state.isSaving) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp,
+                                color = AppPrimary
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = if (state.title.isNotBlank()) AppPrimary else AppTextTertiary
+                            )
+                        }
                     }
                 },
-                // ИСПРАВЛЕНО: Теперь цвета задаются через TopAppBarDefaults
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = AppBackground
                 )
@@ -52,49 +71,83 @@ fun WorkoutCreateScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
+                Text(
+                    text = "НАЗВАНИЕ",
+                    style = AppTypography.titleSmall, // Наш Roboto 11 Bold CAPS
+                    color = AppTextTertiary,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                )
                 OutlinedTextField(
                     value = state.title,
                     onValueChange = { viewModel.updateTitle(it) },
-                    label = { Text("Название тренировки") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = {
+                        Text("Например: Утренняя пахота", style = AppTypography.bodyLarge)
+                    },
+                    textStyle = AppTypography.bodyLarge.copy(color = AppTextPrimary),
                     singleLine = true,
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = AppSurface,
+                        unfocusedContainerColor = AppSurface,
+                        disabledContainerColor = AppSurface,
+                        focusedBorderColor = AppPrimary,
+                        unfocusedBorderColor = AppBorder,
+                        cursorColor = AppPrimary
+                    )
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "ИНТЕРВАЛЫ",
+                    style = AppTypography.titleSmall,
+                    color = AppTextTertiary,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
 
             itemsIndexed(state.intervals) { index, interval ->
                 EditableIntervalRow(
+                    index = index,
                     interval = interval,
-                    onNameChange = { newName ->
-                        viewModel.updateInterval(index, interval.copy(name = newName))
+                    onNameChange = { name ->
+                        viewModel.updateInterval(index, name, interval.seconds)
                     },
-                    onSecondsChange = { newSecs ->
-                        viewModel.updateInterval(index, interval.copy(seconds = newSecs))
+                    onSecondsChange = { secs ->
+                        viewModel.updateInterval(index, interval.name, secs)
                     },
-                    onDelete = { viewModel.deleteInterval(index) }
+                    onRemove = { viewModel.removeInterval(index) }
                 )
             }
 
             item {
-                Button(
+                OutlinedButton(
                     onClick = { viewModel.addInterval() },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .padding(top = 8.dp)
+                        .height(52.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = AppSecondary)
+                    border = BorderStroke(1.5.dp, AppPrimary),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = AppPrimary
+                    )
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Добавить интервал")
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "ДОБАВИТЬ ИНТЕРВАЛ",
+                        style = AppTypography.labelMedium // Roboto 15 SemiBold
+                    )
                 }
-                Spacer(Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(40.dp))
             }
         }
     }
