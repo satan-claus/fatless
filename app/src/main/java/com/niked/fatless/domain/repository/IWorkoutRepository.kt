@@ -3,7 +3,7 @@ package com.niked.fatless.domain.repository
 import com.niked.fatless.domain.model.Workout
 import kotlinx.coroutines.flow.Flow
 
-interface WorkoutRepository {
+interface IWorkoutRepository {
     // Наблюдаем за списком всех тренировок (Flow для реактивности)
     fun observeAllWorkouts(): Flow<List<Workout>>
 

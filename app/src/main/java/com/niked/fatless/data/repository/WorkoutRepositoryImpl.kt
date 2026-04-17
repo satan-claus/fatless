@@ -6,7 +6,7 @@ import com.niked.fatless.data.local.entities.WorkoutEntity
 import com.niked.fatless.domain.model.Interval
 import com.niked.fatless.domain.model.IntervalType
 import com.niked.fatless.domain.model.Workout
-import com.niked.fatless.domain.repository.WorkoutRepository
+import com.niked.fatless.domain.repository.IWorkoutRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 class WorkoutRepositoryImpl @Inject constructor(
     private val dao: WorkoutDao
-) : WorkoutRepository {
+) : IWorkoutRepository {
 
     override fun observeAllWorkouts(): Flow<List<Workout>> {
         return dao.observeAllWorkouts().map { entities ->
