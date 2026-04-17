@@ -1,7 +1,7 @@
 package com.niked.fatless.di
 
 import com.niked.fatless.data.repository.WorkoutRepositoryImpl
-import com.niked.fatless.domain.repository.WorkoutRepository
+import com.niked.fatless.domain.repository.IWorkoutRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -16,5 +16,5 @@ abstract class RepositoryModule {
     @Singleton
     abstract fun bindWorkoutRepository(
         workoutRepositoryImpl: WorkoutRepositoryImpl
-    ): WorkoutRepository
+    ): IWorkoutRepository
 }
