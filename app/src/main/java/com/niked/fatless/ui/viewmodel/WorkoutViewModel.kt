@@ -103,6 +103,21 @@ class WorkoutViewModel @Inject constructor(
             _uiState.update { it.copy(status = WorkoutState.COMPLETED) }
         }
     }
+
+    fun resetWorkout() {
+        // 1. Останавливаем таймер, если он тикал
+        timerJob?.cancel()
+
+        // 2. Откатываем стейт к началу
+        val firstIntervalSeconds = _uiState.value.workout?.intervals?.firstOrNull()?.seconds ?: 0
+
+        _uiState.update { it.copy(
+            currentIntervalIndex = 0,
+            timeLeft = firstIntervalSeconds,
+            status = WorkoutState.READY
+        ) }
+    }
+
 }
 
 data class WorkoutUiState(

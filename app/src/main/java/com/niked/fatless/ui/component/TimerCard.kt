@@ -95,7 +95,7 @@ fun TimerCard(
 
             // Название текущего интервала
             Text(
-                text = currentIntervalName,
+                text = if (state is WorkoutState.COMPLETED) "ОТЛИЧНАЯ РАБОТА!" else currentIntervalName,
                 style = AppTypography.titleMedium,
                 color = workoutNameColor,
                 modifier = Modifier.padding(top = 8.dp)

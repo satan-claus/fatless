@@ -28,4 +28,7 @@ interface WorkoutDao {
 
     @Query("SELECT * FROM workouts")
     suspend fun getWorkoutsOnce(): List<WorkoutEntity>
+
+    @Query("SELECT * FROM workouts WHERE id = :id")
+    suspend fun getWorkoutById(id: String): WorkoutEntity?
 }
