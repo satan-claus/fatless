@@ -24,6 +24,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.niked.fatless.domain.model.IntervalType
+import com.niked.fatless.domain.model.WorkoutState
+import com.niked.fatless.ui.theme.AppBackground
+import com.niked.fatless.ui.theme.AppOrange
+import com.niked.fatless.ui.theme.AppOrangeLight
+import com.niked.fatless.ui.theme.AppPrimary
+import com.niked.fatless.ui.theme.AppPrimaryLight
+import com.niked.fatless.ui.theme.AppSecondary
+import com.niked.fatless.ui.theme.AppTypography
 import com.niked.fatless.ui.viewmodel.WorkoutViewModel
 import com.niked.fatless.utils.formatDuration
 
@@ -34,13 +42,15 @@ fun WorkoutScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val workout = uiState.workout
-
-    // Используем правильное имя поля из WorkoutUiState
     val currentInterval = workout?.intervals?.getOrNull(uiState.currentIntervalIndex)
+
+    // Определяем цвета и тексты в зависимости от состояния
+    val isRunning = uiState.status is WorkoutState.RUNNING
+    val isFinished = uiState.status is WorkoutState.COMPLETED
+    val isRest = currentInterval?.type == IntervalType.REST
 
     Scaffold(
         topBar = {
-            // Чтобы можно было выйти из тренировки
             IconButton(onClick = onBackClick) {
                 Icon(Icons.Default.Close, contentDescription = null)
             }
@@ -51,33 +61,45 @@ fun WorkoutScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .background(
-                    // Динамический фон: если отдых — оранжевый, если работа — зеленый
-                    if (currentInterval?.type == IntervalType.REST) AppOrangeLight else AppPrimaryLight
+                    when (uiState.status) {
+                        is WorkoutState.COMPLETED -> AppSecondary
+                        is WorkoutState.RUNNING, is WorkoutState.PAUSED -> {
+                            if (isRest) AppOrangeLight else AppPrimaryLight
+                        }
+                        else -> AppBackground
+                    }
                 ),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = currentInterval?.name ?: "Загрузка...",
-                style = MaterialTheme.typography.headlineLarge
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = formatDuration(uiState.timeLeft),
-                style = AppTypography.displayLarge // Наш Roboto Mono 68sp
-            )
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            Button(
-                onClick = { viewModel.toggleTimer() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (uiState.isRunning) AppOrange else AppPrimary
+            if (isFinished) {
+                Text("ТРЕНИРОВКА ОКОНЧЕНА", style = MaterialTheme.typography.headlineLarge)
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(onClick = onBackClick) { Text("В МЕНЮ") }
+            } else {
+                Text(
+                    text = currentInterval?.name ?: "Загрузка...",
+                    style = MaterialTheme.typography.headlineLarge
                 )
-            ) {
-                Text(if (uiState.isRunning) "ПАУЗА" else "СТАРТ")
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = formatDuration(uiState.timeLeft),
+                    style = AppTypography.displayLarge
+                )
+
+                Spacer(modifier = Modifier.height(48.dp))
+
+                Button(
+                    onClick = { viewModel.toggleTimer() },
+                    colors = ButtonDefaults.buttonColors(
+                        // Если тикает — кнопка оранжевая (пауза), если стоит — зеленая (старт)
+                        containerColor = if (isRunning) AppOrange else AppPrimary
+                    )
+                ) {
+                    Text(if (isRunning) "ПАУЗА" else "СТАРТ")
+                }
             }
         }
     }

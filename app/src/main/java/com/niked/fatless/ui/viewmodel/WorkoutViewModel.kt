@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.niked.fatless.domain.model.Workout
 import com.niked.fatless.domain.model.WorkoutState
+import com.niked.fatless.domain.player.IAudioPlayer
 import com.niked.fatless.domain.repository.IWorkoutRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -20,7 +21,7 @@ import javax.inject.Inject
 class WorkoutViewModel @Inject constructor(
     private val repository: IWorkoutRepository,
     savedStateHandle: SavedStateHandle,
-    private val audioPlayer: AudioPlayer
+    private val audioPlayer: IAudioPlayer
 ) : ViewModel() {
 
     private val workoutId: String = checkNotNull(savedStateHandle["workoutId"])
@@ -60,15 +61,18 @@ class WorkoutViewModel @Inject constructor(
                 delay(1000L)
                 val currentState = _uiState.value
 
-                if (currentState.timeLeft > 1) {
-                    // Просто тикаем
+                if (currentState.timeLeft > 0) {
                     _uiState.update { it.copy(timeLeft = it.timeLeft - 1) }
 
-                    // Пред-писк за 3 секунды
-                    if (it.timeLeft <= 3) audioPlayer.playTick()
-                } else {
-                    // Интервал окончен!
-                    switchToNextInterval()
+                    // Важно: проверяем время ПОСЛЕ обновления
+                    if (_uiState.value.timeLeft in 1..3) {
+                        audioPlayer.playTick()
+                    }
+
+                    // Если после тика стало 0 — переключаем
+                    if (_uiState.value.timeLeft == 0) {
+                        switchToNextInterval()
+                    }
                 }
             }
         }
@@ -85,16 +89,17 @@ class WorkoutViewModel @Inject constructor(
         val intervals = state.workout?.intervals ?: return
 
         if (nextIndex < intervals.size) {
+            // Переход на следующий круг
             audioPlayer.playNext()
             _uiState.update { it.copy(
                 currentIntervalIndex = nextIndex,
                 timeLeft = intervals[nextIndex].seconds
             ) }
         } else {
-            // ФИНИШ!
+            // ПОБЕДА!
             timerJob?.cancel()
             audioPlayer.playFinish()
-            _uiState.update { it.copy(isRunning = false, isFinished = true) }
+            _uiState.update { it.copy(status = WorkoutState.COMPLETED) }
         }
     }
 }
