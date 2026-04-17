@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.niked.fatless"
-    compileSdk = 36 // Твой SDK
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.niked.fatless"

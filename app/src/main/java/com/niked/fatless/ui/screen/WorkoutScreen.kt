@@ -74,6 +74,7 @@ fun WorkoutScreen(
             .fillMaxSize()
             .background(AppBackground)
             .statusBarsPadding()
+            .navigationBarsPadding()
             .padding(horizontal = 24.dp)
     ) {
         WorkoutTopBar(
