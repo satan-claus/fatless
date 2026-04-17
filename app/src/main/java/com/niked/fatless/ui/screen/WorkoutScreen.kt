@@ -1,4 +1,4 @@
-package com.niked.fatless.ui.screen.workout
+package com.niked.fatless.ui.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

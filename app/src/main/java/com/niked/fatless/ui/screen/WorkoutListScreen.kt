@@ -1,4 +1,4 @@
-package com.niked.fatless.ui.screen.workoutlist
+package com.niked.fatless.ui.screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
