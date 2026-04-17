@@ -19,8 +19,11 @@ class WorkoutRepositoryImpl @Inject constructor(
     override fun observeAllWorkouts(): Flow<List<Workout>> {
         return dao.observeAllWorkouts().map { entities ->
             entities.map { entity ->
-                // Для списка подгружаем только заголовки (интервалы пустые для скорости)
-                Workout(id = entity.id, title = entity.title, intervals = emptyList())
+                // Достаем интервалы для каждой тренировки, чтобы посчитать их
+                val intervals = dao.getIntervalsForWorkout(entity.id).map {
+                    Interval(it.name, it.seconds, IntervalType.valueOf(it.type))
+                }
+                Workout(id = entity.id, title = entity.title, intervals = intervals)
             }
         }
     }

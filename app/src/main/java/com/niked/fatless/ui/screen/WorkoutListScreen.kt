@@ -31,6 +31,8 @@ fun WorkoutListScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(AppBackground)
+            .statusBarsPadding()
+            .navigationBarsPadding()
             .padding(horizontal = 24.dp)
     ) {
         // Верхняя панель (subTitle меняется в зависимости от стейта)
