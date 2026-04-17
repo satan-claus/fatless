@@ -3,7 +3,8 @@ package com.niked.fatless.di
 import android.content.Context
 import androidx.room.Room
 import com.niked.fatless.data.local.AppDatabase
-import com.niked.fatless.utils.Constants.DATABASE_NAME
+import com.niked.fatless.data.local.dao.WorkoutDao
+import com.niked.fatless.utils.Constants
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,12 +22,12 @@ object DatabaseModule {
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
-            DATABASE_NAME
+            Constants.DATABASE_NAME
         ).build()
     }
 
-//    @Provides
-//    fun provideWorkoutDao(db: AppDatabase): WorkoutDao {
-//        return db.workoutDao()
-//    }
+    @Provides
+    fun provideWorkoutDao(db: AppDatabase): WorkoutDao {
+        return db.workoutDao()
+    }
 }
