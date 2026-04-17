@@ -1,4 +1,4 @@
-package com.niked.fatless
+package com.niked.fatless.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
