@@ -2,10 +2,22 @@ package com.niked.fatless.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Основная палитра из HTML-макета
+val AppPrimary = Color(0xFF1B9E5A)        // --primary
+val AppPrimaryPressed = Color(0xFF168A4E) // --primary-pressed
+val AppPrimaryLight = Color(0x141B9E5A)   // 8% прозрачности для фона активного интервала
+val AppSecondary = Color(0xFF3B82F6)        // Завершено
+val AppBackground = Color(0xFFF5F5F7)     // --bg
+val AppSurface = Color(0xFFFFFFFF)        // --surface
+val AppTextPrimary = Color(0xFF1A1D24)    // --text-primary
+val AppTextSecondary = Color(0xFF5F6776)  // --text-secondary
+val AppOrange = Color(0xFFE67E22)           // Пауза
+val AppOrangeLight = Color(0x14E67E22)    // 8% оранжевого
+val AppTextTertiary = Color(0xFF939BAA)     // Метаданные
+val AppDisabledBg = Color(0xFFEDEDEF)
+val AppDisabledText = Color(0xFFB0B5BF)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val AppError = Color(0xFFDC3545)          // --error
+
+// Прозрачности для границ и заливок
+val AppBorder = Color(0x14000000)          // --border (8% black)
