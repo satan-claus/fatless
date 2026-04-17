@@ -19,7 +19,7 @@ fun FatLessNavGraph() {
         navController = navController,
         startDestination = Screen.WorkoutList.route
     ) {
-        // 1. Список тренировок
+        // Список тренировок
         composable(Screen.WorkoutList.route) {
             WorkoutListScreen(
                 viewModel = hiltViewModel(),
@@ -32,7 +32,7 @@ fun FatLessNavGraph() {
             )
         }
 
-        // 2. Конструктор (Создание)
+        // Конструктор (Создание)
         composable(Screen.WorkoutCreate.route) {
             WorkoutCreateScreen(
                 viewModel = hiltViewModel(),
@@ -40,7 +40,7 @@ fun FatLessNavGraph() {
             )
         }
 
-        // 3. Сам таймер (Процесс)
+        // Сам таймер (Процесс)
         composable(
             route = Screen.WorkoutTimer.route,
             arguments = listOf(
