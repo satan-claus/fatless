@@ -1,4 +1,4 @@
-package com.niked.fatless.ui.components
+package com.niked.fatless.ui.component
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable

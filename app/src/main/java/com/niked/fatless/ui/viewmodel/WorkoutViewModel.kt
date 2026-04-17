@@ -57,19 +57,20 @@ class WorkoutViewModel @Inject constructor(
     private fun startTimer() {
         _uiState.update { it.copy(status = WorkoutState.RUNNING) }
         timerJob = viewModelScope.launch {
-            while (isActive) {
+            // Добавляем проверку, что мы все еще в состоянии RUNNING
+            while (isActive && _uiState.value.status is WorkoutState.RUNNING) {
                 delay(1000L)
                 val currentState = _uiState.value
 
                 if (currentState.timeLeft > 0) {
                     _uiState.update { it.copy(timeLeft = it.timeLeft - 1) }
 
-                    // Важно: проверяем время ПОСЛЕ обновления
+                    // Пищим на 3, 2, 1 секундах
                     if (_uiState.value.timeLeft in 1..3) {
                         audioPlayer.playTick()
                     }
 
-                    // Если после тика стало 0 — переключаем
+                    // Переключаем, когда дотикали до нуля
                     if (_uiState.value.timeLeft == 0) {
                         switchToNextInterval()
                     }

@@ -25,4 +25,7 @@ interface WorkoutDao {
     // Удаление
     @Query("DELETE FROM workouts WHERE id = :id")
     suspend fun deleteWorkoutById(id: String)
+
+    @Query("SELECT * FROM workouts")
+    suspend fun getWorkoutsOnce(): List<WorkoutEntity>
 }

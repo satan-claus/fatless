@@ -50,6 +50,18 @@ class WorkoutRepositoryImpl @Inject constructor(
     override suspend fun deleteWorkout(id: String) = dao.deleteWorkoutById(id)
 
     override suspend fun initializeDefaultData() {
-        // Проверка на пустоту и вставка дефолтов (код возьмем из вчерашних наработок)
+        // Делаем один запрос к базе, чтобы проверить наличие записей
+        val existing = dao.getWorkoutsOnce()
+        if (existing.isEmpty()) {
+            val firstWorkout = Workout(
+                title = "Базовая разминка",
+                intervals = listOf(
+                    Interval("Подготовка", 5, IntervalType.PREPARATION),
+                    Interval("Работа", 30, IntervalType.WORK),
+                    Interval("Отдых", 15, IntervalType.REST)
+                )
+            )
+            saveWorkout(firstWorkout)
+        }
     }
 }

@@ -27,15 +27,20 @@ fun WorkoutScreen(
     val uiState by viewModel.uiState.collectAsState()
     val workout = uiState.workout ?: return
 
-    // Общее время тренировки
-    val totalTimeStr = formatDuration(workout.intervals.sumOf { it.seconds })
+    // 1. Расчеты времени для мета-данных
+    val totalWorkoutTime = workout.intervals.sumOf { it.seconds }
 
-    // Мета-данные для TopBar
+    // Текущее накопленное время (прошедшее)
+    val elapsedSeconds = totalWorkoutTime - uiState.timeLeft
+
+    val totalTimeStr = formatDuration(totalWorkoutTime)
+
+    // 2. Мета-данные для TopBar
     val topBarMeta = when (uiState.status) {
         is WorkoutState.READY -> totalTimeStr
-        is WorkoutState.RUNNING -> "● ${formatDuration(uiState.totalTimeSeconds)}"
-        is WorkoutState.PAUSED -> "❚❚ Пауза"
-        is WorkoutState.COMPLETED -> "Завершена"
+        is WorkoutState.RUNNING -> "● ${formatDuration(elapsedSeconds)}"
+        is WorkoutState.PAUSED -> "❚❚ ПАУЗА"
+        is WorkoutState.COMPLETED -> "ЗАВЕРШЕНА"
     }
 
     val topBarMetaColor = when (uiState.status) {
@@ -45,20 +50,21 @@ fun WorkoutScreen(
         is WorkoutState.COMPLETED -> AppSecondary
     }
 
-    val totalWorkoutTime = workout.intervals.sumOf { it.seconds }
-
-    // Основной таймер
+    // 3. Логика отображения таймера
     val timeToShow = when (uiState.status) {
         is WorkoutState.READY -> totalWorkoutTime
         is WorkoutState.COMPLETED -> 0
-        else -> uiState.timeLeftInInterval
+        else -> uiState.timeLeft
     }
 
     val timerSubText = when (uiState.status) {
         is WorkoutState.READY -> "Общее время"
-        is WorkoutState.COMPLETED -> "Прошло ${formatDuration(totalWorkoutTime)} из ${formatDuration(totalWorkoutTime)}"
-        else -> "Прошло ${formatDuration(uiState.totalTimeSeconds)} из ${formatDuration(totalWorkoutTime)}"
+        is WorkoutState.COMPLETED -> "Прошло ${formatDuration(totalWorkoutTime)} из $totalTimeStr"
+        else -> "Прошло ${formatDuration(elapsedSeconds)} из $totalTimeStr"
     }
+
+    // Расчет общего прогресса (от 0.0 до 1.0)
+    val totalProgress = (elapsedSeconds.toFloat() / totalWorkoutTime.toFloat()).coerceIn(0f, 1f)
 
     Column(
         modifier = Modifier
@@ -78,25 +84,35 @@ fun WorkoutScreen(
 
         TimerCard(
             state = uiState.status,
-            currentIntervalName = workout.intervals.getOrNull(uiState.currentIntervalIndex)?.name ?: "",
+            currentIntervalName = workout.intervals.getOrNull(uiState.currentIntervalIndex)?.name ?: "Приготовьтесь",
             displayTime = formatDuration(timeToShow),
-            totalProgress = uiState.totalProgress,
+            totalProgress = totalProgress,
             subText = timerSubText
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text("Интервалы", style = AppTypography.titleMedium)
+        Text(
+            text = "Интервалы",
+            style = AppTypography.titleMedium,
+            color = AppTextPrimary
+        )
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Список интервалов
+        // 4. Список интервалов
         LazyColumn(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             itemsIndexed(workout.intervals) { index, interval ->
+                // Прогресс внутри текущего интервала
+                val intervalProgress = if (index == uiState.currentIntervalIndex && uiState.status is WorkoutState.RUNNING) {
+                    val currentIntSeconds = interval.seconds.toFloat()
+                    if (currentIntSeconds > 0) (currentIntSeconds - uiState.timeLeft) / currentIntSeconds else 0f
+                } else 0f
+
                 IntervalCard(
                     interval = interval,
                     index = index + 1,
@@ -104,12 +120,12 @@ fun WorkoutScreen(
                     isPaused = uiState.status is WorkoutState.PAUSED,
                     isCompleted = index < uiState.currentIntervalIndex,
                     isFinalDone = uiState.status is WorkoutState.COMPLETED,
-                    progress = if (index == uiState.currentIntervalIndex) uiState.currentIntervalProgress else 0f
+                    progress = intervalProgress
                 )
             }
         }
 
-        // Подвал управления
+        // 5. Подвал управления
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -146,7 +162,10 @@ fun WorkoutScreen(
                     ) {
                         Text("ПРОДОЛЖИТЬ", style = AppTypography.labelMedium)
                     }
-                    GhostButton(text = "СБРОСИТЬ", onClick = { viewModel.resetWorkout() })
+                    GhostButton(
+                        text = "СБРОСИТЬ",
+                        onClick = { /* Нужно добавить метод resetWorkout во ViewModel */ }
+                    )
                 }
                 is WorkoutState.COMPLETED -> {
                     Button(

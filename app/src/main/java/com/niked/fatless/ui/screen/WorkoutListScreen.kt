@@ -1,4 +1,4 @@
-package com.niked.fatless.ui.screens
+package com.niked.fatless.ui.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -11,8 +11,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.niked.fatless.ui.component.WorkoutRow
 import com.niked.fatless.ui.component.WorkoutTopBar
+import com.niked.fatless.ui.component.WorkoutRow
 import com.niked.fatless.ui.theme.AppBackground
 import com.niked.fatless.ui.theme.AppError
 import com.niked.fatless.ui.theme.AppPrimary
