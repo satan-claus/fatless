@@ -1,11 +1,107 @@
 package com.niked.fatless.ui.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.niked.fatless.domain.model.Workout
+import com.niked.fatless.domain.model.WorkoutState
+import com.niked.fatless.domain.repository.IWorkoutRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class WorkoutViewModel @Inject constructor(
+    private val repository: IWorkoutRepository,
+    savedStateHandle: SavedStateHandle,
+    private val audioPlayer: AudioPlayer
 ) : ViewModel() {
 
+    private val workoutId: String = checkNotNull(savedStateHandle["workoutId"])
+
+    private val _uiState = MutableStateFlow(WorkoutUiState())
+    val uiState = _uiState.asStateFlow()
+
+    private var timerJob: Job? = null
+
+    init {
+        loadWorkout()
+    }
+
+    private fun loadWorkout() {
+        viewModelScope.launch {
+            repository.getWorkoutById(workoutId)?.let { workout ->
+                _uiState.update { it.copy(
+                    workout = workout,
+                    timeLeft = workout.intervals.firstOrNull()?.seconds ?: 0
+                ) }
+            }
+        }
+    }
+
+    fun toggleTimer() {
+        when (_uiState.value.status) {
+            is WorkoutState.READY, is WorkoutState.PAUSED -> startTimer()
+            is WorkoutState.RUNNING -> pauseTimer()
+            is WorkoutState.COMPLETED -> {  }
+        }
+    }
+
+    private fun startTimer() {
+        _uiState.update { it.copy(status = WorkoutState.RUNNING) }
+        timerJob = viewModelScope.launch {
+            while (isActive) {
+                delay(1000L)
+                val currentState = _uiState.value
+
+                if (currentState.timeLeft > 1) {
+                    // Просто тикаем
+                    _uiState.update { it.copy(timeLeft = it.timeLeft - 1) }
+
+                    // Пред-писк за 3 секунды
+                    if (it.timeLeft <= 3) audioPlayer.playTick()
+                } else {
+                    // Интервал окончен!
+                    switchToNextInterval()
+                }
+            }
+        }
+    }
+
+    private fun pauseTimer() {
+        timerJob?.cancel()
+        _uiState.update { it.copy(status = WorkoutState.PAUSED) }
+    }
+
+    private fun switchToNextInterval() {
+        val state = _uiState.value
+        val nextIndex = state.currentIntervalIndex + 1
+        val intervals = state.workout?.intervals ?: return
+
+        if (nextIndex < intervals.size) {
+            audioPlayer.playNext()
+            _uiState.update { it.copy(
+                currentIntervalIndex = nextIndex,
+                timeLeft = intervals[nextIndex].seconds
+            ) }
+        } else {
+            // ФИНИШ!
+            timerJob?.cancel()
+            audioPlayer.playFinish()
+            _uiState.update { it.copy(isRunning = false, isFinished = true) }
+        }
+    }
 }
+
+data class WorkoutUiState(
+    val workout: Workout? = null,
+    val currentIntervalIndex: Int = 0,
+    val timeLeft: Int = 0,
+    val status: WorkoutState = WorkoutState.READY
+)
