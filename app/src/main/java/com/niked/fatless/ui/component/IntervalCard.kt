@@ -1,6 +1,7 @@
-package com.niked.fatless.ui.components
+package com.niked.fatless.ui.component
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,17 +27,18 @@ fun IntervalCard(
     interval: Interval,
     index: Int,
     isActive: Boolean,
-    isCompleted: Boolean, // Интервал уже отработан
+    isCompleted: Boolean,
     state: WorkoutState,
-    progress: Float
+    progress: Float,
+    onClick: () -> Unit = {}
 ) {
     val isPaused = state is WorkoutState.PAUSED
     val isAllDone = state is WorkoutState.COMPLETED
 
-    // Визуально активен (бордер + прогресс), если он текущий И мы еще не финишировали
+    // Активен ли визуально этот интервал (с бордером и закраской)
     val showAsActive = isActive && !isAllDone
 
-    // Определяем цвета (Оранж на паузе, Зеленый в работе)
+    // Цвета (Оранж на паузе, Зеленый в работе)
     val activeColor = if (isPaused) AppOrange else AppPrimary
     val activeLightColor = if (isPaused) AppOrangeLight else AppPrimaryLight
 
@@ -46,7 +48,8 @@ fun IntervalCard(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .alpha(containerAlpha),
+            .alpha(containerAlpha)
+            .clickable(enabled = showAsActive) { onClick() },
         shape = RoundedCornerShape(12.dp),
         color = AppSurface,
         border = BorderStroke(1.5.dp, if (showAsActive) activeColor else Color.Transparent)
@@ -55,7 +58,7 @@ fun IntervalCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .drawBehind {
-                    // Рисуем фон, если интервал активен
+                    // Рисуем заполнение фона прогрессом
                     if (showAsActive && progress > 0f) {
                         drawRect(
                             color = activeLightColor,
@@ -70,28 +73,22 @@ fun IntervalCard(
                     .padding(vertical = 12.dp, horizontal = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Кругляшок слева (Номер или Галка)
+                // 1. Кругляшок слева (Номер или Галка)
                 Surface(
                     modifier = Modifier.size(28.dp),
                     shape = CircleShape,
                     color = if (showAsActive) activeColor else AppBackground
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        // ГАЛКА: если этот шаг пройден ИЛИ вся тренировка завершена
                         if (isCompleted || isAllDone) {
-                            val checkMarkColor = when {
-                                isAllDone -> AppSecondary      // ФИНАЛ: Синий (Победный)
-                                showAsActive -> Color.White    // На паузе: Белый
-                                else -> AppTextTertiary        // В процессе (пройденные): Серый
-                            }
+                            val checkMarkColor = if (isAllDone) AppSecondary else AppTextTertiary
                             Text(
                                 text = "✓",
-                                color = checkMarkColor,
+                                color = if (showAsActive) Color.White else checkMarkColor,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp
                             )
                         } else {
-                            // НОМЕР: только для текущего и будущих шагов
                             Text(
                                 text = index.toString(),
                                 style = AppTypography.bodySmall.copy(
@@ -106,14 +103,29 @@ fun IntervalCard(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                Text(
-                    text = interval.name,
-                    style = AppTypography.labelLarge,
-                    color = AppTextPrimary,
-                    textDecoration = if (isCompleted || isAllDone) TextDecoration.LineThrough else null,
-                    modifier = Modifier.weight(1f)
-                )
+                // 2. Название + Цель (Повторы)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = interval.name,
+                        style = AppTypography.labelLarge,
+                        color = AppTextPrimary,
+                        textDecoration = if (isCompleted || isAllDone) TextDecoration.LineThrough else null
+                    )
 
+                    // Если заданы повторы — показываем их второй строчкой
+                    if (interval.reps != null && interval.reps > 0) {
+                        Text(
+                            text = "Цель: ${interval.reps} повт.",
+                            style = AppTypography.bodySmall,
+                            color = if (showAsActive) activeColor else AppOrange,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // 3. Время интервала
                 Text(
                     text = formatDuration(interval.seconds),
                     style = AppTypography.bodyMedium.copy(
@@ -126,4 +138,3 @@ fun IntervalCard(
         }
     }
 }
-
