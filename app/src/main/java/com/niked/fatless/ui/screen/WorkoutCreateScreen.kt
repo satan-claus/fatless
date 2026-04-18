@@ -114,10 +114,16 @@ fun WorkoutCreateScreen(
                     index = index,
                     interval = interval,
                     onNameChange = { name ->
-                        viewModel.updateInterval(index, name, interval.seconds)
+                        // Передаем текущие секунды и текущие репсы
+                        viewModel.updateInterval(index, name, interval.seconds, interval.reps)
                     },
                     onSecondsChange = { secs ->
-                        viewModel.updateInterval(index, interval.name, secs)
+                        // Передаем новое время и текущие репсы
+                        viewModel.updateInterval(index, interval.name, secs, interval.reps)
+                    },
+                    onRepsChange = { newReps ->
+                        // Передаем текущее время и новые репсы
+                        viewModel.updateInterval(index, interval.name, interval.seconds, newReps)
                     },
                     onRemove = { viewModel.removeInterval(index) }
                 )

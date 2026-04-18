@@ -50,27 +50,24 @@ class WorkoutViewModel @Inject constructor(
         when (_uiState.value.status) {
             is WorkoutState.READY, is WorkoutState.PAUSED -> startTimer()
             is WorkoutState.RUNNING -> pauseTimer()
-            is WorkoutState.COMPLETED -> {  }
+            is WorkoutState.COMPLETED -> { }
         }
     }
 
     private fun startTimer() {
         _uiState.update { it.copy(status = WorkoutState.RUNNING) }
         timerJob = viewModelScope.launch {
-            // Добавляем проверку, что мы все еще в состоянии RUNNING
             while (isActive && _uiState.value.status is WorkoutState.RUNNING) {
                 delay(1000L)
-                val currentState = _uiState.value
 
-                if (currentState.timeLeft > 0) {
+                if (_uiState.value.timeLeft > 0) {
                     _uiState.update { it.copy(timeLeft = it.timeLeft - 1) }
 
-                    // Пищим на 3, 2, 1 секундах
+                    // Звуковой отсчет 3, 2, 1
                     if (_uiState.value.timeLeft in 1..3) {
                         audioPlayer.playTick()
                     }
 
-                    // Переключаем, когда дотикали до нуля
                     if (_uiState.value.timeLeft == 0) {
                         switchToNextInterval()
                     }
@@ -84,33 +81,38 @@ class WorkoutViewModel @Inject constructor(
         _uiState.update { it.copy(status = WorkoutState.PAUSED) }
     }
 
+    // Ручной переход на следующий интервал (Кнопка "ГОТОВО")
+    fun nextInterval() {
+        val wasRunning = _uiState.value.status is WorkoutState.RUNNING
+        timerJob?.cancel()
+        switchToNextInterval()
+        // Если до этого бежали и не закончили тренировку — бежим дальше автоматически
+        if (wasRunning && _uiState.value.status !is WorkoutState.COMPLETED) {
+            startTimer()
+        }
+    }
+
     private fun switchToNextInterval() {
         val state = _uiState.value
         val nextIndex = state.currentIntervalIndex + 1
         val intervals = state.workout?.intervals ?: return
 
         if (nextIndex < intervals.size) {
-            // Переход на следующий круг
             audioPlayer.playNext()
             _uiState.update { it.copy(
                 currentIntervalIndex = nextIndex,
                 timeLeft = intervals[nextIndex].seconds
             ) }
         } else {
-            // ПОБЕДА!
-            timerJob?.cancel()
             audioPlayer.playFinish()
-            _uiState.update { it.copy(status = WorkoutState.COMPLETED) }
+            _uiState.update { it.copy(status = WorkoutState.COMPLETED, timeLeft = 0) }
+            timerJob?.cancel()
         }
     }
 
     fun resetWorkout() {
-        // 1. Останавливаем таймер, если он тикал
         timerJob?.cancel()
-
-        // 2. Откатываем стейт к началу
         val firstIntervalSeconds = _uiState.value.workout?.intervals?.firstOrNull()?.seconds ?: 0
-
         _uiState.update { it.copy(
             currentIntervalIndex = 0,
             timeLeft = firstIntervalSeconds,
@@ -118,11 +120,16 @@ class WorkoutViewModel @Inject constructor(
         ) }
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        timerJob?.cancel()
+        audioPlayer.release()
+    }
 }
 
 data class WorkoutUiState(
     val workout: Workout? = null,
     val currentIntervalIndex: Int = 0,
-    val timeLeft: Int = 0,
+    val timeLeft: Int = 0, // Остаток времени в ТЕКУЩЕМ интервале
     val status: WorkoutState = WorkoutState.READY
 )

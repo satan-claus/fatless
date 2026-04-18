@@ -12,7 +12,7 @@ import androidx.room.PrimaryKey
             entity = WorkoutEntity::class,
             parentColumns = ["id"],
             childColumns = ["workoutId"],
-            // Удалил воркаут — интервалы стерлись
+            // Если удаляем воркаут — все интервалы летят следом
             onDelete = ForeignKey.CASCADE
         )
     ],
@@ -27,5 +27,8 @@ data class IntervalEntity(
     val seconds: Int,
     // PREPARATION, WORK, REST (храним как строку из Enum)
     val type: String,
+    // Цель по повторениям (новое поле)
+    val reps: Int? = null,
+    // Порядок сортировки в списке
     val sortOrder: Int
 )

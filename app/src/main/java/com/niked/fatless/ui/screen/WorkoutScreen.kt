@@ -11,14 +11,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.niked.fatless.domain.model.WorkoutState
-import com.niked.fatless.ui.component.GhostButton
-import com.niked.fatless.ui.component.TimerCard
-import com.niked.fatless.ui.component.WorkoutTopBar
-import com.niked.fatless.ui.components.IntervalCard
+import com.niked.fatless.ui.component.*
 import com.niked.fatless.ui.theme.*
 import com.niked.fatless.ui.viewmodel.WorkoutViewModel
 import com.niked.fatless.utils.formatDuration
@@ -31,7 +27,7 @@ fun WorkoutScreen(
     val uiState by viewModel.uiState.collectAsState()
     val workout = uiState.workout ?: return
 
-    // 1. ВРЕМЕННЫЕ РАСЧЕТЫ (Математика)
+    // 1. ВРЕМЕННЫЕ РАСЧЕТЫ
     val totalWorkoutTime = workout.intervals.sumOf { it.seconds }
     val completedIntervalsTime = workout.intervals.take(uiState.currentIntervalIndex).sumOf { it.seconds }
     val currentInterval = workout.intervals.getOrNull(uiState.currentIntervalIndex)
@@ -41,11 +37,9 @@ fun WorkoutScreen(
     // 2. ПРОГРЕСС И ТЕКСТЫ
     val totalProgress = if (totalWorkoutTime > 0) elapsedSeconds.toFloat() / totalWorkoutTime.toFloat() else 0f
 
-    // Время для больших цифр (timeToShow)
     val timeToShow = when (uiState.status) {
         is WorkoutState.READY -> totalWorkoutTime
         is WorkoutState.COMPLETED -> 0
-        // Показываем обратный отсчет текущего интервала
         else -> uiState.timeLeft
     }
 
@@ -54,7 +48,7 @@ fun WorkoutScreen(
         else -> "Прошло ${formatDuration(elapsedSeconds)} из ${formatDuration(totalWorkoutTime)}"
     }
 
-    // 3. МЕТА-ДАННЫЕ ДЛЯ TOPBAR (topBarMeta и topBarMetaColor)
+    // 3. МЕТА-ДАННЫЕ ДЛЯ TOPBAR
     val topBarMeta = when (uiState.status) {
         is WorkoutState.READY -> formatDuration(totalWorkoutTime)
         is WorkoutState.RUNNING -> "● ${formatDuration(elapsedSeconds)}"
@@ -88,7 +82,7 @@ fun WorkoutScreen(
 
         TimerCard(
             state = uiState.status,
-            currentIntervalName = workout.intervals.getOrNull(uiState.currentIntervalIndex)?.name ?: "Приготовьтесь",
+            currentIntervalName = currentInterval?.name ?: "Приготовьтесь",
             displayTime = formatDuration(timeToShow),
             totalProgress = totalProgress,
             subText = timerSubText
@@ -104,7 +98,7 @@ fun WorkoutScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // 4. Список интервалов
+        // 4. СПИСОК ИНТЕРВАЛОВ
         LazyColumn(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -122,12 +116,13 @@ fun WorkoutScreen(
                     isActive = index == uiState.currentIntervalIndex,
                     isCompleted = index < uiState.currentIntervalIndex,
                     state = uiState.status,
-                    progress = intervalProgress
+                    progress = intervalProgress,
+                    onClick = { viewModel.nextInterval() }
                 )
             }
         }
 
-        // 5. Подвал управления
+        // 5. ПОДВАЛ УПРАВЛЕНИЯ
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -145,6 +140,7 @@ fun WorkoutScreen(
                         Text("СТАРТ", style = AppTypography.labelMedium)
                     }
                 }
+
                 is WorkoutState.RUNNING -> {
                     Button(
                         onClick = { viewModel.toggleTimer() },
@@ -154,7 +150,16 @@ fun WorkoutScreen(
                     ) {
                         Text("ПАУЗА", style = AppTypography.labelMedium)
                     }
+                    Button(
+                        onClick = { viewModel.nextInterval() },
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = AppPrimary)
+                    ) {
+                        Text("ГОТОВО / СЛЕДУЮЩИЙ", style = AppTypography.labelMedium)
+                    }
                 }
+
                 is WorkoutState.PAUSED -> {
                     Button(
                         onClick = { viewModel.toggleTimer() },
@@ -164,52 +169,32 @@ fun WorkoutScreen(
                     ) {
                         Text("ПРОДОЛЖИТЬ", style = AppTypography.labelMedium)
                     }
-
                     GhostButton(
                         text = "СБРОСИТЬ",
                         onClick = { viewModel.resetWorkout() }
                     )
                 }
-                is WorkoutState.COMPLETED -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 24.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        // 1. Кнопка ЗАПУСТИТЬ ЗАНОВО (Синяя, AppSecondary)
-                        Button(
-                            onClick = {
-                                viewModel.resetWorkout()
-                                viewModel.toggleTimer()
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(52.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = AppSecondary
-                            )
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.Refresh,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
-                                    tint = Color.White
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("ЗАПУСТИТЬ ЗАНОВО", style = AppTypography.labelMedium)
-                            }
-                        }
 
-                        // 2. Кнопка НОВАЯ ТРЕНИРОВКА (Ghost)
-                        GhostButton(
-                            text = "В МЕНЮ",
-                            color = AppTextSecondary,
-                            onClick = { onBackClick() }
-                        )
+                is WorkoutState.COMPLETED -> {
+                    Button(
+                        onClick = {
+                            viewModel.resetWorkout()
+                            viewModel.toggleTimer()
+                        },
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = AppSecondary)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("ЗАПУСТИТЬ ЗАНОВО", style = AppTypography.labelMedium)
+                        }
                     }
+                    GhostButton(
+                        text = "В МЕНЮ",
+                        onClick = onBackClick
+                    )
                 }
             }
         }

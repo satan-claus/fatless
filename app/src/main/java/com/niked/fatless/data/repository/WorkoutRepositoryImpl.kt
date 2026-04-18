@@ -29,24 +29,18 @@ class WorkoutRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getWorkoutById(id: String): Workout? {
-        // 1. Получаем заголовок тренировки
         val entity = dao.getWorkoutById(id) ?: return null
 
-        // 2. Получаем интервалы
         val intervals = dao.getIntervalsForWorkout(id).map {
             Interval(
                 name = it.name,
                 seconds = it.seconds,
-                type = IntervalType.valueOf(it.type)
+                type = IntervalType.valueOf(it.type),
+                reps = it.reps
             )
         }
 
-        // 3. Собираем полную доменную модель
-        return Workout(
-            id = entity.id,
-            title = entity.title,
-            intervals = intervals
-        )
+        return Workout(id = entity.id, title = entity.title, intervals = intervals)
     }
 
     override suspend fun saveWorkout(workout: Workout) {
