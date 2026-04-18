@@ -3,100 +3,100 @@ package com.niked.fatless.ui.component
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.niked.fatless.domain.model.Interval
-import com.niked.fatless.ui.theme.AppBorder
-import com.niked.fatless.ui.theme.AppError
-import com.niked.fatless.ui.theme.AppSurface
-import com.niked.fatless.ui.theme.AppTextPrimary
-import com.niked.fatless.ui.theme.AppTextTertiary
-import com.niked.fatless.ui.theme.AppTypography
+import com.niked.fatless.ui.theme.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditableIntervalRow(
     index: Int,
     interval: Interval,
     onNameChange: (String) -> Unit,
     onSecondsChange: (Int) -> Unit,
+    onRepsChange: (Int?) -> Unit,
     onRemove: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = AppSurface),
-        border = BorderStroke(1.dp, AppBorder)
+        border = BorderStroke(1.dp, AppBorder),
+        colors = CardDefaults.cardColors(containerColor = AppSurface)
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Номер интервала (bodySmall: Roboto 13/1.4 Medium)
-            Text(
-                text = "${index + 1}",
-                style = AppTypography.bodySmall,
-                color = AppTextTertiary,
-                modifier = Modifier.width(28.dp)
-            )
+        Column(modifier = Modifier.padding(12.dp)) {
+            // ВЕРХНИЙ РЯД: Имя и Удаление
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("${index + 1}", style = AppTypography.bodySmall, modifier = Modifier.width(24.dp))
 
-            // Поле названия (через BasicTextField для чистоты)
-            Box(modifier = Modifier.weight(1f)) {
-                BasicTextField(
+                TextField(
                     value = interval.name,
                     onValueChange = onNameChange,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.weight(1f),
+                    placeholder = { Text("Назови эту пытку...", color = AppTextTertiary) },
                     textStyle = AppTypography.bodyLarge.copy(color = AppTextPrimary),
-                    decorationBox = { innerTextField ->
-                        if (interval.name.isEmpty()) {
-                            Text(
-                                text = "Название",
-                                color = AppTextTertiary,
-                                style = AppTypography.bodyLarge
-                            )
-                        }
-                        innerTextField()
-                    }
+                    singleLine = true,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
                 )
+
+                IconButton(onClick = onRemove) {
+                    Icon(Icons.Default.Delete, contentDescription = null, tint = AppError, modifier = Modifier.size(20.dp))
+                }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = AppBorder.copy(alpha = 0.5f))
 
-            // Поле времени (OutlinedTextField для акцента)
-            OutlinedTextField(
-                value = if (interval.seconds == 0) "" else interval.seconds.toString(),
-                onValueChange = { newValue ->
-                    val filtered = newValue.filter { char -> char.isDigit() }
-                    onSecondsChange(if (filtered.isNotEmpty()) filtered.toInt() else 0)
-                },
-                modifier = Modifier.width(75.dp),
-                textStyle = AppTypography.bodySmall,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = AppBorder,
-                    unfocusedBorderColor = AppBorder,
-                    cursorColor = AppTextPrimary
-                )
-            )
+            // НИЖНИЙ РЯД: Настройки времени и повторов
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("ВРЕМЯ:", style = AppTypography.titleSmall, color = AppTextSecondary, modifier = Modifier.width(60.dp))
 
-            // Удаление
-            IconButton(onClick = onRemove) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = null,
-                    tint = AppError,
-                    modifier = Modifier.size(22.dp)
-                )
+                    TimeStepper(
+                        label = "мин",
+                        value = interval.seconds / 60,
+                        onValueChange = { onSecondsChange(it * 60 + (interval.seconds % 60)) },
+                        step = 1
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    TimeStepper(
+                        label = "сек",
+                        value = interval.seconds % 60,
+                        onValueChange = { onSecondsChange((interval.seconds / 60) * 60 + it) },
+                        step = 5,
+                        maxValue = 55
+                    )
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = interval.reps != null,
+                        onCheckedChange = { onRepsChange(if (it) 10 else null) },
+                        colors = CheckboxDefaults.colors(checkedColor = AppOrange)
+                    )
+                    Text("ЦЕЛЬ:", style = AppTypography.titleSmall, color = AppTextSecondary, modifier = Modifier.width(44.dp))
+
+                    if (interval.reps != null) {
+                        TimeStepper(
+                            label = "повт",
+                            value = interval.reps ?: 0,
+                            onValueChange = { onRepsChange(it) },
+                            step = 5,
+                            minValue = 1
+                        )
+                    } else {
+                        Text("только время", style = AppTypography.bodySmall, color = AppTextTertiary)
+                    }
+                }
             }
         }
     }
