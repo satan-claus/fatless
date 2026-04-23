@@ -1,4 +1,4 @@
-package com.niked.fatless.utils
+package com.niked.fatless.core.utils
 
 fun formatDuration(seconds: Int): String {
     val mins = seconds / 60

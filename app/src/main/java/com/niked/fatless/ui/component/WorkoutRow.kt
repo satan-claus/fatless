@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.niked.fatless.domain.model.Workout
 import com.niked.fatless.ui.theme.*
-import com.niked.fatless.utils.formatDuration
+import com.niked.fatless.core.utils.formatDuration
 
 @Composable
 fun WorkoutRow(

@@ -17,7 +17,7 @@ import com.niked.fatless.domain.model.WorkoutState
 import com.niked.fatless.ui.component.*
 import com.niked.fatless.ui.theme.*
 import com.niked.fatless.ui.viewmodel.WorkoutViewModel
-import com.niked.fatless.utils.formatDuration
+import com.niked.fatless.core.utils.formatDuration
 
 @Composable
 fun WorkoutScreen(
