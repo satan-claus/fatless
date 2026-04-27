@@ -9,7 +9,8 @@ data class FoodDiaryEntity(
     val entryId: Long = 0,
     val foodId: String,   // Ссылка на продукт
     val foodName: String, // Дублируем имя на случай удаления продукта из справочника
-    val weightGrams: Int, // Сколько съел (например 300г)
+    val quantity: Int, // Сколько съел (например 300г/шт)
+    val unit: String = "GRAMS",
     val dateTimestamp: Long, // Дата приема пищи
 
     // Посчитанные значения на лету для быстрого суммирования
