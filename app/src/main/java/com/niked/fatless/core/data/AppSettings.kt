@@ -32,7 +32,7 @@ class AppSettings @Inject constructor(
         set(value) = prefs.edit { putBoolean(Constants.PREF_IS_SOUND_ENABLED, value) }
 
     var autoFinishOnGoal: Boolean
-        get() = prefs.getBoolean(Constants.PREF_AUTO_FINISH_ON_GOAL, true) // По умолчанию выключено
+        get() = prefs.getBoolean(Constants.PREF_AUTO_FINISH_ON_GOAL, false) // По умолчанию выключено
         set(value) = prefs.edit { putBoolean(Constants.PREF_AUTO_FINISH_ON_GOAL, value) }
 
     fun clearAll() = prefs.edit { clear() }
