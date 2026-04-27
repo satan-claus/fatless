@@ -1,6 +1,12 @@
 package com.niked.fatless.ui.navigation
 
 sealed class Screen(val route: String) {
+    object FoodCreate : Screen("food_create/{initName}") {
+        fun createRoute(initName: String): String {
+            val encodedName = android.net.Uri.encode(initName)
+            return "food_create/$encodedName"
+        }
+    }
     object Nutrition : Screen(route = "nutrition")
     object Settings : Screen(route = "settings")
     object WorkoutCreate : Screen("workout_create")

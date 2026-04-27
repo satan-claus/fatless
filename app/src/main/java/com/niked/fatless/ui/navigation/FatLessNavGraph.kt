@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.niked.fatless.ui.MainActivity
+import com.niked.fatless.ui.screen.FoodCreateScreen
 import com.niked.fatless.ui.screen.NutritionScreen
 import com.niked.fatless.ui.screen.SettingsScreen
 import com.niked.fatless.ui.screen.WorkoutScreen
@@ -23,9 +24,22 @@ fun FatLessNavGraph() {
         navController = navController,
         startDestination = Screen.Nutrition.route
     ) {
+        composable(
+            route = Screen.FoodCreate.route,
+            arguments = listOf(
+                navArgument("initName") { type = NavType.StringType }
+            )
+        ) {
+            FoodCreateScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
         composable(Screen.Nutrition.route) {
             NutritionScreen(
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                onFoodCreateClick = { name ->
+                    navController.navigate(Screen.FoodCreate.createRoute(name))
+                }
             )
         }
         composable(Screen.Settings.route) {

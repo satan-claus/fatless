@@ -18,18 +18,21 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.niked.fatless.domain.model.Food
 import com.niked.fatless.ui.component.AddFoodDialog
+import com.niked.fatless.ui.component.CreateNewFoodHint
 import com.niked.fatless.ui.component.DiaryItem
 import com.niked.fatless.ui.component.EmptyDiaryHint
 import com.niked.fatless.ui.component.FoodResultItem
 import com.niked.fatless.ui.component.NutrientInfo
 import com.niked.fatless.ui.component.NutritionalValueView
 import com.niked.fatless.ui.component.WorkoutTopBar
+import com.niked.fatless.ui.navigation.Screen
 import com.niked.fatless.ui.theme.*
 import com.niked.fatless.ui.viewmodel.NutritionViewModel
 
 @Composable
 fun NutritionScreen(
     onBackClick: () -> Unit,
+    onFoodCreateClick: (String) -> Unit,
     viewModel: NutritionViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -55,7 +58,9 @@ fun NutritionScreen(
 
         // 2. КРУЖОК (Всегда на виду!)
         Box(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
             contentAlignment = Alignment.Center
         ) {
             NutritionalValueView(
@@ -105,12 +110,25 @@ fun NutritionScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // 4. КОНТЕНТНАЯ ОБЛАСТЬ (Либо поиск, либо дневник)
-        Box(modifier = Modifier.weight(1f).padding(horizontal = 24.dp)) {
+        Box(modifier = Modifier
+            .weight(1f)
+            .padding(horizontal = 24.dp)
+        ) {
             if (isSearching) {
-                // Список результатов поиска
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(searchResults) { food ->
-                        FoodResultItem(food) { selectedFood = food }
+                if (searchResults.isEmpty() && searchQuery.isNotBlank()) {
+                    // Кнопка быстрого создания
+                    CreateNewFoodHint(
+                        query = searchQuery,
+                        // Передаем навигацию на экран создания
+                        onClick = {
+                            onFoodCreateClick(searchQuery)
+                        }
+                    )
+                } else {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(searchResults) { food ->
+                            FoodResultItem(food) { selectedFood = food }
+                        }
                     }
                 }
             } else {
