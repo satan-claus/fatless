@@ -25,7 +25,6 @@ import com.niked.fatless.ui.component.FoodResultItem
 import com.niked.fatless.ui.component.NutrientInfo
 import com.niked.fatless.ui.component.NutritionalValueView
 import com.niked.fatless.ui.component.WorkoutTopBar
-import com.niked.fatless.ui.navigation.Screen
 import com.niked.fatless.ui.theme.*
 import com.niked.fatless.ui.viewmodel.NutritionViewModel
 
@@ -33,6 +32,7 @@ import com.niked.fatless.ui.viewmodel.NutritionViewModel
 fun NutritionScreen(
     onBackClick: () -> Unit,
     onFoodCreateClick: (String) -> Unit,
+    onFoodEditClick: (String) -> Unit,
     viewModel: NutritionViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -127,7 +127,18 @@ fun NutritionScreen(
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(searchResults) { food ->
-                            FoodResultItem(food) { selectedFood = food }
+                            FoodResultItem(
+                                food = food,
+                                onClick = { selectedFood = food }, // Открывает диалог ввода веса
+                                onEditClick = {
+                                    // Вызываем переход на экран редактирования
+                                    onFoodEditClick(food.id)
+                                },
+                                onDeleteClick = {
+                                    // Вызываем удаление из репозитория через ViewModel
+                                    viewModel.deleteProductFromLibrary(food.id)
+                                }
+                            )
                         }
                     }
                 }

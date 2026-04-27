@@ -49,7 +49,7 @@ import com.niked.fatless.ui.viewmodel.FoodCreateViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun FoodCreateScreen(
+fun FoodFormScreen(
     onBackClick: () -> Unit,
     viewModel: FoodCreateViewModel = hiltViewModel()
 ) {
@@ -96,7 +96,7 @@ fun FoodCreateScreen(
                 modifier = Modifier.padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                MeasureUnit.values().forEach { unit ->
+                MeasureUnit.entries.forEach { unit ->
                     FilterChip(
                         selected = state.unit == unit,
                         onClick = { viewModel.updateUnit(unit) },

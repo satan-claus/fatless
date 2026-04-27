@@ -9,6 +9,10 @@ interface INutritionRepository {
     fun searchProducts(query: String): Flow<List<Food>>
     suspend fun addProductToLibrary(food: Food)
 
+    suspend fun getProductById(id: String): Food?
+
+    suspend fun deleteProductFromLibrary(id: String)
+
     // Работа с дневником
     fun getDiaryForToday(): Flow<List<MealEntry>>
     suspend fun addMeal(food: Food, weightGrams: Int)

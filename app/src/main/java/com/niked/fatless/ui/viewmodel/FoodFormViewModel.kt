@@ -20,13 +20,33 @@ class FoodCreateViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    // Достаем имя, которое прилетело из поиска
+    // Подхватываем либо имя из поиска, либо ID для редактирования
+    private val foodId: String? = savedStateHandle["foodId"]
     private val initName: String = savedStateHandle["initName"] ?: ""
 
     private val _uiState = MutableStateFlow(FoodCreateUiState(name = initName))
     val uiState = _uiState.asStateFlow()
 
     val categories = listOf("Общее", "Мясо", "Овощи", "Фрукты", "Гарниры", "Напитки", "Десерты")
+
+    init {
+        // Если мы в режиме редактирования — загружаем данные
+        foodId?.let { id ->
+            viewModelScope.launch {
+                repository.getProductById(id)?.let { food ->
+                    _uiState.update { it.copy(
+                        name = food.name,
+                        proteins = food.proteins.toString(),
+                        fats = food.fats.toString(),
+                        carbs = food.carbs.toString(),
+                        calories = food.calories.toString(),
+                        category = food.category,
+                        unit = food.unit
+                    ) }
+                }
+            }
+        }
+    }
 
     fun updateName(v: String) = _uiState.update { it.copy(name = v) }
     fun updateProteins(v: String) = _uiState.update { it.copy(proteins = v) }
@@ -41,7 +61,7 @@ class FoodCreateViewModel @Inject constructor(
         if (state.name.isBlank()) return
 
         val food = Food(
-            id = UUID.randomUUID().toString(),
+            id = foodId ?: UUID.randomUUID().toString(), // Если редактируем — ID сохраняем!
             name = state.name,
             proteins = state.proteins.replace(",", ".").toFloatOrNull() ?: 0f,
             fats = state.fats.replace(",", ".").toFloatOrNull() ?: 0f,
@@ -53,7 +73,7 @@ class FoodCreateViewModel @Inject constructor(
         )
 
         viewModelScope.launch {
-            repository.addProductToLibrary(food)
+            repository.addProductToLibrary(food) // Room сам сделает Update по ID
             onSuccess()
         }
     }

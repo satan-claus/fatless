@@ -8,7 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.niked.fatless.ui.MainActivity
-import com.niked.fatless.ui.screen.FoodCreateScreen
+import com.niked.fatless.ui.screen.FoodFormScreen
 import com.niked.fatless.ui.screen.NutritionScreen
 import com.niked.fatless.ui.screen.SettingsScreen
 import com.niked.fatless.ui.screen.WorkoutScreen
@@ -25,20 +25,32 @@ fun FatLessNavGraph() {
         startDestination = Screen.Nutrition.route
     ) {
         composable(
-            route = Screen.FoodCreate.route,
+            route = Screen.FoodForm.route,
             arguments = listOf(
-                navArgument("initName") { type = NavType.StringType }
+                navArgument("initName") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("foodId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
             )
         ) {
-            FoodCreateScreen(
-                onBackClick = { navController.popBackStack() }
-            )
+            FoodFormScreen(onBackClick = { navController.popBackStack() })
         }
         composable(Screen.Nutrition.route) {
             NutritionScreen(
                 onBackClick = { navController.popBackStack() },
+                // Переход на создание (передаем имя)
                 onFoodCreateClick = { name ->
-                    navController.navigate(Screen.FoodCreate.createRoute(name))
+                    navController.navigate(Screen.FoodForm.createForNew(name))
+                },
+                // Переход на редактирование (передаем ID)
+                onFoodEditClick = { id ->
+                    navController.navigate(Screen.FoodForm.createForEdit(id))
                 }
             )
         }
