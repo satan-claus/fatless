@@ -25,4 +25,7 @@ interface FoodDao {
     // ПОЛУЧИТЬ КБЖУ ЗА ДЕНЬ (Для нашего кружка)
     @Query("SELECT * FROM food_diary WHERE dateTimestamp BETWEEN :startOfDay AND :endOfDay")
     fun getDiaryEntriesForDay(startOfDay: Long, endOfDay: Long): Flow<List<FoodDiaryEntity>>
+
+    @Query("DELETE FROM food_diary WHERE entryId = :id")
+    suspend fun deleteDiaryEntryById(id: Long)
 }
