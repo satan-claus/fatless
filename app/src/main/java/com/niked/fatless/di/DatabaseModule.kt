@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.niked.fatless.data.local.AppDatabase
 import com.niked.fatless.data.local.dao.WorkoutDao
-import com.niked.fatless.utils.Constants
+import com.niked.fatless.core.utils.Constants
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

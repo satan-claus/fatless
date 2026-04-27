@@ -1,15 +1,15 @@
 package com.niked.fatless.data.repository
 
 import com.niked.fatless.data.local.dao.WorkoutDao
-import com.niked.fatless.data.local.entities.IntervalEntity
 import com.niked.fatless.data.local.entities.WorkoutEntity
+import com.niked.fatless.data.mapper.toDomain
+import com.niked.fatless.data.mapper.toEntity
 import com.niked.fatless.domain.model.Interval
 import com.niked.fatless.domain.model.IntervalType
 import com.niked.fatless.domain.model.Workout
 import com.niked.fatless.domain.repository.IWorkoutRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.util.UUID
 import javax.inject.Inject
 
 class WorkoutRepositoryImpl @Inject constructor(
@@ -31,14 +31,7 @@ class WorkoutRepositoryImpl @Inject constructor(
     override suspend fun getWorkoutById(id: String): Workout? {
         val entity = dao.getWorkoutById(id) ?: return null
 
-        val intervals = dao.getIntervalsForWorkout(id).map {
-            Interval(
-                name = it.name,
-                seconds = it.seconds,
-                type = IntervalType.valueOf(it.type),
-                reps = it.reps
-            )
-        }
+        val intervals = dao.getIntervalsForWorkout(id).map { it.toDomain() }
 
         return Workout(id = entity.id, title = entity.title, intervals = intervals)
     }
@@ -48,14 +41,7 @@ class WorkoutRepositoryImpl @Inject constructor(
 
         // Генерируем сущности интервалов с привязкой к ID тренировки
         val intervalEntities = workout.intervals.mapIndexed { index, interval ->
-            IntervalEntity(
-                id = UUID.randomUUID().toString(),
-                workoutId = workout.id,
-                name = interval.name,
-                seconds = interval.seconds,
-                type = interval.type.name, // Храним Enum как String
-                sortOrder = index
-            )
+            interval.toEntity(workout.id, index)
         }
 
         dao.insertWorkout(workoutEntity)

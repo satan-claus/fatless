@@ -32,11 +32,16 @@ class WorkoutCreateViewModel @Inject constructor(
         _uiState.update { it.copy(intervals = it.intervals + newInterval) }
     }
 
-    fun updateInterval(index: Int, name: String, seconds: Int, reps: Int? = null) {
+    fun updateInterval(index: Int, name: String, seconds: Int, reps: Int?, trackSteps: Boolean) {
         _uiState.update { state ->
             val newList = state.intervals.toMutableList()
             if (index in newList.indices) {
-                newList[index] = newList[index].copy(name = name, seconds = seconds, reps = reps)
+                newList[index] = newList[index].copy(
+                    name = name,
+                    seconds = seconds,
+                    reps = reps,
+                    trackSteps = trackSteps
+                )
             }
             state.copy(intervals = newList)
         }

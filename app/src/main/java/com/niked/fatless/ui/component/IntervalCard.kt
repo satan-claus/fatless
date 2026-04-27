@@ -2,10 +2,18 @@ package com.niked.fatless.ui.component
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,10 +25,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.niked.fatless.core.utils.formatDuration
 import com.niked.fatless.domain.model.Interval
 import com.niked.fatless.domain.model.WorkoutState
-import com.niked.fatless.ui.theme.*
-import com.niked.fatless.utils.formatDuration
+import com.niked.fatless.ui.theme.AppBackground
+import com.niked.fatless.ui.theme.AppOrange
+import com.niked.fatless.ui.theme.AppOrangeLight
+import com.niked.fatless.ui.theme.AppPrimary
+import com.niked.fatless.ui.theme.AppPrimaryLight
+import com.niked.fatless.ui.theme.AppSecondary
+import com.niked.fatless.ui.theme.AppSurface
+import com.niked.fatless.ui.theme.AppTextPrimary
+import com.niked.fatless.ui.theme.AppTextSecondary
+import com.niked.fatless.ui.theme.AppTextTertiary
+import com.niked.fatless.ui.theme.AppTypography
 
 @Composable
 fun IntervalCard(
@@ -30,19 +48,15 @@ fun IntervalCard(
     isCompleted: Boolean,
     state: WorkoutState,
     progress: Float,
+    stateSteps: Int,
     onClick: () -> Unit = {}
 ) {
     val isPaused = state is WorkoutState.PAUSED
     val isAllDone = state is WorkoutState.COMPLETED
 
-    // Активен ли визуально этот интервал (с бордером и закраской)
     val showAsActive = isActive && !isAllDone
-
-    // Цвета (Оранж на паузе, Зеленый в работе)
     val activeColor = if (isPaused) AppOrange else AppPrimary
     val activeLightColor = if (isPaused) AppOrangeLight else AppPrimaryLight
-
-    // Бледность для пройденных или если всё закончилось
     val containerAlpha = if (isCompleted || isAllDone) 0.55f else 1f
 
     Surface(
@@ -58,7 +72,6 @@ fun IntervalCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .drawBehind {
-                    // Рисуем заполнение фона прогрессом
                     if (showAsActive && progress > 0f) {
                         drawRect(
                             color = activeLightColor,
@@ -103,7 +116,7 @@ fun IntervalCard(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                // 2. Название + Цель (Повторы)
+                // 2. Название + Цель (Повторы) + ШАГИ
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = interval.name,
@@ -112,13 +125,25 @@ fun IntervalCard(
                         textDecoration = if (isCompleted || isAllDone) TextDecoration.LineThrough else null
                     )
 
-                    // Если заданы повторы — показываем их второй строчкой
+                    // СИЛОВАЯ ЦЕЛЬ (Повторы)
                     if (interval.reps != null && interval.reps > 0) {
                         Text(
                             text = "Цель: ${interval.reps} повт.",
                             style = AppTypography.bodySmall,
                             color = if (showAsActive) activeColor else AppOrange,
                             fontWeight = FontWeight.Medium
+                        )
+                    }
+
+                    // КАРДИО ЦЕЛЬ (Шаги в реальном времени)
+                    if (interval.trackSteps) {
+                        // Показываем шаги только если интервал активен, иначе 0
+                        val currentSteps = if (isActive) stateSteps else 0
+                        Text(
+                            text = "Шаги: $currentSteps",
+                            style = AppTypography.bodySmall,
+                            color = if (showAsActive) AppSecondary else AppTextTertiary,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }

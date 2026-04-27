@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import com.niked.fatless.data.local.dao.WorkoutDao
 import com.niked.fatless.data.local.entities.IntervalEntity
 import com.niked.fatless.data.local.entities.WorkoutEntity
-import com.niked.fatless.utils.Constants.DATABASE_VERSION
+import com.niked.fatless.core.utils.Constants.DATABASE_VERSION
 
 @Database(
     entities = [

@@ -21,6 +21,7 @@ fun EditableIntervalRow(
     onNameChange: (String) -> Unit,
     onSecondsChange: (Int) -> Unit,
     onRepsChange: (Int?) -> Unit,
+    onTrackStepsChange: (Boolean) -> Unit,
     onRemove: () -> Unit
 ) {
     Card(
@@ -58,6 +59,7 @@ fun EditableIntervalRow(
 
             // НИЖНИЙ РЯД: Настройки времени и повторов
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                // 1. ВРЕМЯ
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("ВРЕМЯ:", style = AppTypography.titleSmall, color = AppTextSecondary, modifier = Modifier.width(60.dp))
 
@@ -77,6 +79,7 @@ fun EditableIntervalRow(
                     )
                 }
 
+                // 2. ПОВТОРЫ (СИЛОВАЯ ЦЕЛЬ)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
                         checked = interval.reps != null,
@@ -96,6 +99,22 @@ fun EditableIntervalRow(
                     } else {
                         Text("только время", style = AppTypography.bodySmall, color = AppTextTertiary)
                     }
+                }
+
+                // 3. ШАГОМЕР (КАРДИО ЦЕЛЬ)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = interval.trackSteps,
+                        onCheckedChange = { onTrackStepsChange(it) },
+                        colors = CheckboxDefaults.colors(checkedColor = AppSecondary)
+                    )
+                    Text("ШАГИ:", style = AppTypography.titleSmall, color = AppTextSecondary, modifier = Modifier.width(44.dp))
+
+                    Text(
+                        text = if (interval.trackSteps) "активно" else "выключено",
+                        style = AppTypography.bodySmall,
+                        color = if (interval.trackSteps) AppSecondary else AppTextTertiary
+                    )
                 }
             }
         }
