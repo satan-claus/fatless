@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,6 +18,7 @@ import com.niked.fatless.ui.component.WorkoutRow
 import com.niked.fatless.ui.theme.AppBackground
 import com.niked.fatless.ui.theme.AppError
 import com.niked.fatless.ui.theme.AppPrimary
+import com.niked.fatless.ui.theme.AppTextSecondary
 import com.niked.fatless.ui.viewmodel.WorkoutListUiState
 import com.niked.fatless.ui.viewmodel.WorkoutListViewModel
 
@@ -23,6 +26,8 @@ import com.niked.fatless.ui.viewmodel.WorkoutListViewModel
 fun WorkoutListScreen(
     onWorkoutClick: (String) -> Unit,
     onAddWorkoutClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+    onExitClick: () -> Unit,
     viewModel: WorkoutListViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -31,9 +36,7 @@ fun WorkoutListScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(AppBackground)
-            .statusBarsPadding()
             .navigationBarsPadding()
-            .padding(horizontal = 24.dp)
     ) {
         // Верхняя панель (subTitle меняется в зависимости от стейта)
         WorkoutTopBar(
@@ -41,13 +44,28 @@ fun WorkoutListScreen(
             subTitle = if (state is WorkoutListUiState.Success) {
                 "${(state as WorkoutListUiState.Success).workouts.size} наборов"
             } else "",
-            onBackClick = { /* На главном экране назад не идем */ }
+            onBackClick = onExitClick,
+            actions = {
+                IconButton(onClick = { onSettingsClick() }) {
+                    // Используем стандартную шестеренку
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = null,
+                        tint = AppTextSecondary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         // Основной контент
-        Box(modifier = Modifier.weight(1f)) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 24.dp)
+        ) {
             when (val s = state) {
                 is WorkoutListUiState.Loading -> {
                     CircularProgressIndicator(
@@ -92,6 +110,7 @@ fun WorkoutListScreen(
             onClick = onAddWorkoutClick,
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(horizontal = 24.dp)
                 .padding(vertical = 24.dp)
                 .height(52.dp),
             shape = RoundedCornerShape(12.dp),
