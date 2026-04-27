@@ -17,6 +17,26 @@ class StepService : Service(), SensorEventListener {
 
     @Inject lateinit var settings: AppSettings
     private lateinit var sensorManager: SensorManager
+    private var lastTotalSteps = 0 // Храним последнее значение датчика
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == "ACTION_REFRESH_NOTIFICATION") {
+            // Если пришла команда на сброс - принудительно обновляем
+            refreshCounters()
+        }
+        return START_STICKY
+    }
+
+    private fun refreshCounters() {
+        if (lastTotalSteps == 0) return
+
+        // Считаем актуальные цифры
+        val daily = lastTotalSteps - settings.stepBaseCount
+        if (settings.manualBaseSteps == -1) settings.manualBaseSteps = lastTotalSteps
+        val manual = lastTotalSteps - settings.manualBaseSteps
+
+        updateNotification(daily, manual)
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -30,24 +50,23 @@ class StepService : Service(), SensorEventListener {
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER && event.values.isNotEmpty()) {
-            val totalSteps = event.values[0].toInt()
+            lastTotalSteps = event.values[0].toInt()
+
             val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
-            // 1. Суточный счетчик
+            // 1. Если наступил новый день — сбрасываем базу
             if (settings.lastStepResetDate != today) {
-                settings.stepBaseCount = totalSteps
+                settings.stepBaseCount = lastTotalSteps
                 settings.lastStepResetDate = today
             }
-            if (settings.stepBaseCount == -1) settings.stepBaseCount = totalSteps
-            val dailySteps = totalSteps - settings.stepBaseCount
 
-            // 2. Ручной замер
-            if (settings.manualBaseSteps == -1) {
-                settings.manualBaseSteps = totalSteps
+            // 2. КРИТИЧНО: Если это вообще самый первый запуск (база еще -1)
+            if (settings.stepBaseCount == -1) {
+                settings.stepBaseCount = lastTotalSteps
             }
-            val manualSteps = totalSteps - settings.manualBaseSteps
 
-            updateNotification(dailySteps, manualSteps)
+            // Вся остальная логика (расчет daily, manual и апдейт шторки) теперь тут:
+            refreshCounters()
         }
     }
 
