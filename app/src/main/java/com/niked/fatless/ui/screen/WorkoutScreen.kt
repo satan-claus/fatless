@@ -117,6 +117,7 @@ fun WorkoutScreen(
                     isCompleted = index < uiState.currentIntervalIndex,
                     state = uiState.status,
                     progress = intervalProgress,
+                    stateSteps = uiState.currentIntervalSteps,
                     onClick = { viewModel.nextInterval() }
                 )
             }

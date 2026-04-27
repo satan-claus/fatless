@@ -29,6 +29,8 @@ data class IntervalEntity(
     val type: String,
     // Цель по повторениям (новое поле)
     val reps: Int? = null,
+    // Считать шаги в этом интервале
+    val trackSteps: Boolean = false,
     // Порядок сортировки в списке
     val sortOrder: Int
 )

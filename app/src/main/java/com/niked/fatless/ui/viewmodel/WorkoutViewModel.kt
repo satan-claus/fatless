@@ -7,6 +7,7 @@ import com.niked.fatless.domain.model.Workout
 import com.niked.fatless.domain.model.WorkoutState
 import com.niked.fatless.domain.player.IAudioPlayer
 import com.niked.fatless.domain.repository.IWorkoutRepository
+import com.niked.fatless.core.sensor.StepTracker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -21,7 +22,8 @@ import javax.inject.Inject
 class WorkoutViewModel @Inject constructor(
     private val repository: IWorkoutRepository,
     savedStateHandle: SavedStateHandle,
-    private val audioPlayer: IAudioPlayer
+    private val audioPlayer: IAudioPlayer,
+    private val stepTracker: StepTracker
 ) : ViewModel() {
 
     private val workoutId: String = checkNotNull(savedStateHandle["workoutId"])
@@ -33,6 +35,13 @@ class WorkoutViewModel @Inject constructor(
 
     init {
         loadWorkout()
+
+        // Слушаем шаги от датчика в реальном времени и обновляем стейт
+        viewModelScope.launch {
+            stepTracker.intervalSteps.collect { steps ->
+                _uiState.update { it.copy(currentIntervalSteps = steps) }
+            }
+        }
     }
 
     private fun loadWorkout() {
@@ -56,12 +65,19 @@ class WorkoutViewModel @Inject constructor(
 
     private fun startTimer() {
         _uiState.update { it.copy(status = WorkoutState.RUNNING) }
+
+        // Если в текущем интервале нужно считать шаги — запускаем датчик
+        val currentInterval = _uiState.value.workout?.intervals?.getOrNull(_uiState.value.currentIntervalIndex)
+        if (currentInterval?.trackSteps == true) {
+            stepTracker.startSession()
+        }
+
         timerJob = viewModelScope.launch {
             while (isActive && _uiState.value.status is WorkoutState.RUNNING) {
                 delay(1000L)
 
                 if (_uiState.value.timeLeft > 0) {
-                    _uiState.update { it.copy(timeLeft = it.timeLeft - 1) }
+                    _uiState.update { it.copy(timeLeft = _uiState.value.timeLeft - 1) }
 
                     // Звуковой отсчет 3, 2, 1
                     if (_uiState.value.timeLeft in 1..3) {
@@ -78,21 +94,26 @@ class WorkoutViewModel @Inject constructor(
 
     private fun pauseTimer() {
         timerJob?.cancel()
+        // На паузе шагомер тоже должен замереть
+        stepTracker.stopSession()
         _uiState.update { it.copy(status = WorkoutState.PAUSED) }
     }
 
-    // Ручной переход на следующий интервал (Кнопка "ГОТОВО")
     fun nextInterval() {
         val wasRunning = _uiState.value.status is WorkoutState.RUNNING
         timerJob?.cancel()
         switchToNextInterval()
-        // Если до этого бежали и не закончили тренировку — бежим дальше автоматически
         if (wasRunning && _uiState.value.status !is WorkoutState.COMPLETED) {
             startTimer()
         }
     }
 
     private fun switchToNextInterval() {
+        // 1. Гасим датчик
+        stepTracker.stopSession()
+        // 2. СБРАСЫВАЕМ счетчик в трекере до нуля для следующего круга
+        stepTracker.resetSession()
+
         val state = _uiState.value
         val nextIndex = state.currentIntervalIndex + 1
         val intervals = state.workout?.intervals ?: return
@@ -101,21 +122,34 @@ class WorkoutViewModel @Inject constructor(
             audioPlayer.playNext()
             _uiState.update { it.copy(
                 currentIntervalIndex = nextIndex,
-                timeLeft = intervals[nextIndex].seconds
+                timeLeft = intervals[nextIndex].seconds,
+                // currentIntervalSteps = 0 больше не нужно писать вручную,
+                // оно прилетит из stepTracker.resetSession() через collect
             ) }
         } else {
             audioPlayer.playFinish()
-            _uiState.update { it.copy(status = WorkoutState.COMPLETED, timeLeft = 0) }
+            _uiState.update { it.copy(
+                status = WorkoutState.COMPLETED,
+                timeLeft = 0
+            ) }
             timerJob?.cancel()
         }
     }
 
     fun resetWorkout() {
+        // 1. Убиваем таймер
         timerJob?.cancel()
+
+        // 2. ОСТАНАВЛИВАЕМ И СБРАСЫВАЕМ ШАГОМЕР
+        stepTracker.stopSession()
+        stepTracker.resetSession()
+
+        // 3. Откатываем всё к первому интервалу
         val firstIntervalSeconds = _uiState.value.workout?.intervals?.firstOrNull()?.seconds ?: 0
         _uiState.update { it.copy(
             currentIntervalIndex = 0,
             timeLeft = firstIntervalSeconds,
+            currentIntervalSteps = 0, // Зачищаем UI
             status = WorkoutState.READY
         ) }
     }
@@ -123,6 +157,7 @@ class WorkoutViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         timerJob?.cancel()
+        stepTracker.stopSession()
         audioPlayer.release()
     }
 }
@@ -130,6 +165,7 @@ class WorkoutViewModel @Inject constructor(
 data class WorkoutUiState(
     val workout: Workout? = null,
     val currentIntervalIndex: Int = 0,
-    val timeLeft: Int = 0, // Остаток времени в ТЕКУЩЕМ интервале
+    val timeLeft: Int = 0,
+    val currentIntervalSteps: Int = 0, // Поле для отображения шагов на карточке
     val status: WorkoutState = WorkoutState.READY
 )

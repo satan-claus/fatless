@@ -114,16 +114,20 @@ fun WorkoutCreateScreen(
                     index = index,
                     interval = interval,
                     onNameChange = { name ->
-                        // Передаем текущие секунды и текущие репсы
-                        viewModel.updateInterval(index, name, interval.seconds, interval.reps)
+                        // Передаем имя, текущие секунды, репсы и ШАГИ
+                        viewModel.updateInterval(index, name, interval.seconds, interval.reps, interval.trackSteps)
                     },
                     onSecondsChange = { secs ->
-                        // Передаем новое время и текущие репсы
-                        viewModel.updateInterval(index, interval.name, secs, interval.reps)
+                        // Передаем текущее имя, новые секунды, репсы и ШАГИ
+                        viewModel.updateInterval(index, interval.name, secs, interval.reps, interval.trackSteps)
                     },
                     onRepsChange = { newReps ->
-                        // Передаем текущее время и новые репсы
-                        viewModel.updateInterval(index, interval.name, interval.seconds, newReps)
+                        // Передаем текущее имя, секунды, новые репсы и ШАГИ
+                        viewModel.updateInterval(index, interval.name, interval.seconds, newReps, interval.trackSteps)
+                    },
+                    // НОВЫЙ КОЛБЭК: меняем только флаг шагов
+                    onTrackStepsChange = { isEnabled ->
+                        viewModel.updateInterval(index, interval.name, interval.seconds, interval.reps, isEnabled)
                     },
                     onRemove = { viewModel.removeInterval(index) }
                 )

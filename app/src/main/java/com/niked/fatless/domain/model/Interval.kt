@@ -2,7 +2,10 @@ package com.niked.fatless.domain.model
 
 data class Interval(
     val name: String,
-    val seconds: Int,      // Жесткое время (таймер идет вниз)
+    // Жесткое время (таймер идет вниз)
+    val seconds: Int,
     val type: IntervalType,
-    val reps: Int? = null  // Цель по количеству (например, 50)
+    // Цель по количеству (например, 50)
+    val reps: Int? = null,
+    val trackSteps: Boolean = false
 )
