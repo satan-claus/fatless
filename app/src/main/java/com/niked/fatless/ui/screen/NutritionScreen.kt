@@ -7,11 +7,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.niked.fatless.domain.model.Food
@@ -19,6 +21,7 @@ import com.niked.fatless.ui.component.AddFoodDialog
 import com.niked.fatless.ui.component.DiaryItem
 import com.niked.fatless.ui.component.EmptyDiaryHint
 import com.niked.fatless.ui.component.FoodResultItem
+import com.niked.fatless.ui.component.NutrientInfo
 import com.niked.fatless.ui.component.NutritionalValueView
 import com.niked.fatless.ui.component.WorkoutTopBar
 import com.niked.fatless.ui.theme.*
@@ -64,6 +67,20 @@ fun NutritionScreen(
             )
         }
 
+        // Инфо-колонка для отображения цифр
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            NutrientInfo(label = "Белки", value = uiState.totalProteins, color = ColorProteins)
+            NutrientInfo(label = "Жиры", value = uiState.totalFats, color = ColorFats)
+            NutrientInfo(label = "Угли", value = uiState.totalCarbs, color = ColorCarbohydrates)
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
         // 3. ПОЛЕ ПОИСКА (Джон начинает писать — список внизу меняется)
         OutlinedTextField(
             value = searchQuery,
@@ -103,8 +120,34 @@ fun NutritionScreen(
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         item { Text("СЕГОДНЯ:", style = AppTypography.labelMedium, color = AppPrimary) }
-                        items(diaryEntries) { entry ->
-                            DiaryItem(entry) { viewModel.deleteMeal(entry.id) }
+                        items(diaryEntries, key = { it.id }) { entry ->
+                            val dismissState = rememberSwipeToDismissBoxState(
+                                confirmValueChange = { value ->
+                                    if (value == SwipeToDismissBoxValue.EndToStart) {
+                                        viewModel.deleteMeal(entry.id)
+                                        true
+                                    } else false
+                                }
+                            )
+
+                            SwipeToDismissBox(
+                                state = dismissState,
+                                enableDismissFromStartToEnd = false,
+                                backgroundContent = {
+                                    val color = if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) AppError else Color.Transparent
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(color, RoundedCornerShape(12.dp))
+                                            .padding(horizontal = 20.dp),
+                                        contentAlignment = Alignment.CenterEnd
+                                    ) {
+                                        Icon(Icons.Default.Delete, contentDescription = null, tint = Color.White)
+                                    }
+                                }
+                            ) {
+                                DiaryItem(entry) { viewModel.deleteMeal(entry.id) }
+                            }
                         }
                     }
                 }
