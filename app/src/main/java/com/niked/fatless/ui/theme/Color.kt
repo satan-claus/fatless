@@ -21,3 +21,8 @@ val AppError = Color(0xFFDC3545)          // --error
 
 // Прозрачности для границ и заливок
 val AppBorder = Color(0x14000000)          // --border (8% black)
+
+val ColorProteins = Color(0xFF4CAF50) // Зеленый (Белки)
+val ColorFats = Color(0xFFFFC107)     // Желтый (Жиры)
+val ColorCarbohydrates = Color(0xFFF44336) // Красный (Углеводы)
+val ColorCalories = Color(0xFF2196F3) // Синий (Центр/Калории)
