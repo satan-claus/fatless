@@ -1,6 +1,8 @@
 package com.niked.fatless.di
 
+import com.niked.fatless.data.repository.NutritionRepositoryImpl
 import com.niked.fatless.data.repository.WorkoutRepositoryImpl
+import com.niked.fatless.domain.repository.INutritionRepository
 import com.niked.fatless.domain.repository.IWorkoutRepository
 import dagger.Binds
 import dagger.Module
@@ -11,6 +13,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindNutritionRepository(
+        nutritionRepositoryImpl: NutritionRepositoryImpl
+    ): INutritionRepository
 
     @Binds
     @Singleton
