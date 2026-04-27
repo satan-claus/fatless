@@ -50,7 +50,7 @@ fun DiaryItem(
                     color = AppTextPrimary
                 )
                 Text(
-                    text = "${entry.weightGrams}г | ${entry.totalCalories} кКал",
+                    text = "${entry.quantity} ${entry.unit.label} | ${entry.totalCalories} кКал",
                     style = AppTypography.bodySmall,
                     color = AppTextSecondary
                 )

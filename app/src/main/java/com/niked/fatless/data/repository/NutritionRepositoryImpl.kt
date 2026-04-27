@@ -26,6 +26,14 @@ class NutritionRepositoryImpl @Inject constructor(
         foodDao.insertProduct(food.toEntity())
     }
 
+    override suspend fun getProductById(id: String): Food? {
+        return foodDao.getProductById(id)?.toDomain()
+    }
+
+    override suspend fun deleteProductFromLibrary(id: String) {
+        foodDao.deleteProductById(id)
+    }
+
     override fun getDiaryForToday(): Flow<List<MealEntry>> {
         val calendar = Calendar.getInstance()
         calendar.set(Calendar.HOUR_OF_DAY, 0)

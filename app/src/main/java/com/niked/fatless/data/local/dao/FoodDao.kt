@@ -18,6 +18,12 @@ interface FoodDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProduct(product: FoodEntity)
 
+    @Query("SELECT * FROM food_items WHERE id = :id")
+    suspend fun getProductById(id: String): FoodEntity?
+
+    @Query("DELETE FROM food_items WHERE id = :id")
+    suspend fun deleteProductById(id: String)
+
     // ЗАПИСЬ В ДНЕВНИК
     @Insert
     suspend fun insertDiaryEntry(entry: FoodDiaryEntity)

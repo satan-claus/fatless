@@ -1,6 +1,10 @@
 package com.niked.fatless.ui.navigation
 
 sealed class Screen(val route: String) {
+    object FoodForm : Screen("food_form?initName={initName}&foodId={foodId}") {
+        fun createForNew(name: String) = "food_form?initName=${android.net.Uri.encode(name)}"
+        fun createForEdit(id: String) = "food_form?foodId=$id"
+    }
     object Nutrition : Screen(route = "nutrition")
     object Settings : Screen(route = "settings")
     object WorkoutCreate : Screen("workout_create")

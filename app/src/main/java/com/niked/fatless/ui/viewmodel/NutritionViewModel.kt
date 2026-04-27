@@ -59,6 +59,12 @@ class NutritionViewModel @Inject constructor(
             repository.deleteMeal(entryId)
         }
     }
+
+    fun deleteProductFromLibrary(id: String) {
+        viewModelScope.launch {
+            repository.deleteProductFromLibrary(id)
+        }
+    }
 }
 
 data class NutritionUiState(
