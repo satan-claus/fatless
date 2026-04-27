@@ -1,6 +1,7 @@
 package com.niked.fatless.ui.navigation
 
 sealed class Screen(val route: String) {
+    object Nutrition : Screen(route = "nutrition")
     object Settings : Screen(route = "settings")
     object WorkoutCreate : Screen("workout_create")
     object WorkoutList : Screen("workout_list")
