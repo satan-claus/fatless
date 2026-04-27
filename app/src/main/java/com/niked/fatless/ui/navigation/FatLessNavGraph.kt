@@ -8,12 +8,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.niked.fatless.ui.MainActivity
+import com.niked.fatless.ui.screen.DashboardScreen
 import com.niked.fatless.ui.screen.FoodFormScreen
 import com.niked.fatless.ui.screen.NutritionScreen
 import com.niked.fatless.ui.screen.SettingsScreen
 import com.niked.fatless.ui.screen.WorkoutScreen
 import com.niked.fatless.ui.screen.WorkoutCreateScreen
-import com.niked.fatless.ui.screen.WorkoutListScreen
 
 @Composable
 fun FatLessNavGraph() {
@@ -22,8 +22,27 @@ fun FatLessNavGraph() {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Nutrition.route
+        startDestination = Screen.Dashboard.route
     ) {
+        // Dashboard - главный экран
+        composable(Screen.Dashboard.route) {
+            DashboardScreen(
+                onWorkoutClick = { id ->
+                    navController.navigate(Screen.WorkoutTimer.createRoute(id))
+                },
+                onAddWorkoutClick = {
+                    navController.navigate(Screen.WorkoutCreate.route)
+                },
+                onSettingsClick = {
+                    navController.navigate(Screen.Settings.route)
+                },
+                onExitClick = {
+                    (context as? MainActivity)?.minimizeApp()
+                },
+                onNutritionClick = { navController.navigate(Screen.Nutrition.route) }
+            )
+        }
+        // Экран добавления/удаления/редактирования справочника продуктов
         composable(
             route = Screen.FoodForm.route,
             arguments = listOf(
@@ -41,6 +60,7 @@ fun FatLessNavGraph() {
         ) {
             FoodFormScreen(onBackClick = { navController.popBackStack() })
         }
+        // Экран "Дневник питания"
         composable(Screen.Nutrition.route) {
             NutritionScreen(
                 onBackClick = { navController.popBackStack() },
@@ -54,6 +74,7 @@ fun FatLessNavGraph() {
                 }
             )
         }
+        // Экран настроек
         composable(Screen.Settings.route) {
             SettingsScreen(
                 onBackClick = { navController.popBackStack() }
@@ -63,23 +84,6 @@ fun FatLessNavGraph() {
         composable(Screen.WorkoutCreate.route) {
             WorkoutCreateScreen(
                 onBackClick = { navController.popBackStack() }
-            )
-        }
-        // Список тренировок
-        composable(Screen.WorkoutList.route) {
-            WorkoutListScreen(
-                onWorkoutClick = { id ->
-                    navController.navigate(Screen.WorkoutTimer.createRoute(id))
-                },
-                onAddWorkoutClick = {
-                    navController.navigate(Screen.WorkoutCreate.route)
-                },
-                onSettingsClick = {
-                    navController.navigate(Screen.Settings.route)
-                },
-                onExitClick = {
-                    (context as? MainActivity)?.minimizeApp()
-                }
             )
         }
         // Сам таймер (Процесс)
