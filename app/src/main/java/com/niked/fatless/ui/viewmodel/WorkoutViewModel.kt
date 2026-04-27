@@ -3,6 +3,7 @@ package com.niked.fatless.ui.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.niked.fatless.core.data.AppSettings
 import com.niked.fatless.domain.model.Workout
 import com.niked.fatless.domain.model.WorkoutState
 import com.niked.fatless.domain.player.IAudioPlayer
@@ -23,7 +24,8 @@ class WorkoutViewModel @Inject constructor(
     private val repository: IWorkoutRepository,
     savedStateHandle: SavedStateHandle,
     private val audioPlayer: IAudioPlayer,
-    private val stepTracker: StepTracker
+    private val stepTracker: StepTracker,
+    private val settings: AppSettings
 ) : ViewModel() {
 
     private val workoutId: String = checkNotNull(savedStateHandle["workoutId"])
@@ -40,6 +42,22 @@ class WorkoutViewModel @Inject constructor(
         viewModelScope.launch {
             stepTracker.intervalSteps.collect { steps ->
                 _uiState.update { it.copy(currentIntervalSteps = steps) }
+
+                // ЛОГИКА АВТОМАТИКИ
+                val currentInterval = _uiState.value.workout?.intervals?.getOrNull(_uiState.value.currentIntervalIndex)
+
+                // Если у интервала есть цель по шагам (допустим, мы добавим поле stepGoal)
+                if (currentInterval?.trackSteps == true && currentInterval.reps != null) {
+
+                    // Проверяем: достигли цели?
+                    if (steps >= currentInterval.reps) {
+
+                        // Читаем общую настройку: рубить сразу или дать добегать время?
+                        if (settings.autoFinishOnGoal) {
+                            nextInterval() // Бац! Авто-переключение
+                        }
+                    }
+                }
             }
         }
     }
