@@ -38,6 +38,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    fun minimizeApp() {
+        moveTaskToBack(true)
+    }
+
     private fun checkAndRequestPermissions() {
         val permissions = mutableListOf(
             android.Manifest.permission.ACTIVITY_RECOGNITION,

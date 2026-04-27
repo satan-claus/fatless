@@ -21,7 +21,8 @@ fun WorkoutTopBar(
     title: String,
     subTitle: String,
     subTitleColor: Color = AppTextSecondary,
-    onBackClick: () -> Unit
+    onBackClick: (() -> Unit)? = null,
+    actions: @Composable RowScope.() -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -31,27 +32,28 @@ fun WorkoutTopBar(
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Кнопка Back
-        Surface(
-            onClick = onBackClick,
-            modifier = Modifier.size(40.dp),
-            shape = CircleShape,
-            color = AppSurface,
-            border = BorderStroke(1.dp, AppBorder)
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text(
-                    text = "‹",
-                    fontSize = 24.sp,
-                    color = AppTextSecondary,
-                    modifier = Modifier.offset(y = (-1).dp)
-                )
+        // 1. Рисуем кнопку Back только если передан колбэк
+        if (onBackClick != null) {
+            Surface(
+                onClick = onBackClick,
+                modifier = Modifier.size(40.dp),
+                shape = CircleShape,
+                color = AppSurface,
+                border = BorderStroke(1.dp, AppBorder)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "‹",
+                        fontSize = 24.sp,
+                        color = AppTextSecondary,
+                        modifier = Modifier.offset(y = (-1).dp)
+                    )
+                }
             }
+            Spacer(modifier = Modifier.width(12.dp))
         }
 
-        Spacer(modifier = Modifier.width(12.dp))
-
-        // Заголовок
+        // 2. Заголовок (занимает всё свободное место)
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
@@ -63,12 +65,18 @@ fun WorkoutTopBar(
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        // Субтитры (Время)
+        // 3. Субтитры (Время или кол-во тренировок)
         Text(
             text = subTitle,
             style = MaterialTheme.typography.bodySmall,
             color = subTitleColor,
             maxLines = 1
+        )
+
+        // 4. ДОБАВЛЯЕМ: Место для кнопок справа
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            content = actions
         )
     }
 }

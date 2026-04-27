@@ -29,13 +29,15 @@ fun WorkoutScreen(
 
     // 1. ВРЕМЕННЫЕ РАСЧЕТЫ
     val totalWorkoutTime = workout.intervals.sumOf { it.seconds }
-    val completedIntervalsTime = workout.intervals.take(uiState.currentIntervalIndex).sumOf { it.seconds }
+    val completedIntervalsTime =
+        workout.intervals.take(uiState.currentIntervalIndex).sumOf { it.seconds }
     val currentInterval = workout.intervals.getOrNull(uiState.currentIntervalIndex)
     val timePassedInCurrent = (currentInterval?.seconds ?: 0) - uiState.timeLeft
     val elapsedSeconds = completedIntervalsTime + timePassedInCurrent
 
     // 2. ПРОГРЕСС И ТЕКСТЫ
-    val totalProgress = if (totalWorkoutTime > 0) elapsedSeconds.toFloat() / totalWorkoutTime.toFloat() else 0f
+    val totalProgress =
+        if (totalWorkoutTime > 0) elapsedSeconds.toFloat() / totalWorkoutTime.toFloat() else 0f
 
     val timeToShow = when (uiState.status) {
         is WorkoutState.READY -> totalWorkoutTime
@@ -67,10 +69,9 @@ fun WorkoutScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(AppBackground)
-            .statusBarsPadding()
             .navigationBarsPadding()
-            .padding(horizontal = 24.dp)
     ) {
+        // 1. ТОПБАР (на всю ширину)
         WorkoutTopBar(
             title = workout.title,
             subTitle = topBarMeta,
@@ -78,56 +79,65 @@ fun WorkoutScreen(
             onBackClick = onBackClick
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TimerCard(
-            state = uiState.status,
-            currentIntervalName = currentInterval?.name ?: "Приготовьтесь",
-            displayTime = formatDuration(timeToShow),
-            totalProgress = totalProgress,
-            subText = timerSubText
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "Интервалы",
-            style = AppTypography.titleMedium,
-            color = AppTextPrimary
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // 4. СПИСОК ИНТЕРВАЛОВ
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(bottom = 16.dp)
+        // 2. КОНТЕНТ (с отступом 24.dp по краям, как на главном)
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 24.dp) // Единый стандарт отступа
         ) {
-            itemsIndexed(workout.intervals) { index, interval ->
-                val intervalProgress = if (index == uiState.currentIntervalIndex) {
-                    val total = interval.seconds.toFloat()
-                    if (total > 0) (total - uiState.timeLeft) / total else 0f
-                } else 0f
+            Spacer(modifier = Modifier.height(24.dp))
 
-                IntervalCard(
-                    interval = interval,
-                    index = index + 1,
-                    isActive = index == uiState.currentIntervalIndex,
-                    isCompleted = index < uiState.currentIntervalIndex,
-                    state = uiState.status,
-                    progress = intervalProgress,
-                    stateSteps = uiState.currentIntervalSteps,
-                    onClick = { viewModel.nextInterval() }
-                )
+            // КАРТОЧКА ТАЙМЕРА
+            TimerCard(
+                state = uiState.status,
+                currentIntervalName = currentInterval?.name ?: "Приготовьтесь",
+                displayTime = formatDuration(timeToShow),
+                totalProgress = totalProgress,
+                subText = timerSubText
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Text(
+                text = "Интервалы",
+                style = AppTypography.titleMedium,
+                color = AppTextPrimary
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // СПИСОК ИНТЕРВАЛОВ
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
+                itemsIndexed(workout.intervals) { index, interval ->
+                    val intervalProgress = if (index == uiState.currentIntervalIndex) {
+                        val total = interval.seconds.toFloat()
+                        if (total > 0) (total - uiState.timeLeft) / total else 0f
+                    } else 0f
+
+                    IntervalCard(
+                        interval = interval,
+                        index = index + 1,
+                        isActive = index == uiState.currentIntervalIndex,
+                        isCompleted = index < uiState.currentIntervalIndex,
+                        state = uiState.status,
+                        progress = intervalProgress,
+                        stateSteps = uiState.currentIntervalSteps,
+                        onClick = { viewModel.nextInterval() }
+                    )
+                }
             }
         }
 
-        // 5. ПОДВАЛ УПРАВЛЕНИЯ
+        // 3. ПОДВАЛ УПРАВЛЕНИЯ
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 24.dp),
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             when (uiState.status) {
@@ -187,7 +197,11 @@ fun WorkoutScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = AppSecondary)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(20.dp))
+                            Icon(
+                                Icons.Default.Refresh,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
                             Spacer(Modifier.width(8.dp))
                             Text("ЗАПУСТИТЬ ЗАНОВО", style = AppTypography.labelMedium)
                         }
