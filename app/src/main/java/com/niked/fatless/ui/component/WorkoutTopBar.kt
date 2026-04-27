@@ -28,11 +28,11 @@ fun WorkoutTopBar(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .height(56.dp)
+            .height(64.dp) // Увеличил до 64 для двух строк текста
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 1. Рисуем кнопку Back только если передан колбэк
+        // 1. Кнопка Back
         if (onBackClick != null) {
             Surface(
                 onClick = onBackClick,
@@ -53,27 +53,26 @@ fun WorkoutTopBar(
             Spacer(modifier = Modifier.width(12.dp))
         }
 
-        // 2. Заголовок (занимает всё свободное место)
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            color = AppTextPrimary,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
-        )
+        // 2. Блок текста (Заголовок + Субтитры)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = AppTextPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (subTitle.isNotBlank()) {
+                Text(
+                    text = subTitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = subTitleColor,
+                    maxLines = 1
+                )
+            }
+        }
 
-        Spacer(modifier = Modifier.width(8.dp))
-
-        // 3. Субтитры (Время или кол-во тренировок)
-        Text(
-            text = subTitle,
-            style = MaterialTheme.typography.bodySmall,
-            color = subTitleColor,
-            maxLines = 1
-        )
-
-        // 4. ДОБАВЛЯЕМ: Место для кнопок справа
+        // 3. Кнопки действий (Шестеренка и т.д.)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             content = actions

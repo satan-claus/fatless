@@ -14,7 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.niked.fatless.ui.component.EditableIntervalRow
+import com.niked.fatless.ui.component.EditableIntervalItem
 import com.niked.fatless.ui.theme.*
 import com.niked.fatless.ui.viewmodel.WorkoutCreateViewModel
 
@@ -110,7 +110,7 @@ fun WorkoutCreateScreen(
             }
 
             itemsIndexed(state.intervals) { index, interval ->
-                EditableIntervalRow(
+                EditableIntervalItem(
                     index = index,
                     interval = interval,
                     onNameChange = { name ->

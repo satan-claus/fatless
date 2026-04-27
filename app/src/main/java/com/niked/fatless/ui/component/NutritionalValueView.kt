@@ -28,6 +28,14 @@ fun NutritionalValueView(
     calories: Int,
     size: Dp = 200.dp
 ) {
+    // Определяем коэффициент масштаба (за базу берем 200.dp)
+    val scaleFactor = size.value / 200f
+
+    // Адаптивные размеры шрифтов
+    val fontSizeCalories = (28f * scaleFactor).coerceAtLeast(14f).sp
+    val fontSizeLabel = (12f * scaleFactor).coerceAtLeast(9f).sp
+    val strokeWidth = 45f * scaleFactor
+
     val total = proteins + fats + carbs
     val isEmpty = total == 0f
 
@@ -38,7 +46,7 @@ fun NutritionalValueView(
 
     Box(modifier = modifier.size(size), contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.size(size)) {
-            val strokeWidth = 45f
+            val strokeWidth = strokeWidth
             val arcSize = size.toPx() - strokeWidth
             val topLeft = Offset(strokeWidth / 2, strokeWidth / 2)
             val drawingSize = Size(arcSize, arcSize)
@@ -91,10 +99,16 @@ fun NutritionalValueView(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = if (isEmpty) "0" else calories.toString(),
-                style = AppTypography.titleLarge.copy(fontSize = 32.sp),
+                style = AppTypography.titleLarge.copy(fontSize = fontSizeCalories),
                 color = if (isEmpty) AppTextTertiary else AppTextPrimary
             )
-            Text(text = "кКал", style = AppTypography.bodySmall, color = AppTextTertiary)
+            Text(
+                text = "кКал",
+                style = AppTypography.bodySmall.copy(
+                    fontSize = fontSizeLabel
+                ),
+                color = AppTextTertiary
+            )
         }
     }
 }

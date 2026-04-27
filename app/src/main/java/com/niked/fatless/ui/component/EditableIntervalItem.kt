@@ -15,7 +15,7 @@ import com.niked.fatless.domain.model.Interval
 import com.niked.fatless.ui.theme.*
 
 @Composable
-fun EditableIntervalRow(
+fun EditableIntervalItem(
     index: Int,
     interval: Interval,
     onNameChange: (String) -> Unit,

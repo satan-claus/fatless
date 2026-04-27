@@ -16,7 +16,7 @@ import com.niked.fatless.ui.theme.*
 import com.niked.fatless.core.utils.formatDuration
 
 @Composable
-fun WorkoutRow(
+fun WorkoutItem(
     workout: Workout,
     onClick: () -> Unit
 ) {
