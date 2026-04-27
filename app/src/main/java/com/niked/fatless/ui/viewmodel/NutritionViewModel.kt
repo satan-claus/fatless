@@ -1,29 +1,69 @@
 package com.niked.fatless.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import androidx.lifecycle.viewModelScope
+import com.niked.fatless.domain.model.Food
+import com.niked.fatless.domain.repository.INutritionRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class NutritionViewModel @Inject constructor() : ViewModel() {
+@HiltViewModel
+class NutritionViewModel @Inject constructor(
+    private val repository: INutritionRepository
+) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(NutritionUiState())
-    val uiState = _uiState.asStateFlow()
+    // 1. Поиск (Query + Результаты)
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
 
-    fun updateProteins(value: Float) = _uiState.update { it.copy(proteins = value) }
-    fun updateFats(value: Float) = _uiState.update { it.copy(fats = value) }
-    fun updateCarbs(value: Float) = _uiState.update { it.copy(carbs = value) }
+    val searchResults = _searchQuery
+        .debounce(300L)
+        .flatMapLatest { query ->
+            if (query.isBlank()) flowOf(emptyList())
+            else repository.searchProducts(query)
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    // Калории считаем на лету: 1г белка/углей = 4ккал, 1г жира = 9ккал
-    fun calculateCalories(): Int {
-        val s = _uiState.value
-        return ((s.proteins * 4) + (s.carbs * 4) + (s.fats * 9)).toInt()
+    // 2. Дневник (Список съеденного за сегодня)
+    val diaryEntries = repository.getDiaryForToday()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    // 3. Итоговое состояние для кружка (КБЖУ за день)
+    // Мы склеиваем список записей в один объект статистики
+    val uiState: StateFlow<NutritionUiState> = diaryEntries.map { entries ->
+        NutritionUiState(
+            totalProteins = entries.sumOf { it.totalProteins.toDouble() }.toFloat(),
+            totalFats = entries.sumOf { it.totalFats.toDouble() }.toFloat(),
+            totalCarbs = entries.sumOf { it.totalCarbs.toDouble() }.toFloat(),
+            totalCalories = entries.sumOf { it.totalCalories }
+        )
+    }.stateIn(viewModelScope, SharingStarted.Lazily, NutritionUiState())
+
+    // --- ЛОГИКА ---
+
+    fun onQueryChange(newQuery: String) {
+        _searchQuery.value = newQuery
+    }
+
+    fun addMeal(food: Food, weight: Int) {
+        viewModelScope.launch {
+            repository.addMeal(food, weight)
+            onQueryChange("") // Сбрасываем поиск после добавления
+        }
+    }
+
+    fun deleteMeal(entryId: Long) {
+        viewModelScope.launch {
+            repository.deleteMeal(entryId)
+        }
     }
 }
 
 data class NutritionUiState(
-    val proteins: Float = 0f,
-    val fats: Float = 0f,
-    val carbs: Float = 0f
+    val totalProteins: Float = 0f,
+    val totalFats: Float = 0f,
+    val totalCarbs: Float = 0f,
+    val totalCalories: Int = 0
 )
