@@ -7,11 +7,13 @@ import com.niked.fatless.data.local.entities.IntervalEntity
 import com.niked.fatless.data.local.entities.WorkoutEntity
 import com.niked.fatless.core.utils.Constants.DATABASE_VERSION
 import com.niked.fatless.data.local.dao.FoodDao
+import com.niked.fatless.data.local.entities.FoodCategoryEntity
 import com.niked.fatless.data.local.entities.FoodDiaryEntity
 import com.niked.fatless.data.local.entities.FoodEntity
 
 @Database(
     entities = [
+        FoodCategoryEntity::class,
         FoodDiaryEntity::class,
         FoodEntity::class,
         IntervalEntity::class,

@@ -13,7 +13,8 @@ data class Food(
     val fats: Float,
     val carbs: Float,
     val calories: Int,
-    val category: String = "Общее",
+    val categoryName: String, // В UI нам всё равно нужно имя
+    val categoryId: String,    // А для логики - ID
     val unit: MeasureUnit = MeasureUnit.GRAMS,
     val isCustom: Boolean = false
 )

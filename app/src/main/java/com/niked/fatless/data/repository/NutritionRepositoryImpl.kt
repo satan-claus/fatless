@@ -5,6 +5,7 @@ import com.niked.fatless.data.mapper.createDiaryEntity
 import com.niked.fatless.data.mapper.toDomain
 import com.niked.fatless.data.mapper.toEntity
 import com.niked.fatless.domain.model.Food
+import com.niked.fatless.domain.model.FoodCategory
 import com.niked.fatless.domain.model.MealEntry
 import com.niked.fatless.domain.repository.INutritionRepository
 import kotlinx.coroutines.flow.Flow
@@ -17,7 +18,9 @@ class NutritionRepositoryImpl @Inject constructor(
 ) : INutritionRepository {
 
     override fun searchProducts(query: String): Flow<List<Food>> {
-        return foodDao.searchProducts(query).map { list ->
+        // 1. Вызываем метод с JOIN-ом
+        return foodDao.searchProductsWithCategory(query).map { list ->
+            // 2. Теперь маппер toDomain() подходит идеально!
             list.map { it.toDomain() }
         }
     }
@@ -27,11 +30,24 @@ class NutritionRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getProductById(id: String): Food? {
-        return foodDao.getProductById(id)?.toDomain()
+        // Вызываем метод с JOIN, который вернет FoodWithCategory
+        return foodDao.getProductWithCategoryById(id)?.toDomain()
     }
 
     override suspend fun deleteProductFromLibrary(id: String) {
         foodDao.deleteProductById(id)
+    }
+
+    override fun getAllCategories(): Flow<List<FoodCategory>> {
+        return foodDao.getAllCategories().map { entities ->
+            entities.map { entity ->
+                FoodCategory(
+                    id = entity.categoryId,
+                    name = entity.name,
+                    icon = entity.icon
+                )
+            }
+        }
     }
 
     override fun getDiaryForToday(): Flow<List<MealEntry>> {

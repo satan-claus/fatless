@@ -1,0 +1,56 @@
+{
+  "categories": [
+    {"categoryId": "cat_meat", "name": "Мясо и птица"},
+    {"categoryId": "cat_fish", "name": "Рыба и морепродукты"},
+    {"categoryId": "cat_dairy", "name": "Молочные продукты"},
+    {"categoryId": "cat_grains", "name": "Крупы и гарниры"},
+    {"categoryId": "cat_vege", "name": "Овощи"},
+    {"categoryId": "cat_fruits", "name": "Фрукты"},
+    {"categoryId": "cat_eggs", "name": "Яйца"},
+    {"categoryId": "cat_drinks", "name": "Напитки"},
+    {"categoryId": "cat_beer", "name": "Пиво и алкоголь"},
+    {"categoryId": "cat_fastfood", "name": "Фастфуд"},
+    {"categoryId": "cat_snacks", "name": "Перекусы"},
+    {"categoryId": "cat_sauces", "name": "Соусы и масла"}
+  ],
+  "foods": [
+    {"id": "m1", "name": "Куриная грудка (отварная)", "proteins": 29.8, "fats": 1.8, "carbs": 0.5, "calories": 150, "categoryId": "cat_meat", "unit": "GRAMS"},
+    {"id": "m2", "name": "Говядина тушеная", "proteins": 16.8, "fats": 17.0, "carbs": 0.0, "calories": 220, "categoryId": "cat_meat", "unit": "GRAMS"},
+    {"id": "m3", "name": "Индейка запеченная", "proteins": 25.0, "fats": 1.0, "carbs": 0.0, "calories": 110, "categoryId": "cat_meat", "unit": "GRAMS"},
+
+    {"id": "f1", "name": "Лосось (семга) на пару", "proteins": 20.0, "fats": 13.0, "carbs": 0.0, "calories": 197, "categoryId": "cat_fish", "unit": "GRAMS"},
+    {"id": "f2", "name": "Креветки вареные", "proteins": 18.0, "fats": 1.0, "carbs": 0.0, "calories": 95, "categoryId": "cat_fish", "unit": "GRAMS"},
+
+    {"id": "d1", "name": "Творог 5%", "proteins": 16.0, "fats": 5.0, "carbs": 3.0, "calories": 121, "categoryId": "cat_dairy", "unit": "GRAMS"},
+    {"id": "d2", "name": "Кефир 2.5%", "proteins": 3.0, "fats": 2.5, "carbs": 4.0, "calories": 50, "categoryId": "cat_dairy", "unit": "MILLILITERS"},
+    {"id": "d3", "name": "Сыр Российский", "proteins": 23.0, "fats": 29.0, "carbs": 0.0, "calories": 360, "categoryId": "cat_dairy", "unit": "GRAMS"},
+
+    {"id": "g1", "name": "Рис отварной", "proteins": 2.2, "fats": 0.5, "carbs": 24.9, "calories": 116, "categoryId": "cat_grains", "unit": "GRAMS"},
+    {"id": "g2", "name": "Гречка отварная", "proteins": 4.2, "fats": 1.1, "carbs": 21.3, "calories": 110, "categoryId": "cat_grains", "unit": "GRAMS"},
+    {"id": "g3", "name": "Макароны (тв. сорта)", "proteins": 5.0, "fats": 0.4, "carbs": 25.0, "calories": 125, "categoryId": "cat_grains", "unit": "GRAMS"},
+
+    {"id": "v1", "name": "Огурец свежий", "proteins": 0.8, "fats": 0.1, "carbs": 2.8, "calories": 15, "categoryId": "cat_vege", "unit": "GRAMS"},
+    {"id": "v2", "name": "Помидор свежий", "proteins": 0.6, "fats": 0.2, "carbs": 4.2, "calories": 20, "categoryId": "cat_vege", "unit": "GRAMS"},
+    {"id": "v3", "name": "Брокколи (отварная)", "proteins": 3.0, "fats": 0.4, "carbs": 4.0, "calories": 35, "categoryId": "cat_vege", "unit": "GRAMS"},
+
+    {"id": "fr1", "name": "Банан (1 шт)", "proteins": 1.5, "fats": 0.2, "carbs": 21.8, "calories": 95, "categoryId": "cat_fruits", "unit": "PIECES"},
+    {"id": "fr2", "name": "Яблоко свежее", "proteins": 0.4, "fats": 0.4, "carbs": 11.5, "calories": 52, "categoryId": "cat_fruits", "unit": "GRAMS"},
+
+    {"id": "e1", "name": "Яйцо куриное (C0)", "proteins": 12.7, "fats": 11.5, "carbs": 0.7, "calories": 157, "categoryId": "cat_eggs", "unit": "PIECES"},
+
+    {"id": "dr1", "name": "Кофе черный", "proteins": 0.2, "fats": 0.0, "carbs": 0.0, "calories": 2, "categoryId": "cat_drinks", "unit": "MILLILITERS"},
+    {"id": "dr2", "name": "Чай зеленый", "proteins": 0.0, "fats": 0.0, "carbs": 0.0, "calories": 0, "categoryId": "cat_drinks", "unit": "MILLILITERS"},
+
+    {"id": "b1", "name": "Пиво светлое", "proteins": 0.5, "fats": 0.0, "carbs": 3.5, "calories": 43, "categoryId": "cat_beer", "unit": "MILLILITERS"},
+    {"id": "b2", "name": "Вино красное сухое", "proteins": 0.0, "fats": 0.0, "carbs": 0.3, "calories": 68, "categoryId": "cat_beer", "unit": "MILLILITERS"},
+
+    {"id": "ff1", "name": "Чизбургер классик", "proteins": 13.0, "fats": 12.0, "carbs": 30.0, "calories": 250, "categoryId": "cat_fastfood", "unit": "PIECES"},
+    {"id": "ff2", "name": "Картофель фри", "proteins": 4.0, "fats": 15.0, "carbs": 35.0, "calories": 312, "categoryId": "cat_fastfood", "unit": "GRAMS"},
+
+    {"id": "sn1", "name": "Орехи грецкие", "proteins": 15.0, "fats": 65.0, "carbs": 7.0, "calories": 654, "categoryId": "cat_snacks", "unit": "GRAMS"},
+    {"id": "sn2", "name": "Шоколад темный", "proteins": 5.0, "fats": 35.0, "carbs": 50.0, "calories": 540, "categoryId": "cat_snacks", "unit": "GRAMS"},
+
+    {"id": "s1", "name": "Масло оливковое", "proteins": 0.0, "fats": 99.8, "carbs": 0.0, "calories": 898, "categoryId": "cat_sauces", "unit": "GRAMS"},
+    {"id": "s2", "name": "Кетчуп", "proteins": 1.5, "fats": 0.0, "carbs": 25.0, "calories": 110, "categoryId": "cat_sauces", "unit": "GRAMS"}
+  ]
+}

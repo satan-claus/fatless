@@ -12,7 +12,7 @@ data class FoodEntity(
     val fats: Float,     // на 100г
     val carbs: Float,    // на 100г
     val calories: Int,   // на 100г
-    val category: String = "Общее",
+    val categoryId: String, // Id категории продукта (мясо, птица, крупы...)
     val unit: String = "GRAMS", // Храним как строку
     val isCustom: Boolean = false // Создано юзером или системное
 )
