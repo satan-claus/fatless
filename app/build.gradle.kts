@@ -12,32 +12,44 @@ android {
 
     defaultConfig {
         applicationId = "com.niked.fatless"
-        minSdk = 24
+        minSdk = 29
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.1"
+        versionCode = 2
+        versionName = "1.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
-        release {
+        debug {
+            buildConfigField("boolean", "IS_DEBUG", "true")
+            applicationIdSuffix = ".debug"
             isMinifyEnabled = false
+            isShrinkResources = false
+        }
+
+        release {
+            buildConfigField("boolean", "IS_DEBUG", "false")
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
