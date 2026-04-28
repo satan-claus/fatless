@@ -32,7 +32,7 @@ class StepService : Service(), SensorEventListener {
     override fun onCreate() {
         super.onCreate()
 
-        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "FatLess:StepWakeLock")
         wakeLock?.acquire()
 
