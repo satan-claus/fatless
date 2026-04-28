@@ -20,7 +20,8 @@ class SettingsViewModel @Inject constructor(
         // Загружаем текущие значения
         _uiState.update { it.copy(
             isSoundEnabled = settings.isSoundEnabled,
-            autoFinishOnGoal = settings.autoFinishOnGoal
+            autoFinishOnGoal = settings.autoFinishOnGoal,
+            stepGoal = settings.stepGoal
         ) }
     }
 
@@ -33,9 +34,15 @@ class SettingsViewModel @Inject constructor(
         settings.autoFinishOnGoal = enabled
         _uiState.update { it.copy(autoFinishOnGoal = enabled) }
     }
+
+    fun updateStepGoal(newGoal: Int) {
+        settings.stepGoal = newGoal
+        _uiState.update { it.copy(stepGoal = newGoal) }
+    }
 }
 
 data class SettingsUiState(
     val isSoundEnabled: Boolean = true,
-    val autoFinishOnGoal: Boolean = false
+    val autoFinishOnGoal: Boolean = false,
+    val stepGoal: Int = 10000
 )

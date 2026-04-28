@@ -71,6 +71,7 @@ fun DashboardScreen(
                 DailySummaryCard(
                     nutrition = nutrition,
                     steps = steps,
+                    stepGoal = viewModel.stepGoal,
                     onClick = onNutritionClick
                 )
             }
