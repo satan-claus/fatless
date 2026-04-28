@@ -60,23 +60,40 @@ fun EditableIntervalItem(
             // НИЖНИЙ РЯД: Настройки времени и повторов
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 // 1. ВРЕМЯ
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("ВРЕМЯ:", style = AppTypography.titleSmall, color = AppTextSecondary, modifier = Modifier.width(60.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // 1. Подпись
+                    Text(
+                        text = "ВРЕМЯ:",
+                        style = AppTypography.titleSmall,
+                        color = AppTextSecondary,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
 
-                    TimeStepper(
-                        label = "мин",
-                        value = interval.seconds / 60,
-                        onValueChange = { onSecondsChange(it * 60 + (interval.seconds % 60)) },
-                        step = 1
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    TimeStepper(
-                        label = "сек",
-                        value = interval.seconds % 60,
-                        onValueChange = { onSecondsChange((interval.seconds / 60) * 60 + it) },
-                        step = 5,
-                        maxValue = 55
-                    )
+                    // 2. Блок минут
+                    Box(modifier = Modifier.weight(1f)) {
+                        TimeStepper(
+                            label = "мин",
+                            value = interval.seconds / 60,
+                            onValueChange = { onSecondsChange(it * 60 + (interval.seconds % 60)) },
+                            step = 1
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // 3. Блок секунд
+                    Box(modifier = Modifier.weight(1f)) {
+                        TimeStepper(
+                            label = "сек",
+                            value = interval.seconds % 60,
+                            onValueChange = { onSecondsChange((interval.seconds / 60) * 60 + it) },
+                            step = 5,
+                            maxValue = 55
+                        )
+                    }
                 }
 
                 // 2. ПОВТОРЫ (СИЛОВАЯ ЦЕЛЬ)
