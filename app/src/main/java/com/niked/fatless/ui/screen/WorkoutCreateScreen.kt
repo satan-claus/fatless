@@ -1,6 +1,7 @@
 package com.niked.fatless.ui.screen
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -8,17 +9,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.niked.fatless.ui.component.EditableIntervalItem
+import com.niked.fatless.ui.component.WorkoutTopBar
 import com.niked.fatless.ui.theme.*
 import com.niked.fatless.ui.viewmodel.WorkoutCreateViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutCreateScreen(
     onBackClick: () -> Unit,
@@ -26,58 +26,48 @@ fun WorkoutCreateScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = "Новая тренировка",
-                        style = AppTypography.titleMedium // Используем нашу Roboto 16 SemiBold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.Close, contentDescription = null, tint = AppTextSecondary)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(AppBackground)
+            .navigationBarsPadding()
+    ) {
+        WorkoutTopBar(
+            title = "Новая тренировка",
+            subTitle = if (state.title.isBlank()) "Конструктор" else state.title,
+            onBackClick = onBackClick,
+            actions = {
+                IconButton(
+                    onClick = { viewModel.saveWorkout { onBackClick() } },
+                    enabled = state.title.isNotBlank() && !state.isSaving
+                ) {
+                    if (state.isSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp,
+                            color = AppPrimary
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            tint = if (state.title.isNotBlank()) AppPrimary else AppTextTertiary
+                        )
                     }
-                },
-                actions = {
-                    IconButton(
-                        onClick = { viewModel.saveWorkout { onBackClick() } },
-                        enabled = state.title.isNotBlank() && !state.isSaving
-                    ) {
-                        if (state.isSaving) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                strokeWidth = 2.dp,
-                                color = AppPrimary
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                tint = if (state.title.isNotBlank()) AppPrimary else AppTextTertiary
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = AppBackground
-                )
-            )
-        },
-        containerColor = AppBackground
-    ) { padding ->
+                }
+            }
+        )
+
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
+                .weight(1f) // Занимает всё место до низа
                 .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
                 Text(
                     text = "НАЗВАНИЕ",
-                    style = AppTypography.titleSmall, // Наш Roboto 11 Bold CAPS
+                    style = AppTypography.titleSmall,
                     color = AppTextTertiary,
                     modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
                 )
@@ -94,7 +84,6 @@ fun WorkoutCreateScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = AppSurface,
                         unfocusedContainerColor = AppSurface,
-                        disabledContainerColor = AppSurface,
                         focusedBorderColor = AppPrimary,
                         unfocusedBorderColor = AppBorder,
                         cursorColor = AppPrimary
@@ -114,18 +103,14 @@ fun WorkoutCreateScreen(
                     index = index,
                     interval = interval,
                     onNameChange = { name ->
-                        // Передаем имя, текущие секунды, репсы и ШАГИ
                         viewModel.updateInterval(index, name, interval.seconds, interval.reps, interval.trackSteps)
                     },
                     onSecondsChange = { secs ->
-                        // Передаем текущее имя, новые секунды, репсы и ШАГИ
                         viewModel.updateInterval(index, interval.name, secs, interval.reps, interval.trackSteps)
                     },
                     onRepsChange = { newReps ->
-                        // Передаем текущее имя, секунды, новые репсы и ШАГИ
                         viewModel.updateInterval(index, interval.name, interval.seconds, newReps, interval.trackSteps)
                     },
-                    // НОВЫЙ КОЛБЭК: меняем только флаг шагов
                     onTrackStepsChange = { isEnabled ->
                         viewModel.updateInterval(index, interval.name, interval.seconds, interval.reps, isEnabled)
                     },
@@ -142,23 +127,15 @@ fun WorkoutCreateScreen(
                         .height(52.dp),
                     shape = RoundedCornerShape(12.dp),
                     border = BorderStroke(1.5.dp, AppPrimary),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = AppPrimary
-                    )
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = AppPrimary)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    Icon(Icons.Default.Add, null, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "ДОБАВИТЬ ИНТЕРВАЛ",
-                        style = AppTypography.labelMedium // Roboto 15 SemiBold
-                    )
+                    Text("ДОБАВИТЬ ИНТЕРВАЛ", style = AppTypography.labelMedium)
                 }
                 Spacer(modifier = Modifier.height(40.dp))
             }
         }
     }
 }
+
