@@ -82,6 +82,12 @@ dependencies {
     // Workmanager
     implementation(libs.androidx.work.runtime.ktx)
 
+    // SplashScreen
+    implementation(libs.androidx.core.splashscreen)
+
+    // Material 3
+    implementation(libs.google.material)
+
     // Тесты
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
