@@ -2,15 +2,21 @@ package com.niked.fatless.ui
 
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.niked.fatless.core.sensor.StepService
+import com.niked.fatless.core.service.StepRestartWorker
 import com.niked.fatless.ui.navigation.FatLessNavGraph
 import com.niked.fatless.ui.theme.FatLessTheme
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -43,29 +49,44 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkAndRequestPermissions() {
-        val permissions = mutableListOf(
-            android.Manifest.permission.ACTIVITY_RECOGNITION,
-            android.Manifest.permission.FOREGROUND_SERVICE_HEALTH
-        )
+        val permissionsToRequest = mutableListOf<String>()
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            permissions.add(android.Manifest.permission.POST_NOTIFICATIONS)
+        // 1. Опасное разрешение (нужно подтверждение юзера)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            permissionsToRequest.add(android.Manifest.permission.ACTIVITY_RECOGNITION)
         }
 
-        val allGranted = permissions.all {
-            ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+        // 2. Уведомления (нужно подтверждение для Android 13+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionsToRequest.add(android.Manifest.permission.POST_NOTIFICATIONS)
         }
 
-        if (allGranted) {
+        // Фильтруем те, что уже даны
+        val notGranted = permissionsToRequest.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (notGranted.isEmpty()) {
             startStepService()
         } else {
-            // Запрашиваем через новый лаунчер
-            requestPermissionLauncher.launch(permissions.toTypedArray())
+            requestPermissionLauncher.launch(notGranted.toTypedArray())
         }
     }
 
     private fun startStepService() {
+        // 1. Запускаем сам сервис
         val stepIntent = Intent(this, StepService::class.java)
         ContextCompat.startForegroundService(this, stepIntent)
+
+        // 2. ЗАПУСКАЕМ ПИНАТЕЛЬ (Worker)
+        val restartWorkRequest = PeriodicWorkRequestBuilder<StepRestartWorker>(
+            15, TimeUnit.MINUTES // Интервал 15 минут (минимум для Android)
+        ).build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "StepServiceRestart",
+            ExistingPeriodicWorkPolicy.KEEP, // Если уже работает — не перезапускать
+            restartWorkRequest
+        )
     }
 }
