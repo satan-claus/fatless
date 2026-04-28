@@ -32,6 +32,10 @@ class StepService : Service(), SensorEventListener {
 
         // Считаем актуальные цифры
         val daily = lastTotalSteps - settings.stepBaseCount
+
+        // Записываем результат в настройки, чтобы DashboardViewModel его увидела
+        settings.todaySteps = daily
+
         if (settings.manualBaseSteps == -1) settings.manualBaseSteps = lastTotalSteps
         val manual = lastTotalSteps - settings.manualBaseSteps
 
@@ -73,17 +77,15 @@ class StepService : Service(), SensorEventListener {
     private fun createNotification(daily: Int, manual: Int): Notification {
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                Constants.STEP_CHANNEL_ID,
-                Constants.STEP_CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                setShowBadge(false)
-                setSound(null, null)
-            }
-            manager.createNotificationChannel(channel)
+        val channel = NotificationChannel(
+            Constants.STEP_CHANNEL_ID,
+            Constants.STEP_CHANNEL_NAME,
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            setShowBadge(false)
+            setSound(null, null)
         }
+        manager.createNotificationChannel(channel)
 
         // Настройка кнопки "Сбросить"
         val resetIntent = Intent(this, StepActionReceiver::class.java).apply {

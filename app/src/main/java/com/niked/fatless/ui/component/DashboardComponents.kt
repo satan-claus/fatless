@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.niked.fatless.ui.theme.*
@@ -19,8 +20,11 @@ import com.niked.fatless.ui.viewmodel.NutritionUiState
 fun DailySummaryCard(
     nutrition: NutritionUiState,
     steps: Int,
+    stepGoal: Int,
     onClick: () -> Unit
 ) {
+    val stepProgress = (steps.toFloat() / stepGoal).coerceIn(0f, 1f)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -33,7 +37,6 @@ fun DailySummaryCard(
             modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Твой анимированный кружок
             NutritionalValueView(
                 proteins = nutrition.totalProteins,
                 fats = nutrition.totalFats,
@@ -44,15 +47,29 @@ fun DailySummaryCard(
 
             Spacer(modifier = Modifier.width(20.dp))
 
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(text = "Сегодня", style = AppTypography.titleMedium, color = AppTextPrimary)
+
+                // Секция шагов
                 Text(
-                    text = "Шаги: $steps",
+                    text = "Шаги: $steps / $stepGoal", // Показываем цель
                     style = AppTypography.bodySmall,
                     color = AppSecondary,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+
+                // Индикатор прогресса
+                LinearProgressIndicator(
+                    progress = { stepProgress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp, bottom = 8.dp)
+                        .height(6.dp),
+                    color = AppSecondary,
+                    trackColor = AppSecondary.copy(alpha = 0.2f),
+                    strokeCap = StrokeCap.Round
+                )
+
                 // Сводка БЖУ
                 Text(
                     text = "Б:${nutrition.totalProteins.toInt()} Ж:${nutrition.totalFats.toInt()} У:${nutrition.totalCarbs.toInt()}",

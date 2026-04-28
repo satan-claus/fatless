@@ -11,6 +11,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -19,10 +23,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.niked.fatless.ui.component.WorkoutTopBar
 import com.niked.fatless.ui.theme.AppBackground
+import com.niked.fatless.ui.theme.AppBorder
 import com.niked.fatless.ui.theme.AppPrimary
 import com.niked.fatless.ui.theme.AppTextPrimary
 import com.niked.fatless.ui.theme.AppTextSecondary
@@ -77,6 +83,38 @@ fun SettingsScreen(
             Text(text = "Приложение", style = AppTypography.labelMedium, color = AppPrimary)
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = "Версия 1.0.0 (Джон-Эдишн)", style = AppTypography.bodySmall, color = AppTextTertiary)
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Цель по шагам",
+                style = AppTypography.labelMedium,
+                color = AppPrimary
+            )
+
+            OutlinedTextField(
+                value = state.stepGoal.toString(),
+                onValueChange = {
+                    // Валидация: только цифры, максимум 6 знаков
+                    val filtered = it.filter { char -> char.isDigit() }
+                    if (filtered.length <= 6) {
+                        viewModel.updateStepGoal(filtered.toIntOrNull() ?: 0)
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                trailingIcon = {
+                    Text("шагов", style = AppTypography.bodySmall, color = AppTextTertiary, modifier = Modifier.padding(end = 12.dp))
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = AppPrimary,
+                    unfocusedBorderColor = AppBorder
+                )
+            )
         }
     }
 }
