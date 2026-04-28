@@ -50,7 +50,7 @@ class DashboardViewModel @Inject constructor(
     private var stepsListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
 
     init {
-        // Регистрируем слушателя в SharedPreferences через наш AppSettings
+        // Регистрируем слушателя в SharedPreferences через AppSettings
         stepsListener = settings.observeSteps { newSteps ->
             _steps.value = newSteps
         }
