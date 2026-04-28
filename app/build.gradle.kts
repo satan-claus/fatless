@@ -79,6 +79,9 @@ dependencies {
     // NAVIGATION (в TOML ключ: navigation-compose)
     implementation(libs.navigation.compose)
 
+    // Workmanager
+    implementation(libs.androidx.work.runtime.ktx)
+
     // Тесты
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
