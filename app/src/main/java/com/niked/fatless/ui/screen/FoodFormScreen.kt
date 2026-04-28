@@ -37,23 +37,17 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.niked.fatless.domain.model.MeasureUnit
 import com.niked.fatless.ui.component.WorkoutTopBar
-import com.niked.fatless.ui.theme.AppBackground
-import com.niked.fatless.ui.theme.AppBorder
-import com.niked.fatless.ui.theme.AppPrimary
-import com.niked.fatless.ui.theme.AppTextSecondary
-import com.niked.fatless.ui.theme.AppTypography
-import com.niked.fatless.ui.theme.ColorCarbohydrates
-import com.niked.fatless.ui.theme.ColorFats
-import com.niked.fatless.ui.theme.ColorProteins
-import com.niked.fatless.ui.viewmodel.FoodCreateViewModel
+import com.niked.fatless.ui.theme.*
+import com.niked.fatless.ui.viewmodel.FoodFormViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun FoodFormScreen(
     onBackClick: () -> Unit,
-    viewModel: FoodCreateViewModel = hiltViewModel()
+    viewModel: FoodFormViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+    val allCategories by viewModel.categories.collectAsState() // Собираем категории из БД
 
     Column(
         modifier = Modifier
@@ -62,8 +56,8 @@ fun FoodFormScreen(
             .navigationBarsPadding()
     ) {
         WorkoutTopBar(
-            title = "Новый продукт",
-            subTitle = "Добавить в справочник",
+            title = if (state.name.isEmpty()) "Новый продукт" else "Редактирование",
+            subTitle = if (state.name.isEmpty()) "Добавить в справочник" else state.name,
             onBackClick = onBackClick,
             actions = {
                 IconButton(onClick = { viewModel.saveProduct(onBackClick) }) {
@@ -79,13 +73,17 @@ fun FoodFormScreen(
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 1. ИМЯ
+            // 1. НАЗВАНИЕ
             OutlinedTextField(
                 value = state.name,
                 onValueChange = viewModel::updateName,
                 label = { Text("Название продукта") },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = AppPrimary,
+                    unfocusedBorderColor = AppBorder
+                )
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -111,7 +109,7 @@ fun FoodFormScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 3. БЖУ (В ряд)
+            // 3. БЖУ
             Text("БЖУ на 100г (или 1шт):", style = AppTypography.labelMedium, color = AppTextSecondary)
             Row(
                 modifier = Modifier.padding(vertical = 8.dp),
@@ -131,22 +129,30 @@ fun FoodFormScreen(
                 label = { Text("Калории (кКал)") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = AppPrimary,
+                    unfocusedBorderColor = AppBorder
+                )
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 5. КАТЕГОРИИ (FlowRow бы тут, но сделаем через Row со скроллом)
+            // 5. КАТЕГОРИИ (Динамические из БД)
             Text("Категория:", style = AppTypography.labelMedium, color = AppTextSecondary)
             FlowRow(
                 modifier = Modifier.padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                viewModel.categories.forEach { cat ->
+                allCategories.forEach { cat ->
                     FilterChip(
-                        selected = state.category == cat,
-                        onClick = { viewModel.updateCategory(cat) },
-                        label = { Text(cat, fontSize = 12.sp) }
+                        selected = state.categoryId == cat.id,
+                        onClick = { viewModel.updateCategory(cat.id) },
+                        label = { Text(cat.name, fontSize = 12.sp) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AppPrimary.copy(alpha = 0.1f),
+                            selectedLabelColor = AppPrimary
+                        )
                     )
                 }
             }

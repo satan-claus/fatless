@@ -52,6 +52,14 @@ interface FoodDao {
 
     @Query("DELETE FROM food_diary WHERE entryId = :id")
     suspend fun deleteDiaryEntryById(id: Long)
+
+    @Query("""
+        SELECT food_items.*, food_categories.name as categoryName 
+        FROM food_items 
+        INNER JOIN food_categories ON food_items.categoryId = food_categories.categoryId
+        WHERE food_items.id = :id
+    """)
+    suspend fun getProductWithCategoryById(id: String): FoodWithCategory?
 }
 
 // Вспомогательный класс для результата запроса
