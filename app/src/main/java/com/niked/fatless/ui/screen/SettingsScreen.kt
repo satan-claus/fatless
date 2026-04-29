@@ -11,8 +11,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -21,9 +24,13 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -35,6 +42,7 @@ import com.niked.fatless.ui.theme.AppBackground
 import com.niked.fatless.ui.theme.AppBorder
 import com.niked.fatless.ui.theme.AppDisabledBg
 import com.niked.fatless.ui.theme.AppPrimary
+import com.niked.fatless.ui.theme.AppSurface
 import com.niked.fatless.ui.theme.AppTextPrimary
 import com.niked.fatless.ui.theme.AppTextSecondary
 import com.niked.fatless.ui.theme.AppTextTertiary
@@ -48,6 +56,28 @@ fun SettingsScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
 
+    // Флаг для диалога
+    var showFirstLaunchDialog by remember { mutableStateOf(viewModel.isFirstLaunch()) }
+
+    // ПРЕДУПРЕДИТЕЛЬНЫЙ ВЫСТРЕЛ
+    if (showFirstLaunchDialog) {
+        AlertDialog(
+            onDismissRequest = { },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.setFirstLaunchDone()
+                    showFirstLaunchDialog = false
+                }) {
+                    Text("ПОНЯЛ", color = AppPrimary, style = AppTypography.labelMedium)
+                }
+            },
+            title = { Text("Внимание", style = AppTypography.titleMedium) },
+            text = { Text("Для точных расчетов расстояния и калорий необходимо заполнить данные в секции Биометрия.") },
+            containerColor = AppSurface,
+            shape = RoundedCornerShape(24.dp)
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -55,18 +85,46 @@ fun SettingsScreen(
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
-        // ТОПБАР
-        WorkoutTopBar(
-            title = "Настройки",
-            subTitle = "Конфигурация",
-            onBackClick = onBackClick
-        )
+        WorkoutTopBar(title = "Настройки", subTitle = "Конфигурация", onBackClick = onBackClick)
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp)
+                // Скролл на случай маленьких экранов
+                .verticalScroll(rememberScrollState())
         ) {
+            // --- СЕКЦИЯ: БИОМЕТРИЯ ---
+            Text(text = "Биометрия", style = AppTypography.labelMedium, color = AppPrimary)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                // РОСТ
+                OutlinedTextField(
+                    value = if (state.userHeight == 0) "" else state.userHeight.toString(),
+                    onValueChange = { val v = it.filter { c -> c.isDigit() }; if (v.length <= 3) viewModel.updateHeight(v.toIntOrNull() ?: 0) },
+                    label = { Text("Рост") },
+                    modifier = Modifier.weight(1f),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    shape = RoundedCornerShape(12.dp),
+                    trailingIcon = { Text("см", style = AppTypography.bodySmall) },
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AppPrimary, unfocusedBorderColor = AppBorder)
+                )
+                // ВЕС
+                OutlinedTextField(
+                    value = if (state.userWeight == 0) "" else state.userWeight.toString(),
+                    onValueChange = { val v = it.filter { c -> c.isDigit() }; if (v.length <= 3) viewModel.updateWeight(v.toIntOrNull() ?: 0) },
+                    label = { Text("Вес") },
+                    modifier = Modifier.weight(1f),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    shape = RoundedCornerShape(12.dp),
+                    trailingIcon = { Text("кг", style = AppTypography.bodySmall) },
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AppPrimary, unfocusedBorderColor = AppBorder)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
             // --- СЕКЦИЯ: ТРЕНИРОВКА ---
             Text(text = "Тренировка", style = AppTypography.labelMedium, color = AppPrimary)
             Spacer(modifier = Modifier.height(16.dp))
@@ -78,12 +136,8 @@ fun SettingsScreen(
                 onCheckedChange = { viewModel.toggleSound(it) }
             )
 
-            // ДОБАВЛЯЕМ СЛАЙДЕР ГРОМКОСТИ (показываем только если звук включен)
             if (state.isSoundEnabled) {
-                SoundVolumeSettings(
-                    volume = state.soundVolume,
-                    onVolumeChange = { viewModel.updateVolume(it) }
-                )
+                SoundVolumeSettings(volume = state.soundVolume, onVolumeChange = { viewModel.updateVolume(it) })
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -95,7 +149,7 @@ fun SettingsScreen(
                 onCheckedChange = { viewModel.toggleAutoFinish(it) }
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // --- СЕКЦИЯ: ЦЕЛЬ ---
             Text(text = "Цель по шагам", style = AppTypography.labelMedium, color = AppPrimary)
@@ -103,24 +157,17 @@ fun SettingsScreen(
                 value = state.stepGoal.toString(),
                 onValueChange = {
                     val filtered = it.filter { char -> char.isDigit() }
-                    if (filtered.length <= 6) {
-                        viewModel.updateStepGoal(filtered.toIntOrNull() ?: 0)
-                    }
+                    if (filtered.length <= 6) viewModel.updateStepGoal(filtered.toIntOrNull() ?: 0)
                 },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true,
-                trailingIcon = {
-                    Text("шагов", style = AppTypography.bodySmall, color = AppTextTertiary, modifier = Modifier.padding(end = 12.dp))
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = AppPrimary,
-                    unfocusedBorderColor = AppBorder
-                )
+                trailingIcon = { Text("шагов", style = AppTypography.bodySmall, modifier = Modifier.padding(end = 12.dp)) },
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AppPrimary, unfocusedBorderColor = AppBorder)
             )
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // --- СЕКЦИЯ: ИНФО ---
             HorizontalDivider(thickness = 1.dp, color = AppBorder)
@@ -135,6 +182,7 @@ fun SettingsScreen(
         }
     }
 }
+
 
 @Composable
 private fun SettingToggleItem(
