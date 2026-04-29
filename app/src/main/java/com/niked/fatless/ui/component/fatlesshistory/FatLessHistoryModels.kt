@@ -2,27 +2,26 @@ package com.niked.fatless.ui.component.fatlesshistory
 
 import androidx.compose.ui.graphics.Color
 
-// Типы истории для переключателя
 enum class FatLessHistoryType {
     STEPS, NUTRITION
 }
 
-// Модель для обычного столбика (Шаги)
 data class HistoryBarModel(
-    val label: String,        // "Пн", "Вт" ...
-    val value: Float,         // Количество шагов
-    val goal: Float,          // Цель
-    val isToday: Boolean,     // Акцент на сегодня
-    val barColor: Color,      // Цвет столбика
-    val showStar: Boolean     // Золотая звезда успеха
+    val label: String,        // "Пн", "Вт"...
+    val value: Float,         // Текущие шаги
+    val goal: Float,          // Цель (для линии)
+    val isToday: Boolean,     // Только если это реально СЕГОДНЯ
+    val isFuture: Boolean,    // Если день еще не наступил
+    val barColor: Color,      // AppOrange или AppPrimary
+    val showStar: Boolean     // Звезда при выполнении цели
 )
 
-// Модель для слоеного столбика (Питание в стиле MIUI Storage)
 data class NutritionBarModel(
-    val dayLabel: String,     // "Пн", "Вт" ...
-    val proteins: Float,      // Граммы белков
-    val fats: Float,          // Граммы жиров
-    val carbs: Float,         // Граммы углеводов
-    val totalCalories: Int,   // Сумма калорий
-    val isToday: Boolean      // Акцент на сегодня
+    val dayLabel: String,
+    val proteins: Float,
+    val fats: Float,
+    val carbs: Float,
+    val totalCalories: Int,
+    val isToday: Boolean,
+    val isFuture: Boolean
 )

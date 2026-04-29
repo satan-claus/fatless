@@ -54,6 +54,16 @@ class DashboardViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
+    val distanceKm: StateFlow<Float> = steps.map { currentSteps ->
+        val strideInCm = settings.userHeight * 0.415f
+        // см -> км
+        (currentSteps * strideInCm) / 100_000f
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = 0f
+    )
+
     // Храним слушателя как поле класса, чтобы GC его не сожрал
     private var stepsListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
 

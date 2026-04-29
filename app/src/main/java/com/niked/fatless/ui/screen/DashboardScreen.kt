@@ -70,9 +70,12 @@ fun DashboardScreen(
         ) {
             // 1. КАРТОЧКА-ДАШБОРД (Питание + Шаги)
             item {
+                val distance by viewModel.distanceKm.collectAsState()
+
                 DailySummaryCard(
                     nutrition = nutrition,
                     steps = steps,
+                    distance = distance,
                     stepGoal = viewModel.stepGoal,
                     onClick = onNutritionClick
                 )
