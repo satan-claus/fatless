@@ -1,49 +1,74 @@
 package com.niked.fatless.core.sensor
 
 import android.app.Notification
+import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.graphics.BitmapFactory
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
+import androidx.core.graphics.toColorInt
 import com.niked.fatless.R
 import com.niked.fatless.core.data.AppSettings
 import com.niked.fatless.core.utils.Constants
+import com.niked.fatless.domain.repository.IStepRepository
 import com.niked.fatless.ui.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import javax.inject.Inject
-import androidx.core.graphics.toColorInt
-import com.niked.fatless.core.utils.Constants.STEP_NOTIFICATION_ID
 import java.util.Date
 import java.util.Locale
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class StepService : Service(), SensorEventListener {
 
-    @Inject lateinit var settings: AppSettings
+    @Inject
+    lateinit var settings: AppSettings
+
+    @Inject
+    lateinit var repository: IStepRepository
+
     private lateinit var sensorManager: SensorManager
     private var wakeLock: PowerManager.WakeLock? = null
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
         super.onCreate()
-        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+
+        createNotificationChannel()
+
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "FatLess:StepWakeLock")
         wakeLock?.acquire()
 
-        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
-        startForeground(
-            STEP_NOTIFICATION_ID,
-            createNotification(settings.todaySteps, settings.currentManualSteps)
-        )
+        val notification = createNotification(settings.todaySteps, settings.currentManualSteps)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(
+                Constants.STEP_NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH
+            )
+        } else {
+            startForeground(Constants.STEP_NOTIFICATION_ID, notification)
+        }
 
         reRegisterSensor()
     }
@@ -80,6 +105,16 @@ class StepService : Service(), SensorEventListener {
             val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
             if (settings.lastStepResetDate != today) {
+                val yesterdayDate = settings.lastStepResetDate
+                val yesterdaySteps = settings.todaySteps
+
+                // СОХРАНЯЕМ ВЧЕРАШНИЙ ДЕНЬ В БАЗУ
+                if (yesterdayDate.isNotEmpty() && yesterdaySteps > 0) {
+                    serviceScope.launch {
+                        repository.saveToHistory(yesterdayDate, yesterdaySteps)
+                    }
+                }
+
                 settings.stepBaseCount = totalStepsSinceBoot
                 settings.lastStepResetDate = today
                 settings.todaySteps = 0
@@ -146,16 +181,34 @@ class StepService : Service(), SensorEventListener {
             .build()
     }
 
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                Constants.STEP_CHANNEL_ID,
+                Constants.STEP_CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                setShowBadge(false)
+                setSound(null, null)
+                enableVibration(false)
+            }
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.createNotificationChannel(channel)
+        }
+    }
+
     private fun updateNotification(daily: Int, manual: Int) {
-        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        manager.notify(STEP_NOTIFICATION_ID, createNotification(daily, manual))
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.notify(Constants.STEP_NOTIFICATION_ID, createNotification(daily, manual))
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
     override fun onDestroy() {
         super.onDestroy()
+        serviceScope.cancel()
         wakeLock?.release()
         sensorManager.unregisterListener(this)
     }

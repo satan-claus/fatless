@@ -6,7 +6,7 @@ import android.media.SoundPool
 import android.util.Log
 import com.niked.fatless.R
 import com.niked.fatless.core.data.AppSettings
-import com.niked.fatless.domain.player.IAudioPlayer
+import com.niked.fatless.domain.repository.IAudioPlayer
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
