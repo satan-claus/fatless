@@ -44,6 +44,7 @@ fun FatLessHistoryComponent(
     val historyType by viewModel.historyType.collectAsState()
     val chartData by viewModel.chartData.collectAsState()
     val pageCount by viewModel.pageCount.collectAsState()
+    val weekRange by viewModel.weekRange.collectAsState()
 
     val pagerState = rememberPagerState(
         initialPage = (pageCount - 1).coerceAtLeast(0),
@@ -74,6 +75,11 @@ fun FatLessHistoryComponent(
                     text = if (historyType == FatLessHistoryType.STEPS) "Активность" else "Питание",
                     style = AppTypography.titleSmall,
                     color = AppTextPrimary
+                )
+                Text(
+                    text = weekRange,
+                    style = AppTypography.bodySmall,
+                    color = AppTextTertiary
                 )
 
                 Row(verticalAlignment = Alignment.CenterVertically) {

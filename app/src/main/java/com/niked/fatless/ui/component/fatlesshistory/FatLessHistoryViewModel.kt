@@ -8,9 +8,16 @@ import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.ui.theme.AppOrange
 import com.niked.fatless.ui.theme.AppPrimary
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
@@ -29,17 +36,28 @@ class FatLessHistoryViewModel @Inject constructor(
     private val _weekOffset = MutableStateFlow(0)
     val weekOffset: StateFlow<Int> = _weekOffset.asStateFlow()
 
-    // Считаем количество страниц (минимум 3 для моков)
+    // ДИАПАЗОН ДАТ: "27 апр — 03 мая"
+    val weekRange: StateFlow<String> = _weekOffset.map { offset ->
+        val today = LocalDate.now()
+        val monday = today
+            .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+            .plusWeeks(offset.toLong())
+        val sunday = monday.plusDays(6)
+        val formatter = DateTimeFormatter.ofPattern("dd MMM", Locale("ru"))
+        "${monday.format(formatter)} — ${sunday.format(formatter)}"
+    }.stateIn(viewModelScope, SharingStarted.Lazily, "")
+
+    // 🎯 КОЛИЧЕСТВО СТРАНИЦ
     val pageCount = repository.getActivityHistory().map { history ->
         if (history.isEmpty()) return@map 3
         val firstDate = LocalDate.parse(history.minOf { it.date })
         val today = LocalDate.now()
         val mondayOfFirstWeek = firstDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
         val weeksBetween = ChronoUnit.WEEKS.between(mondayOfFirstWeek, today).toInt()
-        (weeksBetween + 1 + 2).coerceAtLeast(3) // +2 запаса под моки
+        (weeksBetween + 1 + 2).coerceAtLeast(3)
     }.stateIn(viewModelScope, SharingStarted.Lazily, 3)
 
-    // Основной поток данных для графика (слушает историю, тип и офсет от пейджера)
+    // 🎯 ДАННЫЕ ГРАФИКА
     val chartData = combine(
         repository.getActivityHistory(),
         _historyType,
@@ -56,7 +74,6 @@ class FatLessHistoryViewModel @Inject constructor(
         _historyType.value = type
     }
 
-    // Этот метод будет вызывать Пейджер при свайпе
     fun updateOffsetFromPage(page: Int, totalPages: Int) {
         _weekOffset.value = page - (totalPages - 1)
     }
@@ -74,7 +91,7 @@ class FatLessHistoryViewModel @Inject constructor(
 
         val weekDays = (0..6).map { monday.plusDays(it.toLong()) }
 
-        // --- МОКИ ---
+        // --- МОКИ ДЛЯ ТЕСТА ---
         val mockSteps = when(offset) {
             -1 -> listOf(11000, 9000, 15000, 12000, 8000, 5000, 6000)
             -2 -> listOf(7000, 7500, 6000, 8000, 10000, 12000, 11000)
