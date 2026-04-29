@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.FatLess" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- 1. ОСНОВНАЯ ТЕМА (после загрузки) -->
+    <!-- Наследуемся от Material3, чтобы все компоненты работали корректно -->
+    <style name="Theme.FatLess" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Цвет статус-бара (полоска сверху с часами) под цвет фона приложения -->
+        <item name="android:statusBarColor">@color/app_background</item>
+        <!-- Делаем иконки в статус-баре темными (так как фон светлый) -->
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <!-- 2. СТАРТОВАЯ ТЕМА (Splash Screen) -->
+    <!-- Эта тема живет ровно секунду, пока приложение запускается -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- Твоя иконка (PNG или вектор) -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_logo_vector</item>
+        <!-- Фон всего экрана при загрузке -->
+        <item name="windowSplashScreenBackground">@color/app_background</item>
+        <!-- Тема, на которую переключится Android после показа логотипа -->
+        <item name="postSplashScreenTheme">@style/Theme.FatLess</item>
+    </style>
+
 </resources>
+

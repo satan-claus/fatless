@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.niked.fatless.BuildConfig
 import com.niked.fatless.ui.component.WorkoutTopBar
 import com.niked.fatless.ui.theme.AppBackground
 import com.niked.fatless.ui.theme.AppBorder
@@ -77,13 +78,6 @@ fun SettingsScreen(
                 onCheckedChange = { viewModel.toggleAutoFinish(it) }
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // СЕКЦИЯ: ИНФО
-            Text(text = "Приложение", style = AppTypography.labelMedium, color = AppPrimary)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Версия 1.0.0 (Джон-Эдишн)", style = AppTypography.bodySmall, color = AppTextTertiary)
-
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
@@ -115,6 +109,13 @@ fun SettingsScreen(
                     unfocusedBorderColor = AppBorder
                 )
             )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // СЕКЦИЯ: ИНФО
+            Text(text = "Приложение", style = AppTypography.labelMedium, color = AppPrimary)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Версия ${BuildConfig.VERSION_NAME} (Джон-Эдишн)", style = AppTypography.bodySmall, color = AppTextTertiary)
         }
     }
 }
