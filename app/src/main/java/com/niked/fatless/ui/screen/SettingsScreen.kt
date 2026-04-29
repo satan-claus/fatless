@@ -13,8 +13,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -30,6 +33,7 @@ import com.niked.fatless.BuildConfig
 import com.niked.fatless.ui.component.WorkoutTopBar
 import com.niked.fatless.ui.theme.AppBackground
 import com.niked.fatless.ui.theme.AppBorder
+import com.niked.fatless.ui.theme.AppDisabledBg
 import com.niked.fatless.ui.theme.AppPrimary
 import com.niked.fatless.ui.theme.AppTextPrimary
 import com.niked.fatless.ui.theme.AppTextSecondary
@@ -51,16 +55,19 @@ fun SettingsScreen(
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
-        // ИСПОЛЬЗУЕМ НАШ УНИВЕРСАЛЬНЫЙ ТОПБАР
+        // ТОПБАР
         WorkoutTopBar(
             title = "Настройки",
             subTitle = "Конфигурация",
             onBackClick = onBackClick
         )
 
-        Column(modifier = Modifier.padding(24.dp)) {
-
-            // СЕКЦИЯ: ТРЕНИРОВКА
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp)
+        ) {
+            // --- СЕКЦИЯ: ТРЕНИРОВКА ---
             Text(text = "Тренировка", style = AppTypography.labelMedium, color = AppPrimary)
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -71,6 +78,16 @@ fun SettingsScreen(
                 onCheckedChange = { viewModel.toggleSound(it) }
             )
 
+            // ДОБАВЛЯЕМ СЛАЙДЕР ГРОМКОСТИ (показываем только если звук включен)
+            if (state.isSoundEnabled) {
+                SoundVolumeSettings(
+                    volume = state.soundVolume,
+                    onVolumeChange = { viewModel.updateVolume(it) }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             SettingToggleItem(
                 title = "Автозавершение по цели",
                 subtitle = "Переключать интервал при достижении нормы шагов",
@@ -80,24 +97,17 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                text = "Цель по шагам",
-                style = AppTypography.labelMedium,
-                color = AppPrimary
-            )
-
+            // --- СЕКЦИЯ: ЦЕЛЬ ---
+            Text(text = "Цель по шагам", style = AppTypography.labelMedium, color = AppPrimary)
             OutlinedTextField(
                 value = state.stepGoal.toString(),
                 onValueChange = {
-                    // Валидация: только цифры, максимум 6 знаков
                     val filtered = it.filter { char -> char.isDigit() }
                     if (filtered.length <= 6) {
                         viewModel.updateStepGoal(filtered.toIntOrNull() ?: 0)
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true,
@@ -110,12 +120,18 @@ fun SettingsScreen(
                 )
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.weight(1f))
 
-            // СЕКЦИЯ: ИНФО
+            // --- СЕКЦИЯ: ИНФО ---
+            HorizontalDivider(thickness = 1.dp, color = AppBorder)
+            Spacer(modifier = Modifier.height(16.dp))
             Text(text = "Приложение", style = AppTypography.labelMedium, color = AppPrimary)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Версия ${BuildConfig.VERSION_NAME} (Джон-Эдишн)", style = AppTypography.bodySmall, color = AppTextTertiary)
+            Text(
+                text = "Версия ${BuildConfig.VERSION_NAME} (Джон-Эдишн)",
+                style = AppTypography.bodySmall,
+                color = AppTextTertiary
+            )
         }
     }
 }
@@ -148,3 +164,37 @@ private fun SettingToggleItem(
         )
     }
 }
+
+@Composable
+fun SoundVolumeSettings(
+    volume: Float,
+    onVolumeChange: (Float) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Уровень громкости", style = AppTypography.bodySmall, color = AppTextSecondary)
+            Text("${(volume * 100).toInt()}%", style = AppTypography.labelSmall, color = AppPrimary)
+        }
+        Slider(
+            value = volume,
+            onValueChange = onVolumeChange,
+            valueRange = 0f..1f,
+            colors = SliderDefaults.colors(
+                thumbColor = AppPrimary,
+                activeTrackColor = AppPrimary,
+                inactiveTrackColor = AppDisabledBg
+            )
+        )
+    }
+}
+
+
+

@@ -1,6 +1,6 @@
 package com.niked.fatless.di
 
-import com.niked.fatless.data.player.AndroidAudioPlayer
+import com.niked.fatless.core.audio.AndroidAudioPlayer
 import com.niked.fatless.domain.player.IAudioPlayer
 import dagger.Binds
 import dagger.Module

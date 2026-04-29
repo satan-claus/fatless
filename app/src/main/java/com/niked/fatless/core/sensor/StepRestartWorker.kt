@@ -1,10 +1,9 @@
-package com.niked.fatless.core.service
+package com.niked.fatless.core.sensor
 
 import android.content.Context
 import android.content.Intent
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.niked.fatless.core.sensor.StepService
 
 class StepRestartWorker(
     context: Context,

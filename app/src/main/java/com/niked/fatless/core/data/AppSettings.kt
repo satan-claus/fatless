@@ -8,9 +8,12 @@ import javax.inject.Singleton
 import androidx.core.content.edit
 import com.niked.fatless.core.utils.Constants.PREFS_NAME
 import com.niked.fatless.core.utils.Constants.PREF_AUTO_FINISH_ON_GOAL
+import com.niked.fatless.core.utils.Constants.PREF_CURRENT_MANUAL_STEPS
+import com.niked.fatless.core.utils.Constants.PREF_IS_MANUAL_TRACKING
 import com.niked.fatless.core.utils.Constants.PREF_IS_SOUND_ENABLED
 import com.niked.fatless.core.utils.Constants.PREF_LAST_STEP_RESET_DATE
 import com.niked.fatless.core.utils.Constants.PREF_MANUAL_BASE_STEPS
+import com.niked.fatless.core.utils.Constants.PREF_SOUND_VOLUME
 import com.niked.fatless.core.utils.Constants.PREF_STEP_BASE_COUNT
 import com.niked.fatless.core.utils.Constants.PREF_STEP_GOAL
 import com.niked.fatless.core.utils.Constants.PREF_TODAY_STEPS
@@ -43,10 +46,26 @@ class AppSettings @Inject constructor(
     var stepGoal: Int
         get() = prefs.getInt(PREF_STEP_GOAL, 10000)
         set(value) = prefs.edit { putInt(PREF_STEP_GOAL, value) }
-    
+
+    // Результат текущего активного замера
+    var currentManualSteps: Int
+        get() = prefs.getInt(PREF_CURRENT_MANUAL_STEPS, 0)
+        set(value) = prefs.edit { putInt(PREF_CURRENT_MANUAL_STEPS, value) }
+
+    // Флаг активного замера
+    var isManualTracking: Boolean
+        get() = prefs.getBoolean(PREF_IS_MANUAL_TRACKING, false)
+        set(value) = prefs.edit { putBoolean(PREF_IS_MANUAL_TRACKING, value) }
+
+
     var isSoundEnabled: Boolean
         get() = prefs.getBoolean(PREF_IS_SOUND_ENABLED, true)
         set(value) = prefs.edit { putBoolean(PREF_IS_SOUND_ENABLED, value) }
+
+    var soundVolume: Float
+        // По умолчанию 100%
+        get() = prefs.getFloat(PREF_SOUND_VOLUME, 1.0f)
+        set(value) = prefs.edit { putFloat(PREF_SOUND_VOLUME, value) }
 
     // По умолчанию выключено
     var autoFinishOnGoal: Boolean
