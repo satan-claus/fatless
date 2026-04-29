@@ -1,6 +1,7 @@
 package com.niked.fatless.ui
 
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -12,15 +13,20 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.niked.fatless.core.audio.AndroidAudioPlayer
 import com.niked.fatless.core.sensor.StepService
-import com.niked.fatless.core.service.StepRestartWorker
+import com.niked.fatless.core.sensor.StepRestartWorker
 import com.niked.fatless.ui.navigation.FatLessNavGraph
 import com.niked.fatless.ui.theme.FatLessTheme
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var audioPlayer: AndroidAudioPlayer
 
     // 1. Создаем лаунчер для запроса пачки разрешений
     private val requestPermissionLauncher = registerForActivityResult(
@@ -38,12 +44,26 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
         checkAndRequestPermissions()
 
         setContent {
             FatLessTheme {
                 FatLessNavGraph()
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        audioPlayer.checkAndInit()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (isFinishing) {
+            audioPlayer.release()
         }
     }
 

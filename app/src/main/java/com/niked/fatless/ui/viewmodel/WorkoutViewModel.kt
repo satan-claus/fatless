@@ -176,7 +176,6 @@ class WorkoutViewModel @Inject constructor(
         super.onCleared()
         timerJob?.cancel()
         stepTracker.stopSession()
-        audioPlayer.release()
     }
 }
 
