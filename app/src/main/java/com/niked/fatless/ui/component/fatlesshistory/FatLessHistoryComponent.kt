@@ -2,17 +2,40 @@ package com.niked.fatless.ui.component.fatlesshistory
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.niked.fatless.R
-import com.niked.fatless.ui.theme.*
+import com.niked.fatless.ui.theme.AppBorder
+import com.niked.fatless.ui.theme.AppPrimary
+import com.niked.fatless.ui.theme.AppSurface
+import com.niked.fatless.ui.theme.AppTextPrimary
+import com.niked.fatless.ui.theme.AppTextTertiary
+import com.niked.fatless.ui.theme.AppTypography
 
 @Composable
 fun FatLessHistoryComponent(
@@ -20,6 +43,17 @@ fun FatLessHistoryComponent(
 ) {
     val historyType by viewModel.historyType.collectAsState()
     val chartData by viewModel.chartData.collectAsState()
+    val pageCount by viewModel.pageCount.collectAsState()
+
+    val pagerState = rememberPagerState(
+        initialPage = (pageCount - 1).coerceAtLeast(0),
+        pageCount = { pageCount }
+    )
+
+    // Синхронизация пейджера с вьюмоделью для подгрузки нужной недели
+    LaunchedEffect(pagerState.currentPage, pageCount) {
+        viewModel.updateOffsetFromPage(pagerState.currentPage, pageCount)
+    }
 
     Card(
         modifier = Modifier
@@ -64,29 +98,33 @@ fun FatLessHistoryComponent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- ГРАФИК (Смена режима) ---
-            Crossfade(targetState = historyType, label = "chart_anim") { type ->
-                Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                    if (type == FatLessHistoryType.STEPS) {
-                        // ИСПОЛЬЗУЕМ ОБЕРТКУ С КРАСНОЙ ЛИНИЕЙ
-                        StepChartWithGoalLine(data = chartData.first)
-                    } else {
-                        Row(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.Bottom
-                        ) {
-                            val maxCal = chartData.second.maxOfOrNull { it.totalCalories } ?: 1
-                            chartData.second.forEach { model ->
-                                NutritionStackedBar(
-                                    dayLabel = model.dayLabel,
-                                    proteins = model.proteins,
-                                    fats = model.fats,
-                                    carbs = model.carbs,
-                                    totalCalories = model.totalCalories,
-                                    maxCaloriesInWeek = maxCal,
-                                    isToday = model.isToday
-                                )
+            // --- ГРАФИК (С Пейджером) ---
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.weight(1f).fillMaxWidth()
+            ) {
+                Crossfade(targetState = historyType, label = "chart_anim") { type ->
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        if (type == FatLessHistoryType.STEPS) {
+                            StepChartWithGoalLine(data = chartData.first)
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.Bottom
+                            ) {
+                                val maxCal = chartData.second.maxOfOrNull { it.totalCalories } ?: 1
+                                chartData.second.forEach { model ->
+                                    NutritionStackedBar(
+                                        dayLabel = model.dayLabel,
+                                        proteins = model.proteins,
+                                        fats = model.fats,
+                                        carbs = model.carbs,
+                                        totalCalories = model.totalCalories,
+                                        maxCaloriesInWeek = maxCal,
+                                        isToday = model.isToday
+                                    )
+                                }
                             }
                         }
                     }
