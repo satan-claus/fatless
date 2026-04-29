@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.niked.fatless.core.data.AppSettings
 import com.niked.fatless.core.sensor.StepTracker
 import com.niked.fatless.domain.model.Workout
+import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.domain.repository.INutritionRepository
 import com.niked.fatless.domain.repository.IWorkoutRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,6 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val workoutRepository: IWorkoutRepository,
+    private val activityRepository: IActivityRepository,
     private val nutritionRepository: INutritionRepository,
     private val settings: AppSettings,
     private val stepTracker: StepTracker
@@ -45,6 +47,12 @@ class DashboardViewModel @Inject constructor(
     val steps = _steps.asStateFlow()
 
     val stepGoal = settings.stepGoal
+    val historyState = activityRepository.getActivityHistory()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Lazily,
+            initialValue = emptyList()
+        )
 
     // Храним слушателя как поле класса, чтобы GC его не сожрал
     private var stepsListener: SharedPreferences.OnSharedPreferenceChangeListener? = null

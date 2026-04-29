@@ -1,10 +1,10 @@
 package com.niked.fatless.di
 
+import com.niked.fatless.data.repository.ActivityRepositoryImpl
 import com.niked.fatless.data.repository.NutritionRepositoryImpl
-import com.niked.fatless.data.repository.StepRepositoryImpl
 import com.niked.fatless.data.repository.WorkoutRepositoryImpl
+import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.domain.repository.INutritionRepository
-import com.niked.fatless.domain.repository.IStepRepository
 import com.niked.fatless.domain.repository.IWorkoutRepository
 import dagger.Binds
 import dagger.Module
@@ -18,15 +18,15 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bindNutritionRepository(
-        nutritionRepositoryImpl: NutritionRepositoryImpl
-    ): INutritionRepository
+    abstract fun bindActivityRepository(
+        impl: ActivityRepositoryImpl
+    ): IActivityRepository
 
     @Binds
     @Singleton
-    abstract fun bindStepRepository(
-        impl: StepRepositoryImpl
-    ): IStepRepository
+    abstract fun bindNutritionRepository(
+        nutritionRepositoryImpl: NutritionRepositoryImpl
+    ): INutritionRepository
 
     @Binds
     @Singleton

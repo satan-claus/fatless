@@ -6,8 +6,8 @@ import com.niked.fatless.data.local.AppDatabase
 import com.niked.fatless.data.local.dao.WorkoutDao
 import com.niked.fatless.core.utils.Constants
 import com.niked.fatless.data.local.DatabasePrepCallback
+import com.niked.fatless.data.local.dao.ActivityDao
 import com.niked.fatless.data.local.dao.FoodDao
-import com.niked.fatless.data.local.dao.StepDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -33,14 +33,15 @@ object DatabaseModule {
         ).addCallback(DatabasePrepCallback(context, foodDaoProvider)).build()
     }
 
+
     @Provides
-    fun provideFoodDao(db: AppDatabase): FoodDao {
-        return db.foodDao()
+    fun provideActivityDao(db: AppDatabase): ActivityDao {
+        return db.activityDao()
     }
 
     @Provides
-    fun provideStepDao(db: AppDatabase): StepDao {
-        return db.stepDao()
+    fun provideFoodDao(db: AppDatabase): FoodDao {
+        return db.foodDao()
     }
 
     @Provides

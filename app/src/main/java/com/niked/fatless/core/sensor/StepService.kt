@@ -21,7 +21,7 @@ import androidx.core.graphics.toColorInt
 import com.niked.fatless.R
 import com.niked.fatless.core.data.AppSettings
 import com.niked.fatless.core.utils.Constants
-import com.niked.fatless.domain.repository.IStepRepository
+import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.ui.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -41,7 +41,7 @@ class StepService : Service(), SensorEventListener {
     lateinit var settings: AppSettings
 
     @Inject
-    lateinit var repository: IStepRepository
+    lateinit var activityRepository: IActivityRepository
 
     private lateinit var sensorManager: SensorManager
     private var wakeLock: PowerManager.WakeLock? = null
@@ -111,7 +111,7 @@ class StepService : Service(), SensorEventListener {
                 // СОХРАНЯЕМ ВЧЕРАШНИЙ ДЕНЬ В БАЗУ
                 if (yesterdayDate.isNotEmpty() && yesterdaySteps > 0) {
                     serviceScope.launch {
-                        repository.saveToHistory(yesterdayDate, yesterdaySteps)
+                        activityRepository.saveSteps(yesterdayDate, yesterdaySteps)
                     }
                 }
 
