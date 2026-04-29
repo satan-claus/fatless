@@ -40,6 +40,43 @@ class FatLessHistoryViewModel @Inject constructor(
         _historyType.value = type
     }
 
+//    private fun prepareData(history: List<DailyActivityEntity>, type: FatLessHistoryType): Pair<List<HistoryBarModel>, List<NutritionBarModel>> {
+//        val today = LocalDate.now()
+//        val last7Days = (0..6).reversed().map { today.minusDays(it.toLong()) }
+//
+//        val stepModels = mutableListOf<HistoryBarModel>()
+//        val nutritionModels = mutableListOf<NutritionBarModel>()
+//
+//        last7Days.forEach { date ->
+//            val dateStr = date.toString() // ГГГГ-ММ-ДД
+//            val dayData = history.find { it.date == dateStr }
+//            val isToday = date == today
+//            val dayLabel = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale("ru")).replaceFirstChar { it.uppercase() }
+//
+//            // Готовим модель для шагов
+//            stepModels.add(HistoryBarModel(
+//                label = dayLabel,
+//                value = dayData?.steps?.toFloat() ?: 0f,
+//                goal = settings.stepGoal.toFloat(),
+//                isToday = isToday,
+//                barColor = if (isToday) AppOrange else AppPrimary,
+//                showStar = (dayData?.steps ?: 0) >= settings.stepGoal && (dayData?.steps ?: 0) > 0
+//            ))
+//
+//            // Готовим модель для питания
+//            nutritionModels.add(NutritionBarModel(
+//                dayLabel = dayLabel,
+//                proteins = dayData?.proteins?.toFloat() ?: 0f,
+//                fats = dayData?.fats?.toFloat() ?: 0f,
+//                carbs = dayData?.carbs?.toFloat() ?: 0f,
+//                totalCalories = dayData?.calories ?: 0,
+//                isToday = isToday
+//            ))
+//        }
+//
+//        return Pair(stepModels, nutritionModels)
+//    }
+
     private fun prepareData(history: List<DailyActivityEntity>, type: FatLessHistoryType): Pair<List<HistoryBarModel>, List<NutritionBarModel>> {
         val today = LocalDate.now()
         val last7Days = (0..6).reversed().map { today.minusDays(it.toLong()) }
@@ -47,29 +84,36 @@ class FatLessHistoryViewModel @Inject constructor(
         val stepModels = mutableListOf<HistoryBarModel>()
         val nutritionModels = mutableListOf<NutritionBarModel>()
 
-        last7Days.forEach { date ->
-            val dateStr = date.toString() // ГГГГ-ММ-ДД
+        // 🎯 МОК-ДАННЫЕ (Удалишь, когда база наполнится)
+        val mockSteps = listOf(4000, 8500, 12000, 7000, 15000, 3000, 9000)
+        val mockCal = listOf(1800, 2200, 1500, 2500, 1900, 2800, 2100)
+
+        last7Days.forEachIndexed { index, date ->
+            val dateStr = date.toString()
             val dayData = history.find { it.date == dateStr }
             val isToday = date == today
-            val dayLabel = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale("ru")).replaceFirstChar { it.uppercase() }
+            val dayLabel = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale("ru"))
+                .replaceFirstChar { it.uppercase() }
 
-            // Готовим модель для шагов
+            // Используем данные из базы, а если их нет (find вернул null) — берем мок
+            val stepsValue = dayData?.steps ?: mockSteps[index]
+            val calValue = dayData?.calories ?: mockCal[index]
+
             stepModels.add(HistoryBarModel(
                 label = dayLabel,
-                value = dayData?.steps?.toFloat() ?: 0f,
+                value = stepsValue.toFloat(),
                 goal = settings.stepGoal.toFloat(),
                 isToday = isToday,
                 barColor = if (isToday) AppOrange else AppPrimary,
-                showStar = (dayData?.steps ?: 0) >= settings.stepGoal && (dayData?.steps ?: 0) > 0
+                showStar = stepsValue >= settings.stepGoal && stepsValue > 0
             ))
 
-            // Готовим модель для питания
             nutritionModels.add(NutritionBarModel(
                 dayLabel = dayLabel,
-                proteins = dayData?.proteins?.toFloat() ?: 0f,
-                fats = dayData?.fats?.toFloat() ?: 0f,
-                carbs = dayData?.carbs?.toFloat() ?: 0f,
-                totalCalories = dayData?.calories ?: 0,
+                proteins = dayData?.proteins ?: 80f, // Мок белка
+                fats = dayData?.fats ?: 60f,     // Мок жиров
+                carbs = dayData?.carbs ?: 200f,    // Мок углей
+                totalCalories = calValue,
                 isToday = isToday
             ))
         }
