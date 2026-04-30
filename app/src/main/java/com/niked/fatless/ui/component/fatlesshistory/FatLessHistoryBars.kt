@@ -1,5 +1,8 @@
 package com.niked.fatless.ui.component.fatlesshistory
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +23,11 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,6 +51,21 @@ fun FatLessHistoryBar(
     model: HistoryBarModel,
     maxForScale: Float
 ) {
+    var startAnim by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        startAnim = true
+    }
+
+    val targetValue = if (maxForScale > 0) model.value / maxForScale else 0f
+
+    // АНИМАЦИЯ: срабатывает при каждой смене model.value
+    val animatedProgress by animateFloatAsState(
+        targetValue = if (startAnim) targetValue else 0f,
+        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
+        label = "bar_growth"
+    )
+
     val goal = model.goal
     val totalFillRatio = (model.value / maxForScale).coerceIn(0f, 1f)
     val goalRatio = (goal / maxForScale).coerceIn(0f, 1f)
@@ -74,7 +97,7 @@ fun FatLessHistoryBar(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(totalFillRatio)
+                        .fillMaxHeight(animatedProgress.coerceIn(0f, 1f))
                         .background(Color(0xFFFF00FF))
                 )
             }
@@ -150,10 +173,25 @@ fun NutritionStackedBar(
     maxCaloriesInWeek: Int,
     isToday: Boolean
 ) {
+    // Стейт для старта анимации
+    var startAnim by remember { mutableStateOf(false) }
+
+    // Запускаем рост сразу после появления
+    LaunchedEffect(Unit) {
+        startAnim = true
+    }
+
     val totalFillRatio = if (maxCaloriesInWeek > 0) {
-        totalCalories.toFloat() / maxCaloriesInWeek.coerceAtMost(1)
+        totalCalories.toFloat() / maxCaloriesInWeek.coerceAtLeast(1)
     } else 0f
+
     val sumNutrients = (proteins + fats + carbs).coerceAtLeast(1f)
+
+    val animatedHeight by animateFloatAsState(
+        targetValue = if (startAnim) totalFillRatio else 0f,
+        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
+        label = "nutrition_growth"
+    )
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -174,24 +212,16 @@ fun NutritionStackedBar(
                 .background(AppDisabledBg.copy(alpha = 0.3f)),
             contentAlignment = Alignment.BottomCenter
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight(totalFillRatio.coerceIn(0.05f, 1f))
-                    .fillMaxWidth()
-            ) {
-                if (totalCalories > 0) {
-                    Box(
-                        Modifier.fillMaxWidth().weight(carbs / sumNutrients + 0.01f)
-                            .background(ColorCarbohydrates)
-                    )
-                    Box(
-                        Modifier.fillMaxWidth().weight(fats / sumNutrients + 0.01f)
-                            .background(ColorFats)
-                    )
-                    Box(
-                        Modifier.fillMaxWidth().weight(proteins / sumNutrients + 0.01f)
-                            .background(ColorProteins)
-                    )
+            if (totalCalories > 0) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight(animatedHeight.coerceIn(0.01f, 1f))
+                        .fillMaxWidth()
+                ) {
+                    // БЖУ СЛОИ
+                    Box(Modifier.fillMaxWidth().weight((carbs / sumNutrients).coerceAtLeast(0.01f)).background(ColorCarbohydrates))
+                    Box(Modifier.fillMaxWidth().weight((fats / sumNutrients).coerceAtLeast(0.01f)).background(ColorFats))
+                    Box(Modifier.fillMaxWidth().weight((proteins / sumNutrients).coerceAtLeast(0.01f)).background(ColorProteins))
                 }
             }
         }
@@ -204,3 +234,4 @@ fun NutritionStackedBar(
         )
     }
 }
+
