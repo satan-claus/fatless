@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.time.DayOfWeek
@@ -33,10 +32,18 @@ class FatLessHistoryViewModel @Inject constructor(
     private val _historyType = MutableStateFlow(FatLessHistoryType.STEPS)
     val historyType: StateFlow<FatLessHistoryType> = _historyType.asStateFlow()
 
+    // Офсет для синхронизации заголовка (дат)
     private val _weekOffset = MutableStateFlow(0)
     val weekOffset: StateFlow<Int> = _weekOffset.asStateFlow()
 
-    // ДИАПАЗОН ДАТ
+    val allHistory = repository.getActivityHistory()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Lazily,
+            initialValue = emptyList()
+        )
+
+    // ДИАПАЗОН ДАТ (Слушает офсет от пейджера)
     val weekRange: StateFlow<String> = _weekOffset.map { offset ->
         val today = LocalDate.now()
         val monday = today
@@ -47,7 +54,7 @@ class FatLessHistoryViewModel @Inject constructor(
         "${monday.format(formatter)} — ${sunday.format(formatter)}"
     }.stateIn(viewModelScope, SharingStarted.Lazily, "")
 
-    // 🎯 КОЛИЧЕСТВО СТРАНИЦ
+    // КОЛИЧЕСТВО СТРАНИЦ
     val pageCount = repository.getActivityHistory().map { history ->
         if (history.isEmpty()) return@map 3
         val firstDate = LocalDate.parse(history.minOf { it.date })
@@ -57,30 +64,23 @@ class FatLessHistoryViewModel @Inject constructor(
         (weeksBetween + 1 + 2).coerceAtLeast(3)
     }.stateIn(viewModelScope, SharingStarted.Lazily, 3)
 
-    // 🎯 ДАННЫЕ ГРАФИКА
-    val chartData = combine(
-        repository.getActivityHistory(),
-        _historyType,
-        _weekOffset
-    ) { history, type, offset ->
-        prepareData(history, type, offset)
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = Pair(emptyList<HistoryBarModel>(), emptyList<NutritionBarModel>())
-    )
-
     fun setHistoryType(type: FatLessHistoryType) {
         _historyType.value = type
     }
 
+    // Получение данных для конкретной страницы пейджера
+    fun getWeekData(page: Int, totalPages: Int, history: List<DailyActivityEntity>): Pair<List<HistoryBarModel>, List<NutritionBarModel>> {
+        val offset = page - (totalPages - 1)
+        return prepareData(history, offset)
+    }
+
+    // Обновление офсета (вызывается из LaunchedEffect в UI при свайпе)
     fun updateOffsetFromPage(page: Int, totalPages: Int) {
         _weekOffset.value = page - (totalPages - 1)
     }
 
     private fun prepareData(
         history: List<DailyActivityEntity>,
-        type: FatLessHistoryType,
         offset: Int
     ): Pair<List<HistoryBarModel>, List<NutritionBarModel>> {
 
@@ -91,13 +91,17 @@ class FatLessHistoryViewModel @Inject constructor(
 
         val weekDays = (0..6).map { monday.plusDays(it.toLong()) }
 
-        // --- МОКИ ДЛЯ ТЕСТА ---
+        // --- МОКИ ---
         val mockSteps = when(offset) {
-            -1 -> listOf(11000, 9000, 15000, 12000, 8000, 5000, 6000)
-            -2 -> listOf(7000, 7500, 6000, 8000, 10000, 12000, 11000)
-            else -> listOf(4841, 12500, 8900, 0, 0, 0, 0)
+            -1 -> listOf(11000f, 9000f, 15000f, 12000f, 8000f, 5000f, 6000f)
+            -2 -> listOf(7000f, 7500f, 6000f, 8000f, 10000f, 12000f, 11000f)
+            else -> listOf(4841f, 12500f, 8900f, 0f, 0f, 0f, 0f)
         }
-        val mockCal = listOf(2100, 1800, 2400, 0, 0, 0, 0)
+        val mockCal = when(offset) {
+            -1 -> listOf(0, 0, 0, 0, 0, 0, 0)
+            -2 -> listOf(0, 0, 0, 0, 0, 0, 0)
+            else -> listOf(2100, 1800, 2400, 0, 0, 0, 0)
+        }
 
         val stepModels = mutableListOf<HistoryBarModel>()
         val nutritionModels = mutableListOf<NutritionBarModel>()
@@ -110,7 +114,7 @@ class FatLessHistoryViewModel @Inject constructor(
             val dayLabel = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale("ru"))
                 .replaceFirstChar { it.uppercase() }
 
-            val stepsValue = if (isFuture) 0f else (dayData?.steps?.toFloat() ?: mockSteps[index].toFloat())
+            val stepsValue = if (isFuture) 0f else (dayData?.steps?.toFloat() ?: mockSteps[index])
 
             stepModels.add(HistoryBarModel(
                 label = dayLabel,
@@ -126,9 +130,9 @@ class FatLessHistoryViewModel @Inject constructor(
 
             nutritionModels.add(NutritionBarModel(
                 dayLabel = dayLabel,
-                proteins = if (isFuture) 0f else (dayData?.proteins ?: 85f),
-                fats = if (isFuture) 0f else (dayData?.fats ?: 65f),
-                carbs = if (isFuture) 0f else (dayData?.carbs ?: 210f),
+                proteins = dayData?.proteins ?: 0f,
+                fats = dayData?.fats ?: 0f,
+                carbs = dayData?.carbs ?: 0f,
                 totalCalories = calValue,
                 isToday = isToday,
                 isFuture = isFuture

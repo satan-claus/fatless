@@ -42,7 +42,7 @@ fun FatLessHistoryComponent(
     viewModel: FatLessHistoryViewModel = hiltViewModel()
 ) {
     val historyType by viewModel.historyType.collectAsState()
-    val chartData by viewModel.chartData.collectAsState()
+    val allHistory by viewModel.allHistory.collectAsState()
     val pageCount by viewModel.pageCount.collectAsState()
     val weekRange by viewModel.weekRange.collectAsState()
 
@@ -51,15 +51,13 @@ fun FatLessHistoryComponent(
         pageCount = { pageCount }
     )
 
-    // Синхронизация пейджера с вьюмоделью для подгрузки нужной недели
+    // Синхронизируем офсет для заголовка (дат)
     LaunchedEffect(pagerState.currentPage, pageCount) {
         viewModel.updateOffsetFromPage(pagerState.currentPage, pageCount)
     }
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(280.dp),
+        modifier = Modifier.fillMaxWidth().height(280.dp),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = AppSurface),
         border = BorderStroke(1.dp, AppBorder)
@@ -71,16 +69,18 @@ fun FatLessHistoryComponent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = if (historyType == FatLessHistoryType.STEPS) "Активность" else "Питание",
-                    style = AppTypography.titleSmall,
-                    color = AppTextPrimary
-                )
-                Text(
-                    text = weekRange,
-                    style = AppTypography.bodySmall,
-                    color = AppTextTertiary
-                )
+                Column {
+                    Text(
+                        text = if (historyType == FatLessHistoryType.STEPS) "Активность" else "Питание",
+                        style = AppTypography.titleSmall,
+                        color = AppTextPrimary
+                    )
+                    Text(
+                        text = weekRange,
+                        style = AppTypography.bodySmall,
+                        color = AppTextTertiary
+                    )
+                }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { viewModel.setHistoryType(FatLessHistoryType.STEPS) }) {
@@ -107,20 +107,26 @@ fun FatLessHistoryComponent(
             // --- ГРАФИК (С Пейджером) ---
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.weight(1f).fillMaxWidth()
-            ) {
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                key = { page -> page }
+            ) { page ->
+                // ПОЛУЧАЕМ ДАННЫЕ ДЛЯ КОНКРЕТНОЙ СТРАНИЦЫ
+                val weekData = viewModel.getWeekData(page, pageCount, allHistory)
+                val stepData = weekData.first
+                val nutritionData = weekData.second
+
                 Crossfade(targetState = historyType, label = "chart_anim") { type ->
                     Box(modifier = Modifier.fillMaxSize()) {
                         if (type == FatLessHistoryType.STEPS) {
-                            StepChartWithGoalLine(data = chartData.first)
+                            StepChartWithGoalLine(data = stepData)
                         } else {
                             Row(
                                 modifier = Modifier.fillMaxSize(),
                                 horizontalArrangement = Arrangement.SpaceEvenly,
                                 verticalAlignment = Alignment.Bottom
                             ) {
-                                val maxCal = chartData.second.maxOfOrNull { it.totalCalories } ?: 1
-                                chartData.second.forEach { model ->
+                                val maxCal = nutritionData.maxOfOrNull { it.totalCalories } ?: 1
+                                nutritionData.forEach { model ->
                                     NutritionStackedBar(
                                         dayLabel = model.dayLabel,
                                         proteins = model.proteins,
@@ -137,14 +143,19 @@ fun FatLessHistoryComponent(
                 }
             }
 
-            // --- ПОДВАЛ ---
+            // --- ПОДВАЛ (Среднее для текущей страницы пейджера) ---
             Spacer(modifier = Modifier.height(12.dp))
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                // Берем данные для той страницы, которая сейчас перед глазами
+                val currentData = viewModel.getWeekData(pagerState.currentPage, pageCount, allHistory)
                 val avg = if (historyType == FatLessHistoryType.STEPS) {
-                    if (chartData.first.isNotEmpty()) chartData.first.map { it.value }.average().toInt() else 0
+                    val steps = currentData.first.map { it.value }.filter { it > 0 }
+                    if (steps.isNotEmpty()) steps.average().toInt() else 0
                 } else {
-                    if (chartData.second.isNotEmpty()) chartData.second.map { it.totalCalories }.average().toInt() else 0
+                    val cals = currentData.second.map { it.totalCalories }.filter { it > 0 }
+                    if (cals.isNotEmpty()) cals.average().toInt() else 0
                 }
+
                 Text(
                     text = "В среднем: $avg",
                     style = AppTypography.bodySmall,
