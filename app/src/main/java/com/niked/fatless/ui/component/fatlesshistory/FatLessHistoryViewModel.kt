@@ -7,6 +7,8 @@ import com.niked.fatless.data.local.entities.DailyActivityEntity
 import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.ui.theme.AppOrange
 import com.niked.fatless.ui.theme.AppPrimary
+import com.niked.fatless.ui.theme.ColorSteps
+import com.niked.fatless.ui.theme.ColorStepsToday
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -114,7 +116,11 @@ class FatLessHistoryViewModel @Inject constructor(
             val dayLabel = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale("ru"))
                 .replaceFirstChar { it.uppercase() }
 
-            val stepsValue = if (isFuture) 0f else (dayData?.steps?.toFloat() ?: mockSteps[index])
+            val stepsValue = when {
+                isFuture -> 0f
+                isToday -> settings.todaySteps.toFloat()
+                else -> dayData?.steps?.toFloat() ?: mockSteps[index]
+            }
 
             stepModels.add(HistoryBarModel(
                 label = dayLabel,
@@ -122,7 +128,7 @@ class FatLessHistoryViewModel @Inject constructor(
                 goal = settings.stepGoal.toFloat(),
                 isToday = isToday,
                 isFuture = isFuture,
-                barColor = if (isToday) AppOrange else AppPrimary,
+                barColor = if (isToday) ColorStepsToday else ColorSteps,
                 showStar = stepsValue >= settings.stepGoal && stepsValue > 0
             ))
 

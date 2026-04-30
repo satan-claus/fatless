@@ -44,13 +44,18 @@ import com.niked.fatless.ui.theme.AppTextTertiary
 import com.niked.fatless.ui.theme.AppTypography
 import com.niked.fatless.ui.theme.ColorCarbohydrates
 import com.niked.fatless.ui.theme.ColorFats
+import com.niked.fatless.ui.theme.ColorOverSteps
 import com.niked.fatless.ui.theme.ColorProteins
+import com.niked.fatless.ui.theme.ColorSteps
+import com.niked.fatless.ui.theme.ColorStepsToday
 
 @Composable
 fun FatLessHistoryBar(
     model: HistoryBarModel,
     maxForScale: Float
 ) {
+    val baseBarColor = if (model.isToday) ColorStepsToday else ColorSteps
+
     var startAnim by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -102,13 +107,13 @@ fun FatLessHistoryBar(
                     val overflowWeight = (model.value - model.goal) / model.value
                     val baseWeight = model.goal / model.value
 
-                    // Розовый (сверх)
-                    Box(Modifier.fillMaxWidth().weight(overflowWeight).background(Color(0xFFFF00FF)))
-                    // Основной (до цели)
-                    Box(Modifier.fillMaxWidth().weight(baseWeight).background(model.barColor))
+                    // Фиолетовый (Оверстеп)
+                    Box(Modifier.fillMaxWidth().weight(overflowWeight).background(ColorOverSteps))
+                    // Базовый (Синий или Оранжевый)
+                    Box(Modifier.fillMaxWidth().weight(baseWeight).background(baseBarColor))
                 } else {
-                    // Просто основной столбик (если цель не достигнута)
-                    Box(Modifier.fillMaxSize().background(model.barColor))
+                    // Весь столбик базового цвета
+                    Box(Modifier.fillMaxSize().background(baseBarColor))
                 }
             }
 
