@@ -36,6 +36,7 @@ import com.niked.fatless.ui.theme.AppTextPrimary
 import com.niked.fatless.ui.theme.AppTextSecondary
 import com.niked.fatless.ui.theme.AppTextTertiary
 import com.niked.fatless.ui.theme.AppTypography
+import com.niked.fatless.ui.theme.ColorSteps
 import com.niked.fatless.ui.viewmodel.NutritionUiState
 
 @Composable
@@ -85,7 +86,7 @@ fun DailySummaryCard(
                 Text(
                     text = "$steps / $stepGoal шагов",
                     style = AppTypography.labelMedium,
-                    color = AppPrimary
+                    color = ColorSteps
                 )
 
                 // ДИСТАНЦИЯ (Километры)
@@ -109,7 +110,7 @@ fun DailySummaryCard(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Твой LinearProgressIndicator для шагов
+                // LinearProgressIndicator для шагов
                 val progress = if (stepGoal > 0) steps.toFloat() / stepGoal else 0f
                 LinearProgressIndicator(
                 progress = { progress.coerceIn(0f, 1f) },
@@ -117,7 +118,7 @@ fun DailySummaryCard(
                                         .fillMaxWidth()
                                         .height(8.dp)
                                         .clip(RoundedCornerShape(4.dp)),
-                color = AppPrimary,
+                color = ColorSteps,
                 trackColor = AppDisabledBg,
                 strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
                 )

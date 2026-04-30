@@ -45,7 +45,7 @@ fun WorkoutCreateScreen(
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
                             strokeWidth = 2.dp,
-                            color = AppPrimary
+                            color = ColorSteps
                         )
                     } else {
                         Icon(

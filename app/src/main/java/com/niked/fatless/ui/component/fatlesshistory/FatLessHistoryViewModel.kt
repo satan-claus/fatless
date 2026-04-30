@@ -7,6 +7,8 @@ import com.niked.fatless.data.local.entities.DailyActivityEntity
 import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.ui.theme.AppOrange
 import com.niked.fatless.ui.theme.AppPrimary
+import com.niked.fatless.ui.theme.ColorSteps
+import com.niked.fatless.ui.theme.ColorStepsToday
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -126,7 +128,7 @@ class FatLessHistoryViewModel @Inject constructor(
                 goal = settings.stepGoal.toFloat(),
                 isToday = isToday,
                 isFuture = isFuture,
-                barColor = if (isToday) AppOrange else AppPrimary,
+                barColor = if (isToday) ColorStepsToday else ColorSteps,
                 showStar = stepsValue >= settings.stepGoal && stepsValue > 0
             ))
 
