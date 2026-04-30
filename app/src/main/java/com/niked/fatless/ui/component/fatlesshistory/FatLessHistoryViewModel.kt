@@ -114,7 +114,11 @@ class FatLessHistoryViewModel @Inject constructor(
             val dayLabel = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale("ru"))
                 .replaceFirstChar { it.uppercase() }
 
-            val stepsValue = if (isFuture) 0f else (dayData?.steps?.toFloat() ?: mockSteps[index])
+            val stepsValue = when {
+                isFuture -> 0f
+                isToday -> settings.todaySteps.toFloat()
+                else -> dayData?.steps?.toFloat() ?: mockSteps[index]
+            }
 
             stepModels.add(HistoryBarModel(
                 label = dayLabel,
