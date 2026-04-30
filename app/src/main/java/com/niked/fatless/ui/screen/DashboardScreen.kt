@@ -24,6 +24,7 @@ import com.niked.fatless.ui.component.AddWorkoutButton
 import com.niked.fatless.ui.component.DailySummaryCard
 import com.niked.fatless.ui.component.WorkoutItem
 import com.niked.fatless.ui.component.WorkoutTopBar
+import com.niked.fatless.ui.component.fatlesshistory.FatLessHistoryComponent
 import com.niked.fatless.ui.theme.AppBackground
 import com.niked.fatless.ui.theme.AppTextPrimary
 import com.niked.fatless.ui.theme.AppTypography
@@ -41,6 +42,7 @@ fun DashboardScreen(
     val workouts by viewModel.workouts.collectAsState()
     val nutrition by viewModel.todayNutrition.collectAsState()
     val steps by viewModel.steps.collectAsState()
+    val history by viewModel.historyState.collectAsState()
 
     Column(
         modifier = Modifier
@@ -54,7 +56,7 @@ fun DashboardScreen(
             onBackClick = onExitClick,
             actions = {
                 IconButton(onClick = onSettingsClick) {
-                    Icon(Icons.Default.Settings, null, tint = AppTextPrimary )
+                    Icon(Icons.Default.Settings, null, tint = AppTextPrimary)
                 }
             }
         )
@@ -66,14 +68,22 @@ fun DashboardScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(top = 24.dp, bottom = 32.dp)
         ) {
-            // КАРТОЧКА-ДАШБОРД (Питание + Шаги)
+            // 1. КАРТОЧКА-ДАШБОРД (Питание + Шаги)
             item {
+                val distance by viewModel.distanceKm.collectAsState()
+
                 DailySummaryCard(
                     nutrition = nutrition,
                     steps = steps,
+                    distance = distance,
                     stepGoal = viewModel.stepGoal,
                     onClick = onNutritionClick
                 )
+            }
+
+            // 2. ИСТОРИЯ (Лента последних дней)
+            item {
+                FatLessHistoryComponent()
             }
 
             item {

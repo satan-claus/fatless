@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.niked.fatless.core.data.AppSettings
 import com.niked.fatless.domain.model.Workout
 import com.niked.fatless.domain.model.WorkoutState
-import com.niked.fatless.domain.player.IAudioPlayer
+import com.niked.fatless.domain.repository.IAudioPlayer
 import com.niked.fatless.domain.repository.IWorkoutRepository
 import com.niked.fatless.core.sensor.StepTracker
 import dagger.hilt.android.lifecycle.HiltViewModel

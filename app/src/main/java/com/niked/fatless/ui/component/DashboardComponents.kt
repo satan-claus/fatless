@@ -2,24 +2,47 @@ package com.niked.fatless.ui.component
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.*
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ProgressIndicatorDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.niked.fatless.ui.theme.*
+import com.niked.fatless.R
+import com.niked.fatless.ui.theme.AppBorder
+import com.niked.fatless.ui.theme.AppDisabledBg
+import com.niked.fatless.ui.theme.AppPrimary
+import com.niked.fatless.ui.theme.AppSurface
+import com.niked.fatless.ui.theme.AppTextPrimary
+import com.niked.fatless.ui.theme.AppTextSecondary
+import com.niked.fatless.ui.theme.AppTextTertiary
+import com.niked.fatless.ui.theme.AppTypography
 import com.niked.fatless.ui.viewmodel.NutritionUiState
 
 @Composable
 fun DailySummaryCard(
     nutrition: NutritionUiState,
     steps: Int,
+    distance: Float,
     stepGoal: Int,
     onClick: () -> Unit
 ) {
@@ -37,6 +60,7 @@ fun DailySummaryCard(
             modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // ЛЕВАЯ ЧАСТЬ: круг калорий/БЖУ
             NutritionalValueView(
                 proteins = nutrition.totalProteins,
                 fats = nutrition.totalFats,
@@ -47,34 +71,55 @@ fun DailySummaryCard(
 
             Spacer(modifier = Modifier.width(20.dp))
 
+            // ПРАВАЯ ЧАСТЬ: Шаги и Километры
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "Сегодня", style = AppTypography.titleMedium, color = AppTextPrimary)
-
-                // Секция шагов
                 Text(
-                    text = "Шаги: $steps / $stepGoal", // Показываем цель
-                    style = AppTypography.bodySmall,
-                    color = AppSecondary,
-                    fontWeight = FontWeight.Bold
+                    text = "Сегодня",
+                    style = AppTypography.titleMedium,
+                    color = AppTextPrimary
                 )
 
-                // Индикатор прогресса
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // ШАГИ
+                Text(
+                    text = "$steps / $stepGoal шагов",
+                    style = AppTypography.labelMedium,
+                    color = AppPrimary
+                )
+
+                // ДИСТАНЦИЯ (Километры)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 4.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_location_on_24),
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = AppTextTertiary
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = String.format("%.2f км", distance),
+                        style = AppTypography.bodySmall,
+                        color = AppTextSecondary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Твой LinearProgressIndicator для шагов
+                val progress = if (stepGoal > 0) steps.toFloat() / stepGoal else 0f
                 LinearProgressIndicator(
-                    progress = { stepProgress },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp, bottom = 8.dp)
-                        .height(6.dp),
-                    color = AppSecondary,
-                    trackColor = AppSecondary.copy(alpha = 0.2f),
-                    strokeCap = StrokeCap.Round
-                )
-
-                // Сводка БЖУ
-                Text(
-                    text = "Б:${nutrition.totalProteins.toInt()} Ж:${nutrition.totalFats.toInt()} У:${nutrition.totalCarbs.toInt()}",
-                    style = AppTypography.bodySmall,
-                    color = AppTextTertiary
+                progress = { progress.coerceIn(0f, 1f) },
+                modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(8.dp)
+                                        .clip(RoundedCornerShape(4.dp)),
+                color = AppPrimary,
+                trackColor = AppDisabledBg,
+                strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
                 )
             }
         }

@@ -9,6 +9,7 @@ import androidx.core.content.edit
 import com.niked.fatless.core.utils.Constants.PREFS_NAME
 import com.niked.fatless.core.utils.Constants.PREF_AUTO_FINISH_ON_GOAL
 import com.niked.fatless.core.utils.Constants.PREF_CURRENT_MANUAL_STEPS
+import com.niked.fatless.core.utils.Constants.PREF_IS_FIRST_LAUNCH
 import com.niked.fatless.core.utils.Constants.PREF_IS_MANUAL_TRACKING
 import com.niked.fatless.core.utils.Constants.PREF_IS_SOUND_ENABLED
 import com.niked.fatless.core.utils.Constants.PREF_LAST_STEP_RESET_DATE
@@ -17,6 +18,8 @@ import com.niked.fatless.core.utils.Constants.PREF_SOUND_VOLUME
 import com.niked.fatless.core.utils.Constants.PREF_STEP_BASE_COUNT
 import com.niked.fatless.core.utils.Constants.PREF_STEP_GOAL
 import com.niked.fatless.core.utils.Constants.PREF_TODAY_STEPS
+import com.niked.fatless.core.utils.Constants.PREF_USER_HEIGHT
+import com.niked.fatless.core.utils.Constants.PREF_USER_WEIGHT
 
 @Singleton
 class AppSettings @Inject constructor(
@@ -24,6 +27,18 @@ class AppSettings @Inject constructor(
 ) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    var isFirstLaunch: Boolean
+        get() = prefs.getBoolean(PREF_IS_FIRST_LAUNCH, true)
+        set(value) = prefs.edit { putBoolean(PREF_IS_FIRST_LAUNCH, value) }
+
+    var userHeight: Int
+        get() = prefs.getInt(PREF_USER_HEIGHT, 175) // 175 см по дефолту
+        set(value) = prefs.edit { putInt(PREF_USER_HEIGHT, value) }
+
+    var userWeight: Int
+        get() = prefs.getInt(PREF_USER_WEIGHT, 75) // 75 кг по дефолту
+        set(value) = prefs.edit { putInt(PREF_USER_WEIGHT, value) }
 
     var stepBaseCount: Int
         get() = prefs.getInt(PREF_STEP_BASE_COUNT, -1)

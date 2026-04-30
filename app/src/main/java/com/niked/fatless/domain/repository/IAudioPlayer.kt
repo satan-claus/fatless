@@ -1,4 +1,4 @@
-package com.niked.fatless.domain.player
+package com.niked.fatless.domain.repository
 
 interface IAudioPlayer {
     fun playTick()   // Пик-пик

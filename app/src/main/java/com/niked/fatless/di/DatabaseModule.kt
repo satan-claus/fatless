@@ -6,6 +6,7 @@ import com.niked.fatless.data.local.AppDatabase
 import com.niked.fatless.data.local.dao.WorkoutDao
 import com.niked.fatless.core.utils.Constants
 import com.niked.fatless.data.local.DatabasePrepCallback
+import com.niked.fatless.data.local.dao.ActivityDao
 import com.niked.fatless.data.local.dao.FoodDao
 import dagger.Module
 import dagger.Provides
@@ -30,6 +31,12 @@ object DatabaseModule {
             AppDatabase::class.java,
             Constants.DATABASE_NAME
         ).addCallback(DatabasePrepCallback(context, foodDaoProvider)).build()
+    }
+
+
+    @Provides
+    fun provideActivityDao(db: AppDatabase): ActivityDao {
+        return db.activityDao()
     }
 
     @Provides
