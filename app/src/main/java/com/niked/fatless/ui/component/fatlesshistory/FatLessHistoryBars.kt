@@ -57,17 +57,16 @@ fun FatLessHistoryBar(
         startAnim = true
     }
 
-    val targetValue = if (maxForScale > 0) model.value / maxForScale else 0f
+    val targetTotalHeight = if (maxForScale > 0) model.value / maxForScale else 0f
 
     // АНИМАЦИЯ: срабатывает при каждой смене model.value
-    val animatedProgress by animateFloatAsState(
-        targetValue = if (startAnim) targetValue else 0f,
-        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
-        label = "bar_growth"
+    val animatedHeight by animateFloatAsState(
+        targetValue = if (startAnim) targetTotalHeight else 0f,
+        animationSpec = tween(800, easing = FastOutSlowInEasing),
+        label = "step_growth"
     )
 
     val goal = model.goal
-    val totalFillRatio = (model.value / maxForScale).coerceIn(0f, 1f)
     val goalRatio = (goal / maxForScale).coerceIn(0f, 1f)
 
     Column(
@@ -93,22 +92,25 @@ fun FatLessHistoryBar(
             contentAlignment = Alignment.BottomCenter
         ) {
             // 1. СЛОЙ ПЕРЕВЫПОЛНЕНИЯ (Розовый)
-            if (model.value > goal) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(animatedProgress.coerceIn(0f, 1f))
-                        .background(Color(0xFFFF00FF))
-                )
-            }
-
-            // 2. БАЗОВЫЙ СЛОЙ (Зеленый/Оранжевый)
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(totalFillRatio.coerceAtMost(goalRatio))
-                    .background(model.barColor)
-            )
+                    .fillMaxHeight(animatedHeight.coerceIn(0f, 1f))
+            ) {
+                // Если есть перевыполнение, делим высоту между розовым и основным
+                if (model.value > model.goal) {
+                    val overflowWeight = (model.value - model.goal) / model.value
+                    val baseWeight = model.goal / model.value
+
+                    // Розовый (сверх)
+                    Box(Modifier.fillMaxWidth().weight(overflowWeight).background(Color(0xFFFF00FF)))
+                    // Основной (до цели)
+                    Box(Modifier.fillMaxWidth().weight(baseWeight).background(model.barColor))
+                } else {
+                    // Просто основной столбик (если цель не достигнута)
+                    Box(Modifier.fillMaxSize().background(model.barColor))
+                }
+            }
 
             // 3. КРАСНАЯ ЛИНИЯ ЦЕЛИ (Пунктир внутри каждого бокса)
             Canvas(modifier = Modifier.fillMaxSize()) {
