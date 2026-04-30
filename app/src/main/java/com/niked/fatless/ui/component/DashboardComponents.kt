@@ -17,19 +17,15 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.niked.fatless.R
 import com.niked.fatless.ui.theme.AppBorder
-import com.niked.fatless.ui.theme.AppDisabledBg
 import com.niked.fatless.ui.theme.AppPrimary
 import com.niked.fatless.ui.theme.AppSurface
 import com.niked.fatless.ui.theme.AppTextPrimary
@@ -47,8 +43,6 @@ fun DailySummaryCard(
     stepGoal: Int,
     onClick: () -> Unit
 ) {
-    val stepProgress = (steps.toFloat() / stepGoal).coerceIn(0f, 1f)
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -111,16 +105,9 @@ fun DailySummaryCard(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // LinearProgressIndicator для шагов
-                val progress = if (stepGoal > 0) steps.toFloat() / stepGoal else 0f
-                LinearProgressIndicator(
-                progress = { progress.coerceIn(0f, 1f) },
-                modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(8.dp)
-                                        .clip(RoundedCornerShape(4.dp)),
-                color = ColorSteps,
-                trackColor = AppDisabledBg,
-                strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
+                OverstepLinearProgress(
+                    steps = steps,
+                    stepGoal = stepGoal
                 )
             }
         }
