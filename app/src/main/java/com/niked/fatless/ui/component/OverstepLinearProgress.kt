@@ -1,9 +1,17 @@
 package com.niked.fatless.ui.component
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -24,6 +32,18 @@ fun OverstepLinearProgress(
     overColor: Color = ColorOverSteps,
     trackColor: Color = AppDisabledBg.copy(alpha = 0.3f)
 ) {
+
+    // 1. Стейт для старта
+    var startAnim by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { startAnim = true }
+
+    // 2. Анимируем общий прогресс
+    val animatedProgress by animateFloatAsState(
+        targetValue = if (startAnim) (steps.toFloat() / stepGoal.coerceAtLeast(1)) else 0f,
+        animationSpec = tween(1000, easing = FastOutSlowInEasing),
+        label = "steps_anim"
+    )
+
     Canvas(
         modifier = modifier
             .fillMaxWidth()
@@ -32,7 +52,7 @@ fun OverstepLinearProgress(
         val strokeWidth = size.height
         val gap = 4.dp.toPx() // Тот самый прозрачный промежуток
 
-        // 1. ТРЕК (Серый фон)
+        // 1. ТРЕК (Серый) - всегда на месте
         drawLine(
             color = trackColor,
             start = Offset(0f, size.height / 2),
@@ -42,34 +62,31 @@ fun OverstepLinearProgress(
         )
 
         // 2. БАЗОВЫЙ ПРОГРЕСС (Оранжевый)
-        val progressRatio = (steps.toFloat() / stepGoal.coerceAtLeast(1)).coerceIn(0f, 1f)
-        if (progressRatio > 0.02f) {
-            val progressEnd = size.width * progressRatio
-            // Если прогресс не полный, вычитаем зазор для эффекта "воздуха"
-            val finalEnd = if (progressRatio < 1f) (progressEnd - gap).coerceAtLeast(0f) else progressEnd
-
+        val baseRatio = animatedProgress.coerceIn(0f, 1f)
+        if (baseRatio > 0.01f) {
+            val endX = size.width * baseRatio
             drawLine(
                 color = baseColor,
                 start = Offset(0f, size.height / 2),
-                end = Offset(finalEnd, size.height / 2),
+                end = Offset(if (baseRatio < 1f) (endX - gap).coerceAtLeast(0f) else endX, size.height / 2),
                 cap = StrokeCap.Round,
                 strokeWidth = strokeWidth
             )
         }
 
-        // 3. ОВЕРСТЕП (Фиолетовый поверх)
-        if (steps > stepGoal) {
-            val overRatio = ((steps - stepGoal).toFloat() / stepGoal.coerceAtLeast(1)).coerceIn(0f, 1f)
-            val overEnd = size.width * overRatio
-            val finalOverEnd = if (overRatio < 1f) (overEnd - gap).coerceAtLeast(0f) else overEnd
-
-            drawLine(
-                color = overColor,
-                start = Offset(0f, size.height / 2),
-                end = Offset(finalOverEnd, size.height / 2),
-                cap = StrokeCap.Round,
-                strokeWidth = strokeWidth
-            )
+        // 3. ОВЕРСТЕП (Фиолетовый)
+        if (animatedProgress > 1f) {
+            val overRatio = (animatedProgress - 1f).coerceIn(0f, 1f)
+            val overEndX = size.width * overRatio
+            if (overRatio > 0.01f) {
+                drawLine(
+                    color = overColor,
+                    start = Offset(0f, size.height / 2),
+                    end = Offset(if (overRatio < 1f) (overEndX - gap).coerceAtLeast(0f) else overEndX, size.height / 2),
+                    cap = StrokeCap.Round,
+                    strokeWidth = strokeWidth
+                )
+            }
         }
     }
 }
