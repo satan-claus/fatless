@@ -36,7 +36,7 @@ class FatLessHistoryViewModel @Inject constructor(
     private val _weekOffset = MutableStateFlow(0)
     val weekOffset: StateFlow<Int> = _weekOffset.asStateFlow()
 
-    // ДИАПАЗОН ДАТ: "27 апр — 03 мая"
+    // ДИАПАЗОН ДАТ
     val weekRange: StateFlow<String> = _weekOffset.map { offset ->
         val today = LocalDate.now()
         val monday = today
