@@ -45,6 +45,16 @@ class DashboardViewModel @Inject constructor(
     val steps = _steps.asStateFlow()
 
     val stepGoal = settings.stepGoal
+
+    val burnedCalories = steps.map { currentSteps ->
+        val weight = settings.userWeight
+        currentSteps.toFloat() * weight.toFloat() * 0.0005f
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = 0f
+    )
+
     val historyState = activityRepository.getActivityHistory()
         .stateIn(
             scope = viewModelScope,

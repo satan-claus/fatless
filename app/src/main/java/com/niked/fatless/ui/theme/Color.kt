@@ -12,6 +12,7 @@ val AppSurface = Color(0xFFFFFFFF)        // --surface
 val AppTextPrimary = Color(0xFF1A1D24)    // --text-primary
 val AppTextSecondary = Color(0xFF5F6776)  // --text-secondary
 val AppOrange = Color(0xFFE67E22)           // Пауза
+val AppRed = Color(0xFFDC3545)           // Пауза
 val AppOrangeLight = Color(0x14E67E22)    // 8% оранжевого
 val AppTextTertiary = Color(0xFF939BAA)     // Метаданные
 val AppDisabledBg = Color(0xFFEDEDEF)

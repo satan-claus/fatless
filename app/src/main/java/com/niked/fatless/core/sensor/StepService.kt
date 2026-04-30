@@ -110,7 +110,7 @@ class StepService : Service(), SensorEventListener {
                 // СОХРАНЯЕМ ВЧЕРАШНИЙ ДЕНЬ В БАЗУ
                 if (yesterdayDate.isNotEmpty() && yesterdaySteps > 0) {
                     serviceScope.launch {
-                        activityRepository.saveSteps(yesterdayDate, yesterdaySteps)
+                        activityRepository.saveSteps(yesterdayDate, yesterdaySteps, settings.userWeight.toFloat())
                     }
                 }
 

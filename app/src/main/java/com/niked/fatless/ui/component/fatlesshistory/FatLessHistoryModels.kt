@@ -21,7 +21,7 @@ data class NutritionBarModel(
     val proteins: Float,
     val fats: Float,
     val carbs: Float,
-    val totalCalories: Int,
+    val totalCalories: Float,
     val isToday: Boolean,
     val isFuture: Boolean
 )

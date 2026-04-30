@@ -26,11 +26,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.niked.fatless.R
 import com.niked.fatless.ui.theme.AppBorder
+import com.niked.fatless.ui.theme.AppOrange
 import com.niked.fatless.ui.theme.AppPrimary
+import com.niked.fatless.ui.theme.AppRed
 import com.niked.fatless.ui.theme.AppSurface
 import com.niked.fatless.ui.theme.AppTextPrimary
 import com.niked.fatless.ui.theme.AppTextSecondary
-import com.niked.fatless.ui.theme.AppTextTertiary
 import com.niked.fatless.ui.theme.AppTypography
 import com.niked.fatless.ui.theme.ColorSteps
 import com.niked.fatless.ui.viewmodel.NutritionUiState
@@ -40,6 +41,7 @@ fun DailySummaryCard(
     nutrition: NutritionUiState,
     steps: Int,
     distance: Float,
+    burnedCalories: Float,
     stepGoal: Int,
     onClick: () -> Unit
 ) {
@@ -92,11 +94,27 @@ fun DailySummaryCard(
                         painter = painterResource(id = R.drawable.ic_location_on_24),
                         contentDescription = null,
                         modifier = Modifier.size(14.dp),
-                        tint = AppTextTertiary
+                        tint = AppRed
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = String.format("%.2f км", distance),
+                        style = AppTypography.bodySmall,
+                        color = AppTextSecondary
+                    )
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    // 2. СОЖЖЕННЫЕ КАЛОРИИ (ОГОНЬ)
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_fire_24),
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = AppOrange
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "${burnedCalories.toInt()} ккал", // burnedCalories должен прийти во Float
                         style = AppTypography.bodySmall,
                         color = AppTextSecondary
                     )
