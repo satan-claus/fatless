@@ -81,7 +81,8 @@ class FoodFormViewModel @Inject constructor(
             carbs = state.carbs.replace(",", ".").toFloatOrNull() ?: 0f,
             calories = state.calories.toIntOrNull() ?: 0,
             categoryId = state.categoryId,
-            categoryName = "", // Имя подтянется через JOIN при поиске
+            // Имя подтянется через JOIN при поиске
+            categoryName = "",
             unit = state.unit,
             isCustom = true
         )
@@ -99,7 +100,7 @@ data class FoodFormUiState(
     val fats: String = "",
     val carbs: String = "",
     val calories: String = "",
-    val categoryId: String = "cat_meat", // Дефолт при создании
+    val categoryId: String = "cat_meat",
     val unit: MeasureUnit = MeasureUnit.GRAMS
 )
 

@@ -179,9 +179,20 @@ fun NutritionStackedBar(
                     .fillMaxHeight(totalFillRatio.coerceIn(0.05f, 1f))
                     .fillMaxWidth()
             ) {
-                Box(Modifier.fillMaxWidth().weight(carbs / sumNutrients + 0.01f).background(ColorCarbohydrates))
-                Box(Modifier.fillMaxWidth().weight(fats / sumNutrients + 0.01f).background(ColorFats))
-                Box(Modifier.fillMaxWidth().weight(proteins / sumNutrients + 0.01f).background(ColorProteins))
+                if (totalCalories > 0) {
+                    Box(
+                        Modifier.fillMaxWidth().weight(carbs / sumNutrients + 0.01f)
+                            .background(ColorCarbohydrates)
+                    )
+                    Box(
+                        Modifier.fillMaxWidth().weight(fats / sumNutrients + 0.01f)
+                            .background(ColorFats)
+                    )
+                    Box(
+                        Modifier.fillMaxWidth().weight(proteins / sumNutrients + 0.01f)
+                            .background(ColorProteins)
+                    )
+                }
             }
         }
         Spacer(modifier = Modifier.height(8.dp))

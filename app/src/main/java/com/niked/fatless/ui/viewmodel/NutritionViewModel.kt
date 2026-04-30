@@ -24,7 +24,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NutritionViewModel @Inject constructor(
-    private val activityRepository: IActivityRepository,
     private val nutritionRepository: INutritionRepository,
     private val addMealUseCase: AddMealUseCase,
     private val deleteMealUseCase: DeleteMealUseCase

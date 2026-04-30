@@ -97,7 +97,11 @@ class FatLessHistoryViewModel @Inject constructor(
             -2 -> listOf(7000, 7500, 6000, 8000, 10000, 12000, 11000)
             else -> listOf(4841, 12500, 8900, 0, 0, 0, 0)
         }
-        val mockCal = listOf(2100, 1800, 2400, 0, 0, 0, 0)
+        val mockCal = when(offset) {
+            -1 -> listOf(0, 0, 0, 0, 0, 0, 0)
+            -2 -> listOf(0, 0, 0, 0, 0, 0, 0)
+            else -> listOf(2100, 1800, 2400, 0, 0, 0, 0)
+        }
 
         val stepModels = mutableListOf<HistoryBarModel>()
         val nutritionModels = mutableListOf<NutritionBarModel>()
@@ -126,9 +130,9 @@ class FatLessHistoryViewModel @Inject constructor(
 
             nutritionModels.add(NutritionBarModel(
                 dayLabel = dayLabel,
-                proteins = if (isFuture) 0f else (dayData?.proteins ?: 85f),
-                fats = if (isFuture) 0f else (dayData?.fats ?: 65f),
-                carbs = if (isFuture) 0f else (dayData?.carbs ?: 210f),
+                proteins = dayData?.proteins ?: 0f,
+                fats = dayData?.fats ?: 0f,
+                carbs = dayData?.carbs ?: 0f,
                 totalCalories = calValue,
                 isToday = isToday,
                 isFuture = isFuture

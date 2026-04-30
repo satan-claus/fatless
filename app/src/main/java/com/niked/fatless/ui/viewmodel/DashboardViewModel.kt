@@ -4,7 +4,6 @@ import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.niked.fatless.core.data.AppSettings
-import com.niked.fatless.core.sensor.StepTracker
 import com.niked.fatless.domain.model.Workout
 import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.domain.repository.INutritionRepository
@@ -24,7 +23,6 @@ class DashboardViewModel @Inject constructor(
     private val activityRepository: IActivityRepository,
     private val nutritionRepository: INutritionRepository,
     private val settings: AppSettings,
-    private val stepTracker: StepTracker
 ) : ViewModel() {
 
     // 1. Тренировки
