@@ -2,36 +2,49 @@ package com.niked.fatless.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.niked.fatless.domain.model.Food
+import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.domain.repository.INutritionRepository
+import com.niked.fatless.domain.model.Food
+import com.niked.fatless.domain.model.MealEntry
+import com.niked.fatless.domain.usecase.AddMealUseCase
+import com.niked.fatless.domain.usecase.DeleteMealUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class NutritionViewModel @Inject constructor(
-    private val repository: INutritionRepository
+    private val activityRepository: IActivityRepository,
+    private val nutritionRepository: INutritionRepository,
+    private val addMealUseCase: AddMealUseCase,
+    private val deleteMealUseCase: DeleteMealUseCase
 ) : ViewModel() {
 
-    // 1. Поиск (Query + Результаты)
     private val _searchQuery = MutableStateFlow("")
-    val searchQuery = _searchQuery.asStateFlow()
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val searchResults = _searchQuery
         .debounce(300L)
         .flatMapLatest { query ->
-            if (query.isBlank()) flowOf(emptyList())
-            else repository.searchProducts(query)
+            if (query.isBlank()) flowOf(emptyList<Food>())
+            else nutritionRepository.searchProducts(query)
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    // 2. Дневник (Список съеденного за сегодня)
-    val diaryEntries = repository.getDiaryForToday()
+    val diaryEntries = nutritionRepository.getDiaryForToday()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    // 3. Итоговое состояние для кружка (КБЖУ за день)
-    // Мы склеиваем список записей в один объект статистики
     val uiState: StateFlow<NutritionUiState> = diaryEntries.map { entries ->
         NutritionUiState(
             totalProteins = entries.sumOf { it.totalProteins.toDouble() }.toFloat(),
@@ -41,28 +54,28 @@ class NutritionViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Lazily, NutritionUiState())
 
-    // --- ЛОГИКА ---
-
     fun onQueryChange(newQuery: String) {
         _searchQuery.value = newQuery
     }
 
-    fun addMeal(food: Food, weight: Int) {
+    // Добавление еды
+    fun addMeal(food: Food, amount: Int) {
         viewModelScope.launch {
-            repository.addMeal(food, weight)
-            onQueryChange("") // Сбрасываем поиск после добавления
+            addMealUseCase(food, amount)
+            onQueryChange("")
         }
     }
 
-    fun deleteMeal(entryId: Long) {
+    // Удаление через корзину
+    fun deleteMeal(entry: MealEntry) {
         viewModelScope.launch {
-            repository.deleteMeal(entryId)
+            deleteMealUseCase(entry)
         }
     }
 
     fun deleteProductFromLibrary(id: String) {
         viewModelScope.launch {
-            repository.deleteProductFromLibrary(id)
+            nutritionRepository.deleteProductFromLibrary(id)
         }
     }
 }

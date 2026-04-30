@@ -1,7 +1,16 @@
 package com.niked.fatless.ui.screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,8 +18,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,7 +45,15 @@ import com.niked.fatless.ui.component.FoodResultItem
 import com.niked.fatless.ui.component.NutrientInfo
 import com.niked.fatless.ui.component.NutritionalValueView
 import com.niked.fatless.ui.component.WorkoutTopBar
-import com.niked.fatless.ui.theme.*
+import com.niked.fatless.ui.theme.AppBackground
+import com.niked.fatless.ui.theme.AppError
+import com.niked.fatless.ui.theme.AppPrimary
+import com.niked.fatless.ui.theme.AppTextSecondary
+import com.niked.fatless.ui.theme.AppTextTertiary
+import com.niked.fatless.ui.theme.AppTypography
+import com.niked.fatless.ui.theme.ColorCarbohydrates
+import com.niked.fatless.ui.theme.ColorFats
+import com.niked.fatless.ui.theme.ColorProteins
 import com.niked.fatless.ui.viewmodel.NutritionViewModel
 
 @Composable
@@ -129,7 +157,8 @@ fun NutritionScreen(
                         items(searchResults) { food ->
                             FoodResultItem(
                                 food = food,
-                                onClick = { selectedFood = food }, // Открывает диалог ввода веса
+                                // Открывает диалог ввода веса
+                                onClick = { selectedFood = food },
                                 onEditClick = {
                                     // Вызываем переход на экран редактирования
                                     onFoodEditClick(food.id)
@@ -153,7 +182,7 @@ fun NutritionScreen(
                             val dismissState = rememberSwipeToDismissBoxState(
                                 confirmValueChange = { value ->
                                     if (value == SwipeToDismissBoxValue.EndToStart) {
-                                        viewModel.deleteMeal(entry.id)
+                                        viewModel.deleteMeal(entry)
                                         true
                                     } else false
                                 }
@@ -175,7 +204,7 @@ fun NutritionScreen(
                                     }
                                 }
                             ) {
-                                DiaryItem(entry) { viewModel.deleteMeal(entry.id) }
+                                DiaryItem(entry) { viewModel.deleteMeal(entry) }
                             }
                         }
                     }
