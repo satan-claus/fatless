@@ -1,17 +1,14 @@
 package com.niked.fatless.data.mapper
 
-import com.niked.fatless.data.local.dao.FoodWithCategory
 import com.niked.fatless.data.local.entities.FoodDiaryEntity
 import com.niked.fatless.data.local.entities.FoodEntity
+import com.niked.fatless.data.local.relation.FoodWithCategory
 import com.niked.fatless.domain.model.Food
-import com.niked.fatless.domain.model.MealEntry
 import com.niked.fatless.domain.model.MeasureUnit
-
-// --- Маппинг справочника ---
+import com.niked.fatless.domain.model.MealEntry
 
 /**
- * 1. Основной маппер для ПОИСКА.
- * Используем FoodWithCategory, потому что Room вытягивает данные сразу из двух таблиц (JOIN).
+ * 1. Поиск: База (Relation) -> Домен (Food)
  */
 fun FoodWithCategory.toDomain() = Food(
     id = food.id,
@@ -21,37 +18,19 @@ fun FoodWithCategory.toDomain() = Food(
     carbs = food.carbs,
     calories = food.calories,
     categoryId = food.categoryId,
-    categoryName = categoryName, // Имя подтянулось из таблицы категорий
-    unit = try { MeasureUnit.valueOf(food.unit) } catch (e: Exception) { MeasureUnit.GRAMS },
+    categoryName = categoryName,
+    unit = MeasureUnit.entries.find { it.name == food.unit } ?: MeasureUnit.GRAMS,
     isCustom = food.isCustom
 )
 
 /**
- * 2. Маппер для СОХРАНЕНИЯ (из экрана создания в БД).
- * Здесь мы превращаем чистую доменную модель обратно в плоскую Entity.
- */
-fun Food.toEntity() = FoodEntity(
-    id = id,
-    name = name,
-    proteins = proteins,
-    fats = fats,
-    carbs = carbs,
-    calories = calories,
-    categoryId = categoryId, // Сохраняем только ID категории
-    unit = unit.name,
-    isCustom = isCustom
-)
-
-// --- Маппинг дневника ---
-
-/**
- * 3. Из базы в домен (для отображения списка съеденного).
+ * 2. Дневник: База (Entity) -> Домен (MealEntry)
  */
 fun FoodDiaryEntity.toDomain() = MealEntry(
     id = entryId,
     foodName = foodName,
     quantity = quantity,
-    unit = try { MeasureUnit.valueOf(unit) } catch (e: Exception) { MeasureUnit.GRAMS },
+    unit = MeasureUnit.entries.find { it.name == unit } ?: MeasureUnit.GRAMS,
     dateTimestamp = dateTimestamp,
     totalProteins = calcProteins,
     totalFats = calcFats,
@@ -60,15 +39,26 @@ fun FoodDiaryEntity.toDomain() = MealEntry(
 )
 
 /**
- * 4. Создание записи для дневника (когда Джон нажал "Добавить").
+ * 3. Сохранение продукта: Домен (Food) -> База (FoodEntity)
+ * Тот самый потеряшка!
+ */
+fun Food.toEntity() = FoodEntity(
+    id = id,
+    name = name,
+    proteins = proteins,
+    fats = fats,
+    carbs = carbs,
+    calories = calories,
+    categoryId = categoryId,
+    unit = unit.name,
+    isCustom = isCustom
+)
+
+/**
+ * 4. Создание записи для дневника (Food -> FoodDiaryEntity)
  */
 fun createDiaryEntity(food: Food, quantity: Int): FoodDiaryEntity {
-    // Если "шт" — считаем как единицы, если "г/мл" — делим на 100
-    val ratio = if (food.unit == MeasureUnit.PIECES) {
-        quantity.toFloat()
-    } else {
-        quantity / 100f
-    }
+    val ratio = if (food.unit == MeasureUnit.PIECES) quantity.toFloat() else quantity / 100f
 
     return FoodDiaryEntity(
         foodId = food.id,

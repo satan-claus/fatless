@@ -23,6 +23,13 @@ class ActivityRepositoryImpl @Inject constructor(
 
     override suspend fun saveNutrition(date: String, cal: Int, p: Float, f: Float, c: Float) {
         val current = activityDao.getActivityByDate(date) ?: DailyActivityEntity(date)
-        activityDao.insertActivity(current.copy(calories = cal, proteins = p, fats = f, carbs = c))
+        activityDao.insertActivity(
+            current.copy(
+                calories = (current.calories + cal).coerceAtLeast(0),
+                proteins = (current.proteins + p).coerceAtLeast(0f),
+                fats = (current.fats + f).coerceAtLeast(0f),
+                carbs = (current.carbs + c).coerceAtLeast(0f)
+            )
+        )
     }
 }

@@ -18,6 +18,6 @@ interface INutritionRepository {
 
     // Работа с дневником
     fun getDiaryForToday(): Flow<List<MealEntry>>
-    suspend fun addMeal(food: Food, weightGrams: Int)
+    suspend fun addMeal(food: Food, amount: Int): MealEntry
     suspend fun deleteMeal(entryId: Long)
 }
