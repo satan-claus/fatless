@@ -125,7 +125,7 @@ fun FatLessHistoryComponent(
                                 horizontalArrangement = Arrangement.SpaceEvenly,
                                 verticalAlignment = Alignment.Bottom
                             ) {
-                                val maxCal = nutritionData.maxOfOrNull { it.totalCalories } ?: 1
+                                val maxCal = nutritionData.maxOfOrNull { it.totalCalories } ?: 1f
                                 nutritionData.forEach { model ->
                                     NutritionStackedBar(
                                         dayLabel = model.dayLabel,

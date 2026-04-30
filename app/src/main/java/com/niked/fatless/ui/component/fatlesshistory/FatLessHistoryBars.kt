@@ -176,8 +176,8 @@ fun NutritionStackedBar(
     proteins: Float,
     fats: Float,
     carbs: Float,
-    totalCalories: Int,
-    maxCaloriesInWeek: Int,
+    totalCalories: Float,
+    maxCaloriesInWeek: Float,
     isToday: Boolean
 ) {
     // Стейт для старта анимации
@@ -189,7 +189,7 @@ fun NutritionStackedBar(
     }
 
     val totalFillRatio = if (maxCaloriesInWeek > 0) {
-        totalCalories.toFloat() / maxCaloriesInWeek.coerceAtLeast(1)
+        totalCalories.toFloat() / maxCaloriesInWeek.coerceAtLeast(1f)
     } else 0f
 
     val sumNutrients = (proteins + fats + carbs).coerceAtLeast(1f)

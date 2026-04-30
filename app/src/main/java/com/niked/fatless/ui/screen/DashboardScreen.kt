@@ -43,6 +43,7 @@ fun DashboardScreen(
     val nutrition by viewModel.todayNutrition.collectAsState()
     val steps by viewModel.steps.collectAsState()
     val history by viewModel.historyState.collectAsState()
+    val burnedCaloriesState by viewModel.burnedCalories.collectAsState()
 
     Column(
         modifier = Modifier
@@ -76,6 +77,7 @@ fun DashboardScreen(
                     nutrition = nutrition,
                     steps = steps,
                     distance = distance,
+                    burnedCalories = burnedCaloriesState,
                     stepGoal = viewModel.stepGoal,
                     onClick = onNutritionClick
                 )

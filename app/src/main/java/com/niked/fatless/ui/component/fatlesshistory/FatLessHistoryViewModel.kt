@@ -5,8 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.niked.fatless.core.data.AppSettings
 import com.niked.fatless.data.local.entities.DailyActivityEntity
 import com.niked.fatless.domain.repository.IActivityRepository
-import com.niked.fatless.ui.theme.AppOrange
-import com.niked.fatless.ui.theme.AppPrimary
 import com.niked.fatless.ui.theme.ColorSteps
 import com.niked.fatless.ui.theme.ColorStepsToday
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -100,9 +98,9 @@ class FatLessHistoryViewModel @Inject constructor(
             else -> listOf(4841f, 12500f, 8900f, 0f, 0f, 0f, 0f)
         }
         val mockCal = when(offset) {
-            -1 -> listOf(0, 0, 0, 0, 0, 0, 0)
-            -2 -> listOf(0, 0, 0, 0, 0, 0, 0)
-            else -> listOf(2100, 1800, 2400, 0, 0, 0, 0)
+            -1 -> listOf(0f, 0f, 0f, 0f, 0f, 0f, 0f)
+            -2 -> listOf(0f, 0f, 0f, 0f, 0f, 0f, 0f)
+            else -> listOf(2100f, 1800f, 2400f, 0f, 0f, 0f, 0f)
         }
 
         val stepModels = mutableListOf<HistoryBarModel>()
@@ -132,7 +130,7 @@ class FatLessHistoryViewModel @Inject constructor(
                 showStar = stepsValue >= settings.stepGoal && stepsValue > 0
             ))
 
-            val calValue = if (isFuture) 0 else (dayData?.calories ?: mockCal[index])
+            val calValue = if (isFuture) 0f else (dayData?.calories ?: mockCal[index])
 
             nutritionModels.add(NutritionBarModel(
                 dayLabel = dayLabel,
