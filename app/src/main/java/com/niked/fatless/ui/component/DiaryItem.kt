@@ -56,7 +56,7 @@ fun DiaryItem(
                         R.string.diary_item_details_format,
                         entry.quantity,
                         entry.unit.label,
-                        entry.totalCalories
+                        entry.totalCalories.toFloat()
                     ),
                     style = AppTypography.bodySmall,
                     color = AppTextSecondary
