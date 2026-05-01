@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -69,34 +70,50 @@ fun FatLessHistoryComponent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+                // Группируем текст слева
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
                     Text(
                         text = if (historyType == FatLessHistoryType.STEPS) "Активность" else "Питание",
                         style = AppTypography.titleSmall,
                         color = AppTextPrimary
                     )
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
                     Text(
                         text = weekRange,
                         style = AppTypography.bodySmall,
-                        color = AppTextTertiary
+                        color = AppTextTertiary,
+                        maxLines = 1
                     )
                 }
 
+                // Иконки переключения (всегда справа)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { viewModel.setHistoryType(FatLessHistoryType.STEPS) }) {
+                    IconButton(
+                        onClick = { viewModel.setHistoryType(FatLessHistoryType.STEPS) },
+                        modifier = Modifier.size(32.dp)
+                    ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_directions_walk_24),
                             contentDescription = null,
                             tint = if (historyType == FatLessHistoryType.STEPS) AppPrimary else AppTextTertiary,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
-                    IconButton(onClick = { viewModel.setHistoryType(FatLessHistoryType.NUTRITION) }) {
+
+                    IconButton(
+                        onClick = { viewModel.setHistoryType(FatLessHistoryType.NUTRITION) },
+                        modifier = Modifier.size(32.dp)
+                    ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_restaurant_24),
                             contentDescription = null,
                             tint = if (historyType == FatLessHistoryType.NUTRITION) AppPrimary else AppTextTertiary,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
