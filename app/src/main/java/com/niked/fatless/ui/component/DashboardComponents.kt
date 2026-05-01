@@ -30,8 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.niked.fatless.R
-import com.niked.fatless.ui.screen.animatesFloatAsState
-import com.niked.fatless.ui.screen.animatesNumberAsState
+import com.niked.fatless.ui.screen.animateFloatNumberAsState
+import com.niked.fatless.ui.screen.animateNumberAsState
 import com.niked.fatless.ui.theme.AppBorder
 import com.niked.fatless.ui.theme.AppOrange
 import com.niked.fatless.ui.theme.AppPrimary
@@ -62,12 +62,12 @@ fun DailySummaryCard(
     }
 
     // 1. Анимируем шаги
-    val animatedSteps by animatesNumberAsState(
+    val animatedSteps by animateNumberAsState(
         targetValue = if (startAnim) steps else 0
     )
 
     // 2. Анимируем расход (сначала во Float, потом округлим)
-    val animatedBurned by animatesFloatAsState(
+    val animatedBurned by animateFloatNumberAsState(
         targetValue = if (startAnim) burnedCalories else 0f
     )
 

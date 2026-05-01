@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 
 @Composable
-fun animatesNumberAsState(targetValue: Int): State<Int> {
+fun animateNumberAsState(targetValue: Int): State<Int> {
     return animateIntAsState(
         targetValue = targetValue,
         animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
@@ -17,7 +17,7 @@ fun animatesNumberAsState(targetValue: Int): State<Int> {
 }
 
 @Composable
-fun animatesFloatAsState(targetValue: Float): State<Float> {
+fun animateFloatNumberAsState(targetValue: Float): State<Float> {
     return animateFloatAsState(
         targetValue = targetValue,
         animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),

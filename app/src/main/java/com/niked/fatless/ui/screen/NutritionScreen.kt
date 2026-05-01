@@ -26,6 +26,7 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +56,7 @@ import com.niked.fatless.ui.theme.ColorCarbohydrates
 import com.niked.fatless.ui.theme.ColorFats
 import com.niked.fatless.ui.theme.ColorProteins
 import com.niked.fatless.ui.viewmodel.NutritionViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun NutritionScreen(
@@ -70,6 +72,24 @@ fun NutritionScreen(
 
     var isSearching by remember { mutableStateOf(false) }
     var selectedFood by remember { mutableStateOf<Food?>(null) }
+
+    var startAnim by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.totalCalories) {
+        startAnim = false
+        delay(50)
+        startAnim = true
+    }
+
+    // Анимируем каждый макрос от 0 до цели
+    val animP by animateFloatNumberAsState(
+        targetValue = if (startAnim) uiState.totalProteins else 0f
+    )
+    val animF by animateFloatNumberAsState(
+        targetValue = if (startAnim) uiState.totalFats else 0f
+    )
+    val animC by animateFloatNumberAsState(
+        targetValue = if (startAnim) uiState.totalCarbs else 0f
+    )
 
     Column(
         modifier = Modifier
@@ -107,9 +127,9 @@ fun NutritionScreen(
                 .padding(top = 16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            NutrientInfo(label = "Белки", value = uiState.totalProteins, color = ColorProteins)
-            NutrientInfo(label = "Жиры", value = uiState.totalFats, color = ColorFats)
-            NutrientInfo(label = "Угли", value = uiState.totalCarbs, color = ColorCarbohydrates)
+            NutrientInfo(label = "Белки", value = animP, color = ColorProteins)
+            NutrientInfo(label = "Жиры", value = animF, color = ColorFats)
+            NutrientInfo(label = "Угли", value = animC, color = ColorCarbohydrates)
         }
 
         Spacer(modifier = Modifier.height(32.dp))

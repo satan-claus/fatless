@@ -117,8 +117,9 @@ fun NutritionalValueView(
         }
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            val animatedCalories = (calories * globalProgress).toInt()
             Text(
-                text = if (isEmpty) "0" else calories.toString(),
+                text = if (isEmpty) "0" else animatedCalories.toString(),
                 style = AppTypography.titleLarge.copy(fontSize = fontSizeCalories),
                 color = if (isEmpty) AppTextTertiary else AppTextPrimary
             )
