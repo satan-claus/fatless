@@ -11,7 +11,7 @@ import androidx.compose.runtime.State
 fun animatesNumberAsState(targetValue: Int): State<Int> {
     return animateIntAsState(
         targetValue = targetValue,
-        animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
         label = "number_anim"
     )
 }
@@ -20,7 +20,7 @@ fun animatesNumberAsState(targetValue: Int): State<Int> {
 fun animatesFloatAsState(targetValue: Float): State<Float> {
     return animateFloatAsState(
         targetValue = targetValue,
-        animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
         label = "float_anim"
     )
 }

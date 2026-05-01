@@ -48,6 +48,7 @@ import com.niked.fatless.ui.theme.ColorOverSteps
 import com.niked.fatless.ui.theme.ColorProteins
 import com.niked.fatless.ui.theme.ColorSteps
 import com.niked.fatless.ui.theme.ColorStepsToday
+import kotlin.math.roundToInt
 
 @Composable
 fun FatLessHistoryBar(
@@ -189,7 +190,7 @@ fun NutritionStackedBar(
     }
 
     val totalFillRatio = if (maxCaloriesInWeek > 0) {
-        totalCalories.toFloat() / maxCaloriesInWeek.coerceAtLeast(1f)
+        totalCalories / maxCaloriesInWeek.coerceAtLeast(1f)
     } else 0f
 
     val sumNutrients = (proteins + fats + carbs).coerceAtLeast(1f)
@@ -205,7 +206,7 @@ fun NutritionStackedBar(
         modifier = Modifier.fillMaxHeight()
     ) {
         Text(
-            text = totalCalories.toString(),
+            text = totalCalories.roundToInt().toString(),
             style = AppTypography.bodySmall,
             color = AppTextSecondary,
             fontSize = 10.sp
