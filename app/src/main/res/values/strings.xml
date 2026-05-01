@@ -2,6 +2,10 @@
 <resources>
     <string name="app_name">FatLess</string>
 
+    <string name="app_slogan_honest">Поможем не раскабанеть окончательно</string>
+    <string name="app_slogan_size">Хватит расширяться — пора сужаться!</string>
+    <string name="app_slogan_control">Держи габариты под контролем</string>
+
     <!-- DASHBOARD SCREEN -->
     <string name="dashboard_title">Dashboard</string>
     <string name="dashboard_subtitle">Твои показатели сегодня</string>
