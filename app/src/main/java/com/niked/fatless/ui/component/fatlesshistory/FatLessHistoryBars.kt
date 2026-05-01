@@ -34,9 +34,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.niked.fatless.R
 import com.niked.fatless.ui.theme.AppDisabledBg
 import com.niked.fatless.ui.theme.AppPrimary
 import com.niked.fatless.ui.theme.AppTextSecondary
@@ -65,7 +67,6 @@ fun FatLessHistoryBar(
 
     val targetTotalHeight = if (maxForScale > 0) model.value / maxForScale else 0f
 
-    // АНИМАЦИЯ: срабатывает при каждой смене model.value
     val animatedHeight by animateFloatAsState(
         targetValue = if (startAnim) targetTotalHeight else 0f,
         animationSpec = tween(800, easing = FastOutSlowInEasing),
@@ -79,7 +80,7 @@ fun FatLessHistoryBar(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxHeight()
     ) {
-        // Текст над столбиком
+        // Текст над столбиком (оставляем логику формирования строки)
         Text(
             text = if (model.value > 0) "${(model.value / 1000).toInt()}k" else "",
             style = AppTypography.bodySmall,
@@ -97,40 +98,33 @@ fun FatLessHistoryBar(
                 .background(AppDisabledBg.copy(alpha = 0.2f)),
             contentAlignment = Alignment.BottomCenter
         ) {
-            // 1. СЛОЙ ПЕРЕВЫПОЛНЕНИЯ (Розовый)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(animatedHeight.coerceIn(0f, 1f))
             ) {
-                // Если есть перевыполнение, делим высоту между розовым и основным
                 if (model.value > model.goal) {
                     val overflowWeight = (model.value - model.goal) / model.value
                     val baseWeight = model.goal / model.value
 
-                    // Фиолетовый (Оверстеп)
                     Box(Modifier.fillMaxWidth().weight(overflowWeight).background(ColorOverSteps))
-                    // Базовый (Синий или Оранжевый)
                     Box(Modifier.fillMaxWidth().weight(baseWeight).background(baseBarColor))
                 } else {
-                    // Весь столбик базового цвета
                     Box(Modifier.fillMaxSize().background(baseBarColor))
                 }
             }
 
-            // 3. КРАСНАЯ ЛИНИЯ ЦЕЛИ (Пунктир внутри каждого бокса)
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val lineY = size.height * (1f - goalRatio)
                 drawLine(
                     color = Color.Red,
-                    start = Offset(-10f, lineY), // Хвосты линии по бокам
+                    start = Offset(-10f, lineY),
                     end = Offset(size.width + 10f, lineY),
                     strokeWidth = 1.dp.toPx(),
                     pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
                 )
             }
 
-            // Звезда
             if (model.showStar) {
                 Icon(
                     imageVector = Icons.Default.Star,
@@ -144,9 +138,9 @@ fun FatLessHistoryBar(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = if (model.isToday) "Сегодня" else model.label,
+            text = if (model.isToday) stringResource(R.string.history_bar_today_label) else model.label,
             style = AppTypography.labelSmall,
-            color = if (model.isToday) model.barColor else AppTextSecondary,
+            color = if (model.isToday) AppPrimary else AppTextSecondary,
             fontWeight = if (model.isToday) FontWeight.Bold else FontWeight.Normal
         )
     }
@@ -235,7 +229,7 @@ fun NutritionStackedBar(
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = if (isToday) "Сегодня" else dayLabel,
+            text = if (isToday) stringResource(R.string.history_bar_today_label) else dayLabel,
             style = AppTypography.labelSmall,
             color = if (isToday) AppPrimary else AppTextSecondary,
             fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal

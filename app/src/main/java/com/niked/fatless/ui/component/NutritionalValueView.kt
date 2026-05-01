@@ -20,9 +20,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.niked.fatless.R
 import com.niked.fatless.ui.theme.AppBorder
 import com.niked.fatless.ui.theme.AppTextPrimary
 import com.niked.fatless.ui.theme.AppTextTertiary
@@ -124,7 +126,7 @@ fun NutritionalValueView(
                 color = if (isEmpty) AppTextTertiary else AppTextPrimary
             )
             Text(
-                text = "кКал",
+                text = stringResource(R.string.nutrition_kcal_label),
                 style = AppTypography.bodySmall.copy(fontSize = fontSizeLabel),
                 color = AppTextTertiary
             )

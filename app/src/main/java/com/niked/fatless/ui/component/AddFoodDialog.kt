@@ -14,8 +14,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.niked.fatless.R
 import com.niked.fatless.ui.theme.AppPrimary
 import com.niked.fatless.ui.theme.AppTextTertiary
 import com.niked.fatless.ui.theme.AppTypography
@@ -29,7 +31,10 @@ fun AddFoodDialog(foodName: String, onDismiss: () -> Unit, onConfirm: (Int) -> U
         title = { Text(text = foodName, style = AppTypography.titleMedium) },
         text = {
             Column {
-                Text("Сколько грамм съели?", style = AppTypography.bodySmall)
+                Text(
+                    text = stringResource(R.string.add_food_dialog_question),
+                    style = AppTypography.bodySmall
+                )
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(
                     value = weight,
@@ -41,11 +46,19 @@ fun AddFoodDialog(foodName: String, onDismiss: () -> Unit, onConfirm: (Int) -> U
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(weight.toIntOrNull() ?: 100) }) {
-                Text("ДОБАВИТЬ", color = AppPrimary)
+                Text(
+                    text = stringResource(R.string.add_food_dialog_btn_confirm),
+                    color = AppPrimary
+                )
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("ОТМЕНА", color = AppTextTertiary) }
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = stringResource(R.string.add_food_dialog_btn_dismiss),
+                    color = AppTextTertiary
+                )
+            }
         }
     )
 }

@@ -13,8 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.niked.fatless.R
 import com.niked.fatless.ui.theme.AppBorder
 import com.niked.fatless.ui.theme.AppTextSecondary
 import com.niked.fatless.ui.theme.AppTextTertiary
@@ -36,12 +38,12 @@ fun EmptyDiaryHint() {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "Дневник пуст",
+            text = stringResource(R.string.nutrition_diary_empty_title),
             style = AppTypography.titleSmall,
             color = AppTextSecondary
         )
         Text(
-            text = "Воспользуйтесь поиском выше,\nчтобы добавить приём пищи",
+            text = stringResource(R.string.nutrition_diary_empty_subtitle),
             style = AppTypography.bodySmall,
             color = AppTextTertiary,
             textAlign = TextAlign.Center

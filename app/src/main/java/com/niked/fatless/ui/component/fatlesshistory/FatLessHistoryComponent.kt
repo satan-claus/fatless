@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.niked.fatless.R
@@ -76,7 +77,10 @@ fun FatLessHistoryComponent(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = if (historyType == FatLessHistoryType.STEPS) "Активность" else "Питание",
+                        text = if (historyType == FatLessHistoryType.STEPS)
+                            stringResource(R.string.history_title_steps)
+                        else
+                            stringResource(R.string.history_title_nutrition),
                         style = AppTypography.titleSmall,
                         color = AppTextPrimary
                     )
@@ -99,7 +103,7 @@ fun FatLessHistoryComponent(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_directions_walk_24),
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.content_description_switch_to_steps),
                             tint = if (historyType == FatLessHistoryType.STEPS) AppPrimary else AppTextTertiary,
                             modifier = Modifier.size(20.dp)
                         )
@@ -111,7 +115,7 @@ fun FatLessHistoryComponent(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_restaurant_24),
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.content_description_switch_to_nutrition),
                             tint = if (historyType == FatLessHistoryType.NUTRITION) AppPrimary else AppTextTertiary,
                             modifier = Modifier.size(20.dp)
                         )
@@ -127,7 +131,6 @@ fun FatLessHistoryComponent(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 key = { page -> page }
             ) { page ->
-                // ПОЛУЧАЕМ ДАННЫЕ ДЛЯ КОНКРЕТНОЙ СТРАНИЦЫ
                 val weekData = viewModel.getWeekData(page, pageCount, allHistory)
                 val stepData = weekData.first
                 val nutritionData = weekData.second
@@ -160,10 +163,9 @@ fun FatLessHistoryComponent(
                 }
             }
 
-            // --- ПОДВАЛ (Среднее для текущей страницы пейджера) ---
+            // --- ПОДВАЛ ---
             Spacer(modifier = Modifier.height(12.dp))
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                // Берем данные для той страницы, которая сейчас перед глазами
                 val currentData = viewModel.getWeekData(pagerState.currentPage, pageCount, allHistory)
                 val avg = if (historyType == FatLessHistoryType.STEPS) {
                     val steps = currentData.first.map { it.value }.filter { it > 0 }
@@ -174,7 +176,7 @@ fun FatLessHistoryComponent(
                 }
 
                 Text(
-                    text = "В среднем: $avg",
+                    text = stringResource(R.string.history_average_label, avg),
                     style = AppTypography.bodySmall,
                     color = AppTextTertiary
                 )
