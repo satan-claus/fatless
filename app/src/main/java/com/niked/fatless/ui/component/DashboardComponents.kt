@@ -20,11 +20,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.niked.fatless.R
+import com.niked.fatless.ui.screen.animatesFloatAsState
+import com.niked.fatless.ui.screen.animatesNumberAsState
 import com.niked.fatless.ui.theme.AppBorder
 import com.niked.fatless.ui.theme.AppOrange
 import com.niked.fatless.ui.theme.AppPrimary
@@ -35,6 +42,7 @@ import com.niked.fatless.ui.theme.AppTextSecondary
 import com.niked.fatless.ui.theme.AppTypography
 import com.niked.fatless.ui.theme.ColorSteps
 import com.niked.fatless.ui.viewmodel.NutritionUiState
+import kotlinx.coroutines.delay
 
 @Composable
 fun DailySummaryCard(
@@ -45,6 +53,24 @@ fun DailySummaryCard(
     stepGoal: Int,
     onClick: () -> Unit
 ) {
+    var startAnim by remember { mutableStateOf(false) }
+
+    LaunchedEffect(steps, burnedCalories) {
+        startAnim = false
+        delay(50)
+        startAnim = true
+    }
+
+    // 1. Анимируем шаги
+    val animatedSteps by animatesNumberAsState(
+        targetValue = if (startAnim) steps else 0
+    )
+
+    // 2. Анимируем расход (сначала во Float, потом округлим)
+    val animatedBurned by animatesFloatAsState(
+        targetValue = if (startAnim) burnedCalories else 0f
+    )
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -80,7 +106,7 @@ fun DailySummaryCard(
 
                 // ШАГИ
                 Text(
-                    text = "$steps / $stepGoal шагов",
+                    text = "$animatedSteps / $stepGoal шагов",
                     style = AppTypography.labelMedium,
                     color = ColorSteps
                 )
@@ -114,7 +140,7 @@ fun DailySummaryCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "${burnedCalories.toInt()} ккал", // burnedCalories должен прийти во Float
+                        text = "${animatedBurned.toInt()} ккал",
                         style = AppTypography.bodySmall,
                         color = AppTextSecondary
                     )
