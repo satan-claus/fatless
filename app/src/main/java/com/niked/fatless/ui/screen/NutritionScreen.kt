@@ -35,8 +35,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.niked.fatless.R
 import com.niked.fatless.domain.model.Food
 import com.niked.fatless.ui.component.AddFoodDialog
 import com.niked.fatless.ui.component.CreateNewFoodHint
@@ -99,7 +101,7 @@ fun NutritionScreen(
     ) {
         // 1. ТОПБАР
         WorkoutTopBar(
-            title = "Дневник питания",
+            title = stringResource(R.string.nutrition_title),
             subTitle = "",
             onBackClick = onBackClick
         )
@@ -127,14 +129,14 @@ fun NutritionScreen(
                 .padding(top = 16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            NutrientInfo(label = "Белки", value = animP, color = ColorProteins)
-            NutrientInfo(label = "Жиры", value = animF, color = ColorFats)
-            NutrientInfo(label = "Угли", value = animC, color = ColorCarbohydrates)
+            NutrientInfo(label = stringResource(R.string.nutrition_proteins), value = animP, color = ColorProteins)
+            NutrientInfo(label = stringResource(R.string.nutrition_fats), value = animF, color = ColorFats)
+            NutrientInfo(label = stringResource(R.string.nutrition_carbs), value = animC, color = ColorCarbohydrates)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // 3. ПОЛЕ ПОИСКА (Джон начинает писать — список внизу меняется)
+        // 3. ПОЛЕ ПОИСКА
         OutlinedTextField(
             value = searchQuery,
             onValueChange = {
@@ -142,14 +144,25 @@ fun NutritionScreen(
                 isSearching = it.isNotEmpty()
             },
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
-            placeholder = { Text("Что съели?", color = AppTextTertiary) },
-            leadingIcon = { Icon(Icons.Default.Search, null, tint = AppTextSecondary) },
+            placeholder = { Text(stringResource(R.string.nutrition_search_placeholder), color = AppTextTertiary) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = stringResource(R.string.content_description_search),
+                    tint = AppTextSecondary
+                )
+            },
             trailingIcon = {
                 if (isSearching) {
                     IconButton(onClick = {
                         viewModel.onQueryChange("")
                         isSearching = false
-                    }) { Icon(Icons.Default.Close, null) }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(R.string.content_description_clear_search)
+                        )
+                    }
                 }
             },
             shape = RoundedCornerShape(12.dp)
@@ -157,17 +170,15 @@ fun NutritionScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 4. КОНТЕНТНАЯ ОБЛАСТЬ (Либо поиск, либо дневник)
+        // 4. КОНТЕНТНАЯ ОБЛАСТЬ
         Box(modifier = Modifier
             .weight(1f)
             .padding(horizontal = 24.dp)
         ) {
             if (isSearching) {
                 if (searchResults.isEmpty() && searchQuery.isNotBlank()) {
-                    // Кнопка быстрого создания
                     CreateNewFoodHint(
                         query = searchQuery,
-                        // Передаем навигацию на экран создания
                         onClick = {
                             onFoodCreateClick(searchQuery)
                         }
@@ -177,14 +188,11 @@ fun NutritionScreen(
                         items(searchResults) { food ->
                             FoodResultItem(
                                 food = food,
-                                // Открывает диалог ввода веса
                                 onClick = { selectedFood = food },
                                 onEditClick = {
-                                    // Вызываем переход на экран редактирования
                                     onFoodEditClick(food.id)
                                 },
                                 onDeleteClick = {
-                                    // Вызываем удаление из репозитория через ViewModel
                                     viewModel.deleteProductFromLibrary(food.id)
                                 }
                             )
@@ -192,12 +200,11 @@ fun NutritionScreen(
                     }
                 }
             } else {
-                // Список съеденного за сегодня
                 if (diaryEntries.isEmpty()) {
                     EmptyDiaryHint()
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        item { Text("СЕГОДНЯ:", style = AppTypography.labelMedium, color = AppPrimary) }
+                        item { Text(stringResource(R.string.nutrition_section_today), style = AppTypography.labelMedium, color = AppPrimary) }
                         items(diaryEntries, key = { it.id }) { entry ->
                             val dismissState = rememberSwipeToDismissBoxState(
                                 confirmValueChange = { value ->
@@ -220,7 +227,11 @@ fun NutritionScreen(
                                             .padding(horizontal = 20.dp),
                                         contentAlignment = Alignment.CenterEnd
                                     ) {
-                                        Icon(Icons.Default.Delete, contentDescription = null, tint = Color.White)
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = stringResource(R.string.content_description_delete_meal),
+                                            tint = Color.White
+                                        )
                                     }
                                 }
                             ) {
@@ -241,25 +252,10 @@ fun NutritionScreen(
             onConfirm = { weight ->
                 viewModel.addMeal(selectedFood!!, weight)
                 selectedFood = null
-                viewModel.onQueryChange("") // Очищаем поиск
+                // Очищаем поиск
+                viewModel.onQueryChange("")
                 isSearching = false
             }
         )
     }
 }
-
-//@Composable
-//fun NutritionTestSlider(label: String, value: Float, color: androidx.compose.ui.graphics.Color, onValueChange: (Float) -> Unit) {
-//    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-//        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-//            Text(text = label, style = AppTypography.bodySmall, color = AppTextSecondary)
-//            Text(text = value.toInt().toString(), style = AppTypography.bodySmall, color = color)
-//        }
-//        Slider(
-//            value = value,
-//            onValueChange = onValueChange,
-//            valueRange = 0f..200f,
-//            colors = SliderDefaults.colors(thumbColor = color, activeTrackColor = color)
-//        )
-//    }
-//}

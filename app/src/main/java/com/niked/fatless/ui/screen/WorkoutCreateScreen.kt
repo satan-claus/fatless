@@ -2,21 +2,48 @@ package com.niked.fatless.ui.screen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.niked.fatless.R
 import com.niked.fatless.ui.component.EditableIntervalItem
 import com.niked.fatless.ui.component.WorkoutTopBar
-import com.niked.fatless.ui.theme.*
+import com.niked.fatless.ui.theme.AppBackground
+import com.niked.fatless.ui.theme.AppBorder
+import com.niked.fatless.ui.theme.AppPrimary
+import com.niked.fatless.ui.theme.AppSurface
+import com.niked.fatless.ui.theme.AppTextPrimary
+import com.niked.fatless.ui.theme.AppTextTertiary
+import com.niked.fatless.ui.theme.AppTypography
+import com.niked.fatless.ui.theme.ColorSteps
 import com.niked.fatless.ui.viewmodel.WorkoutCreateViewModel
 
 @Composable
@@ -33,8 +60,8 @@ fun WorkoutCreateScreen(
             .navigationBarsPadding()
     ) {
         WorkoutTopBar(
-            title = "Новая тренировка",
-            subTitle = if (state.title.isBlank()) "Конструктор" else state.title,
+            title = stringResource(R.string.workout_create_title),
+            subTitle = if (state.title.isBlank()) stringResource(R.string.workout_create_subtitle_default) else state.title,
             onBackClick = onBackClick,
             actions = {
                 IconButton(
@@ -50,7 +77,7 @@ fun WorkoutCreateScreen(
                     } else {
                         Icon(
                             imageVector = Icons.Default.Check,
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.content_description_save_workout),
                             tint = if (state.title.isNotBlank()) AppPrimary else AppTextTertiary
                         )
                     }
@@ -60,13 +87,13 @@ fun WorkoutCreateScreen(
 
         LazyColumn(
             modifier = Modifier
-                .weight(1f) // Занимает всё место до низа
+                .weight(1f)
                 .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
                 Text(
-                    text = "НАЗВАНИЕ",
+                    text = stringResource(R.string.workout_create_section_name),
                     style = AppTypography.titleSmall,
                     color = AppTextTertiary,
                     modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
@@ -76,7 +103,7 @@ fun WorkoutCreateScreen(
                     onValueChange = { viewModel.updateTitle(it) },
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = {
-                        Text("Например: Утренняя пахота", style = AppTypography.bodyLarge)
+                        Text(stringResource(R.string.workout_create_name_placeholder), style = AppTypography.bodyLarge)
                     },
                     textStyle = AppTypography.bodyLarge.copy(color = AppTextPrimary),
                     singleLine = true,
@@ -91,7 +118,7 @@ fun WorkoutCreateScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "ИНТЕРВАЛЫ",
+                    text = stringResource(R.string.workout_create_section_intervals),
                     style = AppTypography.titleSmall,
                     color = AppTextTertiary,
                     modifier = Modifier.padding(bottom = 8.dp)
@@ -131,7 +158,7 @@ fun WorkoutCreateScreen(
                 ) {
                     Icon(Icons.Default.Add, null, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("ДОБАВИТЬ ИНТЕРВАЛ", style = AppTypography.labelMedium)
+                    Text(stringResource(R.string.workout_create_btn_add_interval), style = AppTypography.labelMedium)
                 }
                 Spacer(modifier = Modifier.height(40.dp))
             }

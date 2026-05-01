@@ -1,23 +1,50 @@
 package com.niked.fatless.ui.screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.niked.fatless.R
 import com.niked.fatless.domain.model.WorkoutState
-import com.niked.fatless.ui.component.*
-import com.niked.fatless.ui.theme.*
 import com.niked.fatless.ui.viewmodel.WorkoutViewModel
 import com.niked.fatless.core.utils.formatDuration
+import com.niked.fatless.ui.component.GhostButton
+import com.niked.fatless.ui.component.IntervalCard
+import com.niked.fatless.ui.component.TimerCard
+import com.niked.fatless.ui.component.WorkoutTopBar
+import com.niked.fatless.ui.theme.AppBackground
+import com.niked.fatless.ui.theme.AppOrange
+import com.niked.fatless.ui.theme.AppPrimary
+import com.niked.fatless.ui.theme.AppSecondary
+import com.niked.fatless.ui.theme.AppTextPrimary
+import com.niked.fatless.ui.theme.AppTextSecondary
+import com.niked.fatless.ui.theme.AppTypography
 
 @Composable
 fun WorkoutScreen(
@@ -46,16 +73,23 @@ fun WorkoutScreen(
     }
 
     val timerSubText = when (uiState.status) {
-        is WorkoutState.READY -> "Общее время"
-        else -> "Прошло ${formatDuration(elapsedSeconds)} из ${formatDuration(totalWorkoutTime)}"
+        is WorkoutState.READY -> stringResource(R.string.workout_status_ready_sub)
+        else -> stringResource(
+            R.string.workout_status_progress,
+            formatDuration(elapsedSeconds),
+            formatDuration(totalWorkoutTime)
+        )
     }
 
-    // 3. МЕТА-ДАННЫЕ ДЛЯ TOPBAR
+    // 3. МЕТА-ДАННЫЕ ДЛЯ TOPBAR (Текст справа в заголовке)
     val topBarMeta = when (uiState.status) {
         is WorkoutState.READY -> formatDuration(totalWorkoutTime)
-        is WorkoutState.RUNNING -> "● ${formatDuration(elapsedSeconds)}"
-        is WorkoutState.PAUSED -> "❚❚ ПАУЗА"
-        is WorkoutState.COMPLETED -> "ЗАВЕРШЕНА"
+        is WorkoutState.RUNNING -> stringResource(
+            R.string.workout_status_running_meta,
+            formatDuration(elapsedSeconds)
+        )
+        is WorkoutState.PAUSED -> "❚❚ " + stringResource(R.string.workout_status_paused)
+        is WorkoutState.COMPLETED -> stringResource(R.string.workout_status_completed)
     }
 
     val topBarMetaColor = when (uiState.status) {
@@ -64,14 +98,13 @@ fun WorkoutScreen(
         is WorkoutState.PAUSED -> AppOrange
         is WorkoutState.COMPLETED -> AppSecondary
     }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(AppBackground)
             .navigationBarsPadding()
     ) {
-        // 1. ТОПБАР (на всю ширину)
+        // 1. ТОПБАР
         WorkoutTopBar(
             title = workout.title,
             subTitle = topBarMeta,
@@ -79,18 +112,17 @@ fun WorkoutScreen(
             onBackClick = onBackClick
         )
 
-        // 2. КОНТЕНТ (с отступом 24.dp по краям, как на главном)
+        // 2. КОНТЕНТ
         Column(
             modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = 24.dp) // Единый стандарт отступа
+                .padding(horizontal = 24.dp)
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
-            // КАРТОЧКА ТАЙМЕРА
             TimerCard(
                 state = uiState.status,
-                currentIntervalName = currentInterval?.name ?: "Приготовьтесь",
+                currentIntervalName = currentInterval?.name ?: stringResource(R.string.workout_ready_hint),
                 displayTime = formatDuration(timeToShow),
                 totalProgress = totalProgress,
                 subText = timerSubText
@@ -99,14 +131,13 @@ fun WorkoutScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = "Интервалы",
+                text = stringResource(R.string.workout_section_intervals),
                 style = AppTypography.titleMedium,
                 color = AppTextPrimary
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // СПИСОК ИНТЕРВАЛОВ
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -148,7 +179,7 @@ fun WorkoutScreen(
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = AppPrimary)
                     ) {
-                        Text("СТАРТ", style = AppTypography.labelMedium)
+                        Text(stringResource(R.string.workout_btn_start), style = AppTypography.labelMedium)
                     }
                 }
 
@@ -159,7 +190,7 @@ fun WorkoutScreen(
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = AppOrange)
                     ) {
-                        Text("ПАУЗА", style = AppTypography.labelMedium)
+                        Text(stringResource(R.string.workout_btn_pause), style = AppTypography.labelMedium)
                     }
                     Button(
                         onClick = { viewModel.nextInterval() },
@@ -167,7 +198,7 @@ fun WorkoutScreen(
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = AppPrimary)
                     ) {
-                        Text("ГОТОВО / СЛЕДУЮЩИЙ", style = AppTypography.labelMedium)
+                        Text(stringResource(R.string.workout_btn_next), style = AppTypography.labelMedium)
                     }
                 }
 
@@ -178,10 +209,10 @@ fun WorkoutScreen(
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = AppPrimary)
                     ) {
-                        Text("ПРОДОЛЖИТЬ", style = AppTypography.labelMedium)
+                        Text(stringResource(R.string.workout_btn_resume), style = AppTypography.labelMedium)
                     }
                     GhostButton(
-                        text = "СБРОСИТЬ",
+                        text = stringResource(R.string.workout_btn_reset),
                         onClick = { viewModel.resetWorkout() }
                     )
                 }
@@ -203,11 +234,11 @@ fun WorkoutScreen(
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(Modifier.width(8.dp))
-                            Text("ЗАПУСТИТЬ ЗАНОВО", style = AppTypography.labelMedium)
+                            Text(stringResource(R.string.workout_btn_restart), style = AppTypography.labelMedium)
                         }
                     }
                     GhostButton(
-                        text = "В МЕНЮ",
+                        text = stringResource(R.string.workout_btn_to_menu),
                         onClick = onBackClick
                     )
                 }

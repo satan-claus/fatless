@@ -33,10 +33,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.niked.fatless.BuildConfig
+import com.niked.fatless.R
 import com.niked.fatless.ui.component.WorkoutTopBar
 import com.niked.fatless.ui.theme.AppBackground
 import com.niked.fatless.ui.theme.AppBorder
@@ -56,10 +58,8 @@ fun SettingsScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
 
-    // Флаг для диалога
     var showFirstLaunchDialog by remember { mutableStateOf(viewModel.isFirstLaunch()) }
 
-    // ПРЕДУПРЕДИТЕЛЬНЫЙ ВЫСТРЕЛ
     if (showFirstLaunchDialog) {
         AlertDialog(
             onDismissRequest = { },
@@ -68,11 +68,11 @@ fun SettingsScreen(
                     viewModel.setFirstLaunchDone()
                     showFirstLaunchDialog = false
                 }) {
-                    Text("ПОНЯЛ", color = AppPrimary, style = AppTypography.labelMedium)
+                    Text(stringResource(R.string.settings_dialog_confirm), color = AppPrimary, style = AppTypography.labelMedium)
                 }
             },
-            title = { Text("Внимание", style = AppTypography.titleMedium) },
-            text = { Text("Для точных расчетов расстояния и калорий необходимо заполнить данные в секции Биометрия.") },
+            title = { Text(stringResource(R.string.settings_dialog_title), style = AppTypography.titleMedium) },
+            text = { Text(stringResource(R.string.settings_dialog_text)) },
             containerColor = AppSurface,
             shape = RoundedCornerShape(24.dp)
         )
@@ -85,17 +85,20 @@ fun SettingsScreen(
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
-        WorkoutTopBar(title = "Настройки", subTitle = "Конфигурация", onBackClick = onBackClick)
+        WorkoutTopBar(
+            title = stringResource(R.string.settings_title),
+            subTitle = stringResource(R.string.settings_subtitle),
+            onBackClick = onBackClick
+        )
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp)
-                // Скролл на случай маленьких экранов
                 .verticalScroll(rememberScrollState())
         ) {
             // --- СЕКЦИЯ: БИОМЕТРИЯ ---
-            Text(text = "Биометрия", style = AppTypography.labelMedium, color = AppPrimary)
+            Text(text = stringResource(R.string.settings_section_biometrics), style = AppTypography.labelMedium, color = AppPrimary)
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -103,22 +106,22 @@ fun SettingsScreen(
                 OutlinedTextField(
                     value = if (state.userHeight == 0) "" else state.userHeight.toString(),
                     onValueChange = { val v = it.filter { c -> c.isDigit() }; if (v.length <= 3) viewModel.updateHeight(v.toIntOrNull() ?: 0) },
-                    label = { Text("Рост") },
+                    label = { Text(stringResource(R.string.settings_label_height)) },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     shape = RoundedCornerShape(12.dp),
-                    trailingIcon = { Text("см", style = AppTypography.bodySmall) },
+                    trailingIcon = { Text(stringResource(R.string.settings_unit_cm), style = AppTypography.bodySmall) },
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AppPrimary, unfocusedBorderColor = AppBorder)
                 )
                 // ВЕС
                 OutlinedTextField(
                     value = if (state.userWeight == 0) "" else state.userWeight.toString(),
                     onValueChange = { val v = it.filter { c -> c.isDigit() }; if (v.length <= 3) viewModel.updateWeight(v.toIntOrNull() ?: 0) },
-                    label = { Text("Вес") },
+                    label = { Text(stringResource(R.string.settings_label_weight)) },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     shape = RoundedCornerShape(12.dp),
-                    trailingIcon = { Text("кг", style = AppTypography.bodySmall) },
+                    trailingIcon = { Text(stringResource(R.string.settings_unit_kg), style = AppTypography.bodySmall) },
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AppPrimary, unfocusedBorderColor = AppBorder)
                 )
             }
@@ -126,12 +129,12 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // --- СЕКЦИЯ: ТРЕНИРОВКА ---
-            Text(text = "Тренировка", style = AppTypography.labelMedium, color = AppPrimary)
+            Text(text = stringResource(R.string.settings_section_workout), style = AppTypography.labelMedium, color = AppPrimary)
             Spacer(modifier = Modifier.height(16.dp))
 
             SettingToggleItem(
-                title = "Звуковые сигналы",
-                subtitle = "Пищать на последних секундах",
+                title = stringResource(R.string.settings_sound_title),
+                subtitle = stringResource(R.string.settings_sound_subtitle),
                 checked = state.isSoundEnabled,
                 onCheckedChange = { viewModel.toggleSound(it) }
             )
@@ -143,8 +146,8 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             SettingToggleItem(
-                title = "Автозавершение по цели",
-                subtitle = "Переключать интервал при достижении нормы шагов",
+                title = stringResource(R.string.settings_auto_finish_title),
+                subtitle = stringResource(R.string.settings_auto_finish_subtitle),
                 checked = state.autoFinishOnGoal,
                 onCheckedChange = { viewModel.toggleAutoFinish(it) }
             )
@@ -152,7 +155,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // --- СЕКЦИЯ: ЦЕЛЬ ---
-            Text(text = "Цель по шагам", style = AppTypography.labelMedium, color = AppPrimary)
+            Text(text = stringResource(R.string.settings_section_goal), style = AppTypography.labelMedium, color = AppPrimary)
             OutlinedTextField(
                 value = state.stepGoal.toString(),
                 onValueChange = {
@@ -163,7 +166,7 @@ fun SettingsScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true,
-                trailingIcon = { Text("шагов", style = AppTypography.bodySmall, modifier = Modifier.padding(end = 12.dp)) },
+                trailingIcon = { Text(stringResource(R.string.settings_unit_steps), style = AppTypography.bodySmall, modifier = Modifier.padding(end = 12.dp)) },
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AppPrimary, unfocusedBorderColor = AppBorder)
             )
 
@@ -172,10 +175,10 @@ fun SettingsScreen(
             // --- СЕКЦИЯ: ИНФО ---
             HorizontalDivider(thickness = 1.dp, color = AppBorder)
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Приложение", style = AppTypography.labelMedium, color = AppPrimary)
+            Text(text = stringResource(R.string.settings_section_app), style = AppTypography.labelMedium, color = AppPrimary)
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Версия ${BuildConfig.VERSION_NAME} (Джон-Эдишн)",
+                text = stringResource(R.string.settings_version_format, BuildConfig.VERSION_NAME),
                 style = AppTypography.bodySmall,
                 color = AppTextTertiary
             )
@@ -218,6 +221,8 @@ fun SoundVolumeSettings(
     volume: Float,
     onVolumeChange: (Float) -> Unit
 ) {
+    val percentage = (volume * 100).toInt()
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -228,8 +233,16 @@ fun SoundVolumeSettings(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Уровень громкости", style = AppTypography.bodySmall, color = AppTextSecondary)
-            Text("${(volume * 100).toInt()}%", style = AppTypography.labelSmall, color = AppPrimary)
+            Text(
+                text = stringResource(R.string.settings_volume_label),
+                style = AppTypography.bodySmall,
+                color = AppTextSecondary
+            )
+            Text(
+                text = stringResource(R.string.settings_volume_format, percentage),
+                style = AppTypography.labelSmall,
+                color = AppPrimary
+            )
         }
         Slider(
             value = volume,

@@ -18,8 +18,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.niked.fatless.R
 import com.niked.fatless.ui.component.AddWorkoutButton
 import com.niked.fatless.ui.component.DailySummaryCard
 import com.niked.fatless.ui.component.WorkoutItem
@@ -42,7 +44,6 @@ fun DashboardScreen(
     val workouts by viewModel.workouts.collectAsState()
     val nutrition by viewModel.todayNutrition.collectAsState()
     val steps by viewModel.steps.collectAsState()
-    val history by viewModel.historyState.collectAsState()
     val burnedCaloriesState by viewModel.burnedCalories.collectAsState()
 
     Column(
@@ -52,12 +53,16 @@ fun DashboardScreen(
             .navigationBarsPadding()
     ) {
         WorkoutTopBar(
-            title = "Dashboard",
-            subTitle = "Твои показатели сегодня",
+            title = stringResource(R.string.dashboard_title),
+            subTitle = stringResource(R.string.dashboard_subtitle),
             onBackClick = onExitClick,
             actions = {
                 IconButton(onClick = onSettingsClick) {
-                    Icon(Icons.Default.Settings, null, tint = AppTextPrimary)
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = stringResource(R.string.content_description_settings),
+                        tint = AppTextPrimary
+                    )
                 }
             }
         )
@@ -69,7 +74,6 @@ fun DashboardScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(top = 24.dp, bottom = 32.dp)
         ) {
-            // 1. КАРТОЧКА-ДАШБОРД (Питание + Шаги)
             item {
                 val distance by viewModel.distanceKm.collectAsState()
 
@@ -83,14 +87,13 @@ fun DashboardScreen(
                 )
             }
 
-            // 2. ИСТОРИЯ (Лента последних дней)
             item {
                 FatLessHistoryComponent()
             }
 
             item {
                 Text(
-                    text = "Тренировки",
+                    text = stringResource(R.string.dashboard_workouts_title),
                     style = AppTypography.titleMedium,
                     modifier = Modifier.padding(top = 8.dp)
                 )
