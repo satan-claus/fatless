@@ -9,12 +9,18 @@ import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.domain.repository.INutritionRepository
 import com.niked.fatless.domain.repository.IWorkoutRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,18 +31,31 @@ class DashboardViewModel @Inject constructor(
     private val settings: AppSettings,
 ) : ViewModel() {
 
+    val currentDate = flow {
+        while(true) {
+            emit(LocalDate.now().toString())
+            delay(60000) // Проверяем раз в минуту
+        }
+    }.distinctUntilChanged()
+
     // 1. Тренировки
     val workouts: StateFlow<List<Workout>> = workoutRepository.observeAllWorkouts()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // 2. Питание
-    val todayNutrition: StateFlow<NutritionUiState> = nutritionRepository.getDiaryForToday()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val todayNutrition: StateFlow<NutritionUiState> = currentDate
+        .flatMapLatest { date ->
+            // Теперь мы просим данные для КОНКРЕТНОЙ даты,
+            // которую выдал наш таймер currentDate
+            nutritionRepository.getDiaryForToday(date)
+        }
         .map { entries ->
             NutritionUiState(
                 totalProteins = entries.sumOf { it.totalProteins.toDouble() }.toFloat(),
                 totalFats = entries.sumOf { it.totalFats.toDouble() }.toFloat(),
                 totalCarbs = entries.sumOf { it.totalCarbs.toDouble() }.toFloat(),
-                totalCalories = entries.sumOf { it.totalCalories }
+                totalCalories = entries.sumOf { it.totalCalories.toDouble() }.toFloat()
             )
         }.stateIn(viewModelScope, SharingStarted.Lazily, NutritionUiState())
 

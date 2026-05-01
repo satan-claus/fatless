@@ -95,7 +95,7 @@ fun NutritionScreen(
                 proteins = uiState.totalProteins,
                 fats = uiState.totalFats,
                 carbs = uiState.totalCarbs,
-                calories = uiState.totalCalories,
+                calories = uiState.totalCalories.toInt(),
                 size = 180.dp
             )
         }

@@ -88,7 +88,7 @@ fun DailySummaryCard(
                 proteins = nutrition.totalProteins,
                 fats = nutrition.totalFats,
                 carbs = nutrition.totalCarbs,
-                calories = nutrition.totalCalories,
+                calories = nutrition.totalCalories.toInt(),
                 size = 100.dp
             )
 
