@@ -20,11 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.niked.fatless.R
 import com.niked.fatless.core.utils.formatDuration
 import com.niked.fatless.domain.model.Interval
 import com.niked.fatless.domain.model.WorkoutState
@@ -128,7 +130,7 @@ fun IntervalCard(
                     // СИЛОВАЯ ЦЕЛЬ (Повторы)
                     if (interval.reps != null && interval.reps > 0) {
                         Text(
-                            text = "Цель: ${interval.reps} повт.",
+                            text = stringResource(R.string.workout_interval_card_reps_goal, interval.reps),
                             style = AppTypography.bodySmall,
                             color = if (showAsActive) activeColor else AppOrange,
                             fontWeight = FontWeight.Medium
@@ -137,10 +139,9 @@ fun IntervalCard(
 
                     // КАРДИО ЦЕЛЬ (Шаги в реальном времени)
                     if (interval.trackSteps) {
-                        // Показываем шаги только если интервал активен, иначе 0
                         val currentSteps = if (isActive) stateSteps else 0
                         Text(
-                            text = "Шаги: $currentSteps",
+                            text = stringResource(R.string.workout_interval_card_steps_label, currentSteps),
                             style = AppTypography.bodySmall,
                             color = if (showAsActive) AppSecondary else AppTextTertiary,
                             fontWeight = FontWeight.Bold

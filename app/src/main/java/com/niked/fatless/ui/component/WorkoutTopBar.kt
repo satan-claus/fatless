@@ -28,7 +28,7 @@ fun WorkoutTopBar(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .height(64.dp) // Увеличил до 64 для двух строк текста
+            .height(64.dp)
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

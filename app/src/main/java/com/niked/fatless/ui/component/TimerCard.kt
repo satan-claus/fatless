@@ -2,7 +2,11 @@ package com.niked.fatless.ui.component
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Surface
@@ -12,7 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.niked.fatless.R
 import com.niked.fatless.domain.model.WorkoutState
 import com.niked.fatless.ui.theme.AppTypography
 import com.niked.fatless.ui.theme.AppBorder
@@ -33,7 +39,7 @@ fun TimerCard(
     subText: String,
     modifier: Modifier = Modifier
 ) {
-    // Логика цветов на основе состояния (WorkoutState)
+    // Логика цветов на основе состояния
     val borderColor = when (state) {
         is WorkoutState.READY -> AppBorder
         is WorkoutState.RUNNING -> AppPrimary
@@ -61,7 +67,7 @@ fun TimerCard(
         else -> AppTextPrimary
     }
 
-    // Градиент фона (4% прозрачности сверху)
+    // Градиент фона
     val bgGradient = when (state) {
         is WorkoutState.RUNNING -> Brush.verticalGradient(listOf(AppPrimary.copy(alpha = 0.04f), AppSurface))
         is WorkoutState.PAUSED -> Brush.verticalGradient(listOf(AppOrange.copy(alpha = 0.04f), AppSurface))
@@ -81,21 +87,24 @@ fun TimerCard(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Метка состояния (READY / RUNNING / PAUSED / COMPLETED)
+            // Метка состояния
             Text(
                 text = when(state) {
-                    is WorkoutState.READY -> "ГОТОВО К СТАРТУ"
-                    is WorkoutState.RUNNING -> "ВЫПОЛНЯЕТСЯ"
-                    is WorkoutState.PAUSED -> "НА ПАУЗЕ"
-                    is WorkoutState.COMPLETED -> "ТРЕНИРОВКА ЗАВЕРШЕНА"
+                    is WorkoutState.READY -> stringResource(R.string.workout_timer_state_ready)
+                    is WorkoutState.RUNNING -> stringResource(R.string.workout_timer_state_running)
+                    is WorkoutState.PAUSED -> stringResource(R.string.workout_timer_state_paused)
+                    is WorkoutState.COMPLETED -> stringResource(R.string.workout_timer_state_completed)
                 },
                 style = AppTypography.titleSmall,
                 color = stateColor
             )
 
-            // Название текущего интервала
+            // Название текущего интервала или похвала
             Text(
-                text = if (state is WorkoutState.COMPLETED) "ОТЛИЧНАЯ РАБОТА!" else currentIntervalName,
+                text = if (state is WorkoutState.COMPLETED)
+                    stringResource(R.string.workout_timer_hint_completed)
+                else
+                    currentIntervalName,
                 style = AppTypography.titleMedium,
                 color = workoutNameColor,
                 modifier = Modifier.padding(top = 8.dp)
@@ -109,7 +118,8 @@ fun TimerCard(
                 color = timerColor
             )
 
-            // Подзаголовок (Общее время)
+            // Подзаголовок (Общее время / Прогресс)
+            // subText приходит уже анимированным и с ресурсами из WorkoutScreen
             Text(
                 text = subText,
                 style = AppTypography.bodySmall,

@@ -17,7 +17,7 @@ interface INutritionRepository {
     fun getAllCategories(): Flow<List<FoodCategory>>
 
     // Работа с дневником
-    fun getDiaryForToday(): Flow<List<MealEntry>>
+    fun getDiaryForToday(dateTrigger: String): Flow<List<MealEntry>>
     suspend fun addMeal(food: Food, amount: Int): MealEntry
     suspend fun deleteMeal(entryId: Long)
 }

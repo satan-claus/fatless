@@ -14,8 +14,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.niked.fatless.R
 import com.niked.fatless.ui.theme.AppPrimary
 import com.niked.fatless.ui.theme.AppTextPrimary
 import com.niked.fatless.ui.theme.AppTextSecondary
@@ -35,19 +37,19 @@ fun CreateNewFoodHint(
     ) {
         Icon(
             imageVector = Icons.Default.Add,
-            contentDescription = null,
+            contentDescription = stringResource(R.string.content_description_add_new_food),
             modifier = Modifier.size(48.dp),
             tint = AppPrimary
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "Продукт '$query' не найден",
+            text = stringResource(R.string.nutrition_create_food_not_found, query),
             style = AppTypography.titleSmall,
             color = AppTextPrimary,
             textAlign = TextAlign.Center
         )
         Text(
-            text = "Нажмите здесь, чтобы добавить его\nв свой справочник",
+            text = stringResource(R.string.nutrition_create_food_action),
             style = AppTypography.bodySmall,
             color = AppTextSecondary,
             textAlign = TextAlign.Center

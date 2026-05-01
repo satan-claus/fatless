@@ -20,11 +20,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.niked.fatless.R
+import com.niked.fatless.ui.screen.animateFloatNumberAsState
+import com.niked.fatless.ui.screen.animateNumberAsState
 import com.niked.fatless.ui.theme.AppBorder
 import com.niked.fatless.ui.theme.AppOrange
 import com.niked.fatless.ui.theme.AppPrimary
@@ -35,6 +43,7 @@ import com.niked.fatless.ui.theme.AppTextSecondary
 import com.niked.fatless.ui.theme.AppTypography
 import com.niked.fatless.ui.theme.ColorSteps
 import com.niked.fatless.ui.viewmodel.NutritionUiState
+import kotlinx.coroutines.delay
 
 @Composable
 fun DailySummaryCard(
@@ -45,6 +54,22 @@ fun DailySummaryCard(
     stepGoal: Int,
     onClick: () -> Unit
 ) {
+    var startAnim by remember { mutableStateOf(false) }
+
+    LaunchedEffect(steps, burnedCalories) {
+        startAnim = false
+        delay(50)
+        startAnim = true
+    }
+
+    val animatedSteps by animateNumberAsState(
+        targetValue = if (startAnim) steps else 0
+    )
+
+    val animatedBurned by animateFloatNumberAsState(
+        targetValue = if (startAnim) burnedCalories else 0f
+    )
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -57,64 +82,59 @@ fun DailySummaryCard(
             modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // ЛЕВАЯ ЧАСТЬ: круг калорий/БЖУ
             NutritionalValueView(
                 proteins = nutrition.totalProteins,
                 fats = nutrition.totalFats,
                 carbs = nutrition.totalCarbs,
-                calories = nutrition.totalCalories,
+                calories = nutrition.totalCalories.toInt(),
                 size = 100.dp
             )
 
             Spacer(modifier = Modifier.width(20.dp))
 
-            // ПРАВАЯ ЧАСТЬ: Шаги и Километры
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Сегодня",
+                    text = stringResource(R.string.daily_summary_today),
                     style = AppTypography.titleMedium,
                     color = AppTextPrimary
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // ШАГИ
                 Text(
-                    text = "$steps / $stepGoal шагов",
+                    text = stringResource(R.string.daily_summary_steps_format, animatedSteps, stepGoal),
                     style = AppTypography.labelMedium,
                     color = ColorSteps
                 )
 
-                // ДИСТАНЦИЯ (Километры)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(top = 4.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_location_on_24),
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.content_description_location),
                         modifier = Modifier.size(14.dp),
                         tint = AppRed
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = String.format("%.2f км", distance),
+                        text = stringResource(R.string.daily_summary_distance_format, distance),
                         style = AppTypography.bodySmall,
                         color = AppTextSecondary
                     )
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    // 2. СОЖЖЕННЫЕ КАЛОРИИ (ОГОНЬ)
                     Icon(
                         painter = painterResource(id = R.drawable.ic_fire_24),
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.content_description_burned_calories),
                         modifier = Modifier.size(14.dp),
                         tint = AppOrange
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "${burnedCalories.toInt()} ккал", // burnedCalories должен прийти во Float
+                        text = stringResource(R.string.daily_summary_burned_format, animatedBurned.toInt()),
                         style = AppTypography.bodySmall,
                         color = AppTextSecondary
                     )
@@ -122,7 +142,6 @@ fun DailySummaryCard(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // LinearProgressIndicator для шагов
                 OverstepLinearProgress(
                     steps = steps,
                     stepGoal = stepGoal
@@ -145,6 +164,9 @@ fun AddWorkoutButton(onClick: () -> Unit) {
     ) {
         Icon(Icons.Default.Add, contentDescription = null)
         Spacer(Modifier.width(8.dp))
-        Text("СОЗДАТЬ ТРЕНИРОВКУ", style = AppTypography.labelMedium)
+        Text(
+            text = stringResource(R.string.button_create_workout),
+            style = AppTypography.labelMedium
+        )
     }
 }

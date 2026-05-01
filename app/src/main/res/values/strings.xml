@@ -1,3 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FatLess</string>
+
+    <string name="app_slogan_honest">Поможем не раскабанеть окончательно</string>
+    <string name="app_slogan_size">Хватит расширяться — пора сужаться!</string>
+    <string name="app_slogan_control">Держи габариты под контролем</string>
+
+    <!-- DASHBOARD SCREEN -->
+    <string name="dashboard_title">Dashboard</string>
+    <string name="dashboard_subtitle">Твои показатели сегодня</string>
+    <string name="dashboard_workouts_title">Тренировки</string>
+
+    <!-- DAILY SUMMARY CARD -->
+    <string name="daily_summary_today">Сегодня</string>
+    <string name="daily_summary_steps_format">%1$d / %2$d шагов</string>
+    <string name="daily_summary_distance_format">%.2f км</string>
+    <string name="daily_summary_burned_format">%1$d ккал</string>
+    <string name="button_create_workout">СОЗДАТЬ ТРЕНИРОВКУ</string>
+
+    <!-- NUTRITION SCREEN -->
+    <string name="nutrition_title">Дневник питания</string>
+    <string name="nutrition_proteins">Белки</string>
+    <string name="nutrition_fats">Жиры</string>
+    <string name="nutrition_carbs">Угли</string>
+    <string name="nutrition_search_placeholder">Что съели?</string>
+    <string name="nutrition_section_today">СЕГОДНЯ:</string>
+    <string name="nutrition_kcal_label">кКал</string>
+
+    <!-- NUTRITION COMPONENTS -->
+    <string name="nutrition_diary_empty_title">Дневник пуст</string>
+    <string name="nutrition_diary_empty_subtitle">Воспользуйтесь поиском выше,\nчтобы добавить приём пищи</string>
+    <string name="nutrition_create_food_not_found">Продукт «%1$s» не найден</string>
+    <string name="nutrition_create_food_action">Нажмите здесь, чтобы добавить его\nв свой справочник</string>
+    <string name="add_food_dialog_question">Сколько грамм съели?</string>
+    <string name="add_food_dialog_btn_confirm">ДОБАВИТЬ</string>
+    <string name="add_food_dialog_btn_dismiss">ОТМЕНА</string>
+    <string name="diary_item_details_format">%1$d %2$s | %3$.0f кКал</string>
+    <string name="diary_item_macros_format">Б:%1$d Ж:%2$d У:%3$d</string>
+    <string name="food_result_macros_format">Б: %1$.1f | Ж: %2$.1f | У: %3$.1f (на 100%4$s)</string>
+    <string name="food_result_calories_format">%1$.0f кКал</string>
+
+    <!-- FOOD FORM SCREEN -->
+    <string name="food_form_title_new">Новый продукт</string>
+    <string name="food_form_title_edit">Редактирование</string>
+    <string name="food_form_subtitle_add">Добавить в справочник</string>
+    <string name="food_form_label_name">Название продукта</string>
+    <string name="food_form_label_calories">Калории (кКал)</string>
+    <string name="food_form_section_unit">Единица измерения:</string>
+    <string name="food_form_section_macros">БЖУ на 100г (или 1шт):</string>
+    <string name="food_form_section_category">Категория:</string>
+    <string name="food_form_macro_p_short">Б</string>
+    <string name="food_form_macro_f_short">Ж</string>
+    <string name="food_form_macro_c_short">У</string>
+
+    <!-- HISTORY -->
+    <string name="history_title_steps">Активность</string>
+    <string name="history_title_nutrition">Питание</string>
+    <string name="history_average_label">В среднем: %1$d</string>
+    <string name="history_day_today">Сегодня</string>
+    <string name="history_unit_steps">шагов</string>
+    <string name="history_unit_kcal">ккал</string>
+    <string name="history_bar_today_label">Сегодня</string>
+
+    <!-- WORKOUT SCREENS -->
+    <string name="workout_create_title">Новая тренировка</string>
+    <string name="workout_create_subtitle_default">Конструктор</string>
+    <string name="workout_create_section_name">НАЗВАНИЕ</string>
+    <string name="workout_create_name_placeholder">Например: Утренняя пахота</string>
+    <string name="workout_create_section_intervals">ИНТЕРВАЛЫ</string>
+    <string name="workout_create_btn_add_interval">ДОБАВИТЬ ИНТЕРВАЛ</string>
+    <string name="workout_status_ready_sub">Общее время</string>
+    <string name="workout_status_progress">Прошло %1$s из %2$s</string>
+    <string name="workout_status_running_meta">● %1$s</string>
+    <string name="workout_status_paused">ПАУЗА</string>
+    <string name="workout_status_completed">ЗАВЕРШЕНА</string>
+    <string name="workout_ready_hint">Приготовьтесь</string>
+    <string name="workout_section_intervals">Интервалы</string>
+
+    <!-- WORKOUT COMPONENTS -->
+    <string name="workout_item_meta_format">%1$d интервалов • %2$s</string>
+    <string name="workout_interval_card_reps_goal">Цель: %1$d повт.</string>
+    <string name="workout_interval_card_steps_label">Шаги: %1$d</string>
+    <string name="workout_interval_name_placeholder">Назови эту пытку…</string>
+    <string name="workout_interval_label_time">ВРЕМЯ:</string>
+    <string name="workout_interval_label_goal">ЦЕЛЬ:</string>
+    <string name="workout_interval_label_steps">ШАГИ:</string>
+    <string name="workout_interval_unit_minutes">мин</string>
+    <string name="workout_interval_unit_seconds">сек</string>
+    <string name="workout_interval_unit_reps">повт</string>
+    <string name="workout_interval_status_time_only">только время</string>
+    <string name="workout_interval_status_steps_active">активно</string>
+    <string name="workout_interval_status_steps_off">выключено</string>
+    <string name="workout_timer_state_ready">ГОТОВО К СТАРТУ</string>
+    <string name="workout_timer_state_running">ВЫПОЛНЯЕТСЯ</string>
+    <string name="workout_timer_state_paused">НА ПАУЗЕ</string>
+    <string name="workout_timer_state_completed">ТРЕНИРОВКА ЗАВЕРШЕНА</string>
+    <string name="workout_timer_hint_completed">ОТЛИЧНАЯ РАБОТА!</string>
+    <string name="workout_btn_start">СТАРТ</string>
+    <string name="workout_btn_pause">ПАУЗА</string>
+    <string name="workout_btn_next">ГОТОВО / СЛЕДУЮЩИЙ</string>
+    <string name="workout_btn_resume">ПРОДОЛЖИТЬ</string>
+    <string name="workout_btn_reset">СБРОСИТЬ</string>
+    <string name="workout_btn_restart">ЗАПУСТИТЬ ЗАНОВО</string>
+    <string name="workout_btn_to_menu">В МЕНЮ</string>
+
+    <!-- SETTINGS -->
+    <string name="settings_title">Настройки</string>
+    <string name="settings_subtitle">Конфигурация</string>
+    <string name="settings_dialog_title">Внимание</string>
+    <string name="settings_dialog_text">Для точных расчетов расстояния и калорий необходимо заполнить данные в секции Биометрия.</string>
+    <string name="settings_dialog_confirm">ПОНЯЛ</string>
+    <string name="settings_section_biometrics">Биометрия</string>
+    <string name="settings_section_workout">Тренировка</string>
+    <string name="settings_section_goal">Цель по шагам</string>
+    <string name="settings_section_app">Приложение</string>
+    <string name="settings_label_height">Рост</string>
+    <string name="settings_label_weight">Вес</string>
+    <string name="settings_unit_cm">см</string>
+    <string name="settings_unit_kg">кг</string>
+    <string name="settings_unit_steps">шагов</string>
+    <string name="settings_sound_title">Звуковые сигналы</string>
+    <string name="settings_sound_subtitle">Пищать на последних секундах</string>
+    <string name="settings_auto_finish_title">Автозавершение по цели</string>
+    <string name="settings_auto_finish_subtitle">Переключать интервал при достижении нормы шагов</string>
+    <string name="settings_version_format">Версия %1$s (Джон-Эдишн)</string>
+    <string name="settings_volume_label">Уровень громкости</string>
+    <string name="settings_volume_format">%1$d%%</string>
+
+    <!-- CONTENT DESCRIPTIONS (PODVAL) -->
+    <string name="content_description_add_new_food">Добавить новый продукт</string>
+    <string name="content_description_burned_calories">Сожженные калории</string>
+    <string name="content_description_clear_search">Очистить поиск</string>
+    <string name="content_description_completed">Выполнено</string>
+    <string name="content_description_edit_food">Редактировать продукт</string>
+    <string name="content_description_delete_food">Удалить продукт</string>
+    <string name="content_description_delete_entry">Удалить запись</string>
+    <string name="content_description_delete_meal">Удалить прием пищи</string>
+    <string name="content_description_location">Местоположение</string>
+    <string name="content_description_open_workout">Открыть тренировку</string>
+    <string name="content_description_remove_interval">Удалить интервал</string>
+    <string name="content_description_save">Сохранить</string>
+    <string name="content_description_save_workout">Сохранить тренировку</string>
+    <string name="content_description_search">Поиск</string>
+    <string name="content_description_settings">Настройки</string>
+    <string name="content_description_switch_to_steps">Переключить на шаги</string>
+    <string name="content_description_switch_to_nutrition">Переключить на питание</string>
+    <string name="content_description_toggle">Переключатель</string>
+    <string name="content_description_volume_slider">Регулятор громкости</string>
 </resources>

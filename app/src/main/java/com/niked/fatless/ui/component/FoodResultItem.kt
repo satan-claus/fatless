@@ -21,7 +21,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.niked.fatless.R
 import com.niked.fatless.domain.model.Food
 import com.niked.fatless.ui.theme.AppBorder
 import com.niked.fatless.ui.theme.AppError
@@ -57,8 +59,13 @@ fun FoodResultItem(
                     color = AppTextPrimary
                 )
                 Text(
-                    // Здесь используем Enum label для наглядности (г/шт/мл)
-                    text = "Б: ${food.proteins} | Ж: ${food.fats} | У: ${food.carbs} (на 100${food.unit.label})",
+                    text = stringResource(
+                        R.string.food_result_macros_format,
+                        food.proteins,
+                        food.fats,
+                        food.carbs,
+                        food.unit.label
+                    ),
                     style = AppTypography.bodySmall,
                     color = AppTextSecondary
                 )
@@ -66,7 +73,7 @@ fun FoodResultItem(
 
             // Блок калорий
             Text(
-                text = "${food.calories} кКал",
+                text = stringResource(R.string.food_result_calories_format, food.calories),
                 style = AppTypography.labelMedium,
                 color = AppPrimary
             )
@@ -81,7 +88,7 @@ fun FoodResultItem(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.content_description_edit_food),
                         tint = AppTextSecondary,
                         modifier = Modifier.size(18.dp)
                     )
@@ -93,7 +100,7 @@ fun FoodResultItem(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.content_description_delete_food),
                         tint = AppError.copy(alpha = 0.7f),
                         modifier = Modifier.size(18.dp)
                     )

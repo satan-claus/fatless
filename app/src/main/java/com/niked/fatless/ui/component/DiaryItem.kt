@@ -17,8 +17,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.niked.fatless.R
 import com.niked.fatless.domain.model.MealEntry
 import com.niked.fatless.ui.theme.AppBorder
 import com.niked.fatless.ui.theme.AppError
@@ -50,7 +52,12 @@ fun DiaryItem(
                     color = AppTextPrimary
                 )
                 Text(
-                    text = "${entry.quantity} ${entry.unit.label} | ${entry.totalCalories} кКал",
+                    text = stringResource(
+                        R.string.diary_item_details_format,
+                        entry.quantity,
+                        entry.unit.label,
+                        entry.totalCalories
+                    ),
                     style = AppTypography.bodySmall,
                     color = AppTextSecondary
                 )
@@ -59,7 +66,12 @@ fun DiaryItem(
             // Краткая сводка БЖУ справа
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "Б:${entry.totalProteins.toInt()} Ж:${entry.totalFats.toInt()} У:${entry.totalCarbs.toInt()}",
+                    text = stringResource(
+                        R.string.diary_item_macros_format,
+                        entry.totalProteins.toInt(),
+                        entry.totalFats.toInt(),
+                        entry.totalCarbs.toInt()
+                    ),
                     style = AppTypography.bodySmall,
                     fontSize = 10.sp,
                     color = AppTextTertiary
@@ -70,7 +82,7 @@ fun DiaryItem(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.content_description_delete_entry),
                         tint = AppError.copy(alpha = 0.6f),
                         modifier = Modifier.size(16.dp)
                     )
