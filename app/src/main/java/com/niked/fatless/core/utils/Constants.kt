@@ -2,7 +2,7 @@ package com.niked.fatless.core.utils
 
 object Constants {
     const val DATABASE_NAME = "fatless_db"
-    const val DATABASE_VERSION = 1
+    const val DATABASE_VERSION = 2
     const val LOG_TAG = "Fatless LOG"
 
     // Настройки

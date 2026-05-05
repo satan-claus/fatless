@@ -30,7 +30,10 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             Constants.DATABASE_NAME
-        ).addCallback(DatabasePrepCallback(context, foodDaoProvider)).build()
+        )
+            .fallbackToDestructiveMigration()
+            .addCallback(DatabasePrepCallback(context, foodDaoProvider))
+            .build()
     }
 
 
