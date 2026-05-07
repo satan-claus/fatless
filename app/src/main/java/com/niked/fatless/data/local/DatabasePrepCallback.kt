@@ -19,37 +19,49 @@ data class InitialData(
 
 class DatabasePrepCallback(
     private val context: Context,
-    // Используем Provider для Hilt
     private val foodDaoProvider: javax.inject.Provider<FoodDao>
 ) : RoomDatabase.Callback() {
 
-    override fun onCreate(db: SupportSQLiteDatabase) {
-        super.onCreate(db)
+    override fun onOpen(db: SupportSQLiteDatabase) {
+        super.onOpen(db)
 
-        // Запускаем корутину, так как запись в БД - долгая операция
+        // Запускаем ОДНУ корутину для проверки и вставки
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // 1. Читаем файл из assets
-                val jsonString = context.assets.open("initial_data.json")
-                    .bufferedReader()
-                    .use { it.readText() }
-
-                // 2. Парсим JSON через GSON
-                val gson = Gson()
-                val data = gson.fromJson(jsonString, InitialData::class.java)
-
                 val dao = foodDaoProvider.get()
 
-                // 3. Сначала заливаем категории (важно из-за связей!)
-                data.categories.forEach { dao.insertCategory(it) }
-
-                // 4. Затем заливаем продукты
-                data.foods.forEach { dao.insertProduct(it) }
-
-                Log.d("DB_PREP", "База успешно инициализирована данными")
+                // ПРОВЕРКА: если еды нет — заправляем.
+                if (dao.getFoodCount() == 0) {
+                    fillDefaultData(dao)
+                }
             } catch (e: Exception) {
-                Log.e("DB_PREP", "Ошибка при загрузке JSON: ${e.message}")
+                Log.e("DB_PREP", "Ошибка в onOpen: ${e.message}")
             }
+        }
+    }
+
+    // Делаем функцию suspend, чтобы она работала внутри корутины onOpen
+    private suspend fun fillDefaultData(dao: FoodDao) {
+        try {
+            // 1. Читаем JSON
+            val jsonString = context.assets.open("initial_data.json")
+                .bufferedReader()
+                .use { it.readText() }
+
+            // 2. Парсим
+            val gson = Gson()
+            val data = gson.fromJson(jsonString, InitialData::class.java)
+
+            // 3. Заливаем (в транзакции было бы еще круче, но для старта и так пойдет)
+            data.categories.forEach { dao.insertCategory(it) }
+            data.foods.forEach { dao.insertProduct(it) }
+
+            // СЮДА ЖЕ ДОБАВИМ НАШИ УПРАЖНЕНИЯ, когда создашь для них DAO
+            // dao.insertExerciseTypes(defaultExerciseTypes)
+
+            Log.d("DB_PREP", "Справочники успешно восстановлены")
+        } catch (e: Exception) {
+            Log.e("DB_PREP", "Ошибка при наполнении БД: ${e.message}")
         }
     }
 }
