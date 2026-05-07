@@ -6,6 +6,7 @@ import androidx.core.content.edit
 import com.niked.fatless.core.utils.Constants.PREFS_NAME
 import com.niked.fatless.core.utils.Constants.PREF_AUTO_FINISH_ON_GOAL
 import com.niked.fatless.core.utils.Constants.PREF_CURRENT_MANUAL_STEPS
+import com.niked.fatless.core.utils.Constants.PREF_CURRENT_MET
 import com.niked.fatless.core.utils.Constants.PREF_IS_FIRST_LAUNCH
 import com.niked.fatless.core.utils.Constants.PREF_IS_MANUAL_TRACKING
 import com.niked.fatless.core.utils.Constants.PREF_IS_SOUND_ENABLED
@@ -80,6 +81,10 @@ class SettingsRepositoryImpl @Inject constructor(
     override var autoFinishOnGoal: Boolean
         get() = prefs.getBoolean(PREF_AUTO_FINISH_ON_GOAL, false)
         set(value) = prefs.edit { putBoolean(PREF_AUTO_FINISH_ON_GOAL, value) }
+
+    override var currentMetModifier: Float
+        get() = prefs.getFloat(PREF_CURRENT_MET, 3.5f)
+        set(value) = prefs.edit { putFloat(PREF_CURRENT_MET, value) }
 
     override fun observeSteps(onStepsChanged: (Int) -> Unit): SharedPreferences.OnSharedPreferenceChangeListener {
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->

@@ -56,15 +56,15 @@
   "exerciseTypes": [
     {
       "id": "walk",
-      "nameResId": 2131820544,
+      "nameKey": "workout_interval_status_steps_active",
       "metValue": 3.5,
-      "iconResId": 2131230850
+      "iconKey": "ic_directions_walk_24"
     },
     {
       "id": "run",
-      "nameResId": 2131820545,
+      "nameKey": "workout_timer_state_running",
       "metValue": 8.0,
-      "iconResId": 2131230851
+      "iconKey": "ic_directions_walk_24"
     }
   ]
 }

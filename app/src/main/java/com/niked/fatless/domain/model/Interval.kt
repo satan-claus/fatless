@@ -1,11 +1,13 @@
 package com.niked.fatless.domain.model
 
+import java.util.UUID
+
 data class Interval(
+    val id: String = UUID.randomUUID().toString(),
     val name: String,
-    // Жесткое время (таймер идет вниз)
     val seconds: Int,
     val type: IntervalType,
-    // Цель по количеству (например, 50)
     val reps: Int? = null,
-    val trackSteps: Boolean = false
+    val trackSteps: Boolean = false,
+    val exerciseType: ExerciseType? = null
 )

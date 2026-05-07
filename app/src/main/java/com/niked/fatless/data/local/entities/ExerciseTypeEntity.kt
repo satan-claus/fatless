@@ -6,10 +6,10 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "exercise_types")
 data class ExerciseTypeEntity(
     @PrimaryKey val id: String,
-    // Ссылка на R.string
-    val nameResId: Int,
+    // Храним "exercise_walk"
+    val nameKey: String,
     // Коэффициент MET
     val metValue: Float,
-    // Ссылка на R.drawable
-    val iconResId: Int
+    // Храним "ic_walk"
+    val iconKey: String
 )

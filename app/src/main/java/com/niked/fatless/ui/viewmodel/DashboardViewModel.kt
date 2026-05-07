@@ -16,9 +16,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
@@ -67,15 +69,6 @@ class DashboardViewModel @Inject constructor(
 
     val stepGoal = settingsRepository.stepGoal
 
-    val burnedCalories = steps.map { currentSteps ->
-        val weight = settingsRepository.userWeight
-        currentSteps.toFloat() * weight.toFloat() * 0.0005f
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = 0f
-    )
-
     val historyState = activityRepository.getActivityHistory()
         .stateIn(
             scope = viewModelScope,
@@ -95,6 +88,38 @@ class DashboardViewModel @Inject constructor(
 
     // Храним слушателя как поле класса, чтобы GC его не сожрал
     private var stepsListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
+
+    // Загружаем типы упражнений из БД
+    val exerciseTypes = exerciseRepository.getExerciseTypes()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    // Стейт для выбранного ID (по умолчанию ходьба)
+    private val _selectedExerciseId = MutableStateFlow("walk")
+
+    // Комбинируем список и ID в один объект ExerciseType
+    val selectedExercise = combine(exerciseTypes, _selectedExerciseId) { types, id ->
+        types.find { it.id == id } ?: types.firstOrNull()
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    fun onExerciseTypeSelected(id: String) {
+        _selectedExerciseId.value = id
+    }
+
+    // УМНЫЙ РАСЧЕТ Сожженных калорий
+    // Калории = Шаги * Вес * (MET / 7000)
+    // Коэффициент 7000 — усредненный множитель интенсивности для шагов
+    val burnedCalories = combine(
+        steps, // Твой Flow шагов
+        selectedExercise,
+        // Оборачиваем вес в Flow, чтобы пересчитывать при смене веса в настройках
+        flowOf(settingsRepository.userWeight)
+    ) { currentSteps, activity, weight ->
+        val met = activity?.metValue ?: 3.5f
+        val userWeight = if (weight > 0) weight.toFloat() else 75f
+
+        currentSteps * userWeight * (met / 7000f)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, 0f)
+
 
     init {
         // Регистрируем слушателя в SharedPreferences через AppSettings

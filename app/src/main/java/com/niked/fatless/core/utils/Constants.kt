@@ -19,6 +19,7 @@ object Constants {
     const val PREF_SOUND_VOLUME = "pref_sound_volume"
     const val PREF_AUTO_FINISH_ON_GOAL = "auto_finish_on_goal"
     const val PREF_CURRENT_MANUAL_STEPS = "pref_current_manual_steps"
+    const val PREF_CURRENT_MET = "pref_current_met"
     const val PREF_IS_MANUAL_TRACKING = "pref_is_manual_tracking"
 
     // Actions для управления сервисом

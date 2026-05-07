@@ -3,6 +3,7 @@ package com.niked.fatless.data.local.dao
 import androidx.room.*
 import com.niked.fatless.data.local.entities.IntervalEntity
 import com.niked.fatless.data.local.entities.WorkoutEntity
+import com.niked.fatless.data.local.relation.WorkoutWithDetails
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -31,4 +32,12 @@ interface WorkoutDao {
 
     @Query("SELECT * FROM workouts WHERE id = :id")
     suspend fun getWorkoutById(id: String): WorkoutEntity?
+
+    @Transaction
+    @Query("SELECT * FROM workouts")
+    fun observeWorkoutsWithDetails(): Flow<List<WorkoutWithDetails>>
+
+    @Transaction
+    @Query("SELECT * FROM workouts WHERE id = :id")
+    suspend fun getWorkoutWithDetailsById(id: String): WorkoutWithDetails?
 }

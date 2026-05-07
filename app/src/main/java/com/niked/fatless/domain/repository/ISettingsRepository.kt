@@ -17,6 +17,8 @@ interface ISettingsRepository {
     var soundVolume: Float
     var autoFinishOnGoal: Boolean
 
+    var currentMetModifier: Float
+
     fun observeSteps(onStepsChanged: (Int) -> Unit): SharedPreferences.OnSharedPreferenceChangeListener
 
     // Методы для работы со слушателями (чтобы ViewModel могла следить за шагами)
