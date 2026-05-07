@@ -5,21 +5,26 @@ import android.util.Log
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.google.gson.Gson
+import com.niked.fatless.data.local.dao.ExerciseDao
 import com.niked.fatless.data.local.dao.FoodDao
+import com.niked.fatless.data.local.entities.ExerciseTypeEntity
 import com.niked.fatless.data.local.entities.FoodCategoryEntity
 import com.niked.fatless.data.local.entities.FoodEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Provider
 
 data class InitialData(
     val categories: List<FoodCategoryEntity>,
-    val foods: List<FoodEntity>
+    val foods: List<FoodEntity>,
+    val exerciseTypes: List<ExerciseTypeEntity>
 )
 
 class DatabasePrepCallback(
     private val context: Context,
-    private val foodDaoProvider: javax.inject.Provider<FoodDao>
+    private val foodDaoProvider: Provider<FoodDao>,
+    private val exerciseDaoProvider: Provider<ExerciseDao>
 ) : RoomDatabase.Callback() {
 
     override fun onOpen(db: SupportSQLiteDatabase) {
@@ -28,11 +33,16 @@ class DatabasePrepCallback(
         // Запускаем ОДНУ корутину для проверки и вставки
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val dao = foodDaoProvider.get()
+                val foodDao = foodDaoProvider.get()
+                val exerciseDao = exerciseDaoProvider.get()
+
+                // Проверяем наполнение обеих таблиц
+                val isFoodEmpty = foodDao.getFoodCount() == 0
+                val isExerciseEmpty = exerciseDao.getExerciseCount() == 0
 
                 // ПРОВЕРКА: если еды нет — заправляем.
-                if (dao.getFoodCount() == 0) {
-                    fillDefaultData(dao)
+                if (isFoodEmpty || isExerciseEmpty) {
+                    fillDefaultData(foodDao, exerciseDao, isFoodEmpty, isExerciseEmpty)
                 }
             } catch (e: Exception) {
                 Log.e("DB_PREP", "Ошибка в onOpen: ${e.message}")
@@ -41,7 +51,12 @@ class DatabasePrepCallback(
     }
 
     // Делаем функцию suspend, чтобы она работала внутри корутины onOpen
-    private suspend fun fillDefaultData(dao: FoodDao) {
+    private suspend fun fillDefaultData(
+        foodDao: FoodDao,
+        exerciseDao: ExerciseDao,
+        fillFood: Boolean,
+        fillExercise: Boolean
+    ) {
         try {
             // 1. Читаем JSON
             val jsonString = context.assets.open("initial_data.json")
@@ -52,14 +67,18 @@ class DatabasePrepCallback(
             val gson = Gson()
             val data = gson.fromJson(jsonString, InitialData::class.java)
 
-            // 3. Заливаем (в транзакции было бы еще круче, но для старта и так пойдет)
-            data.categories.forEach { dao.insertCategory(it) }
-            data.foods.forEach { dao.insertProduct(it) }
+            // Заливаем еду, только если её нет
+            if (fillFood) {
+                data.categories.forEach { foodDao.insertCategory(it) }
+                data.foods.forEach { foodDao.insertProduct(it) }
+            }
 
-            // СЮДА ЖЕ ДОБАВИМ НАШИ УПРАЖНЕНИЯ, когда создашь для них DAO
-            // dao.insertExerciseTypes(defaultExerciseTypes)
+            // Заливаем упражнения, только если их нет
+            if (fillExercise) {
+                exerciseDao.insertAll(data.exerciseTypes)
+            }
 
-            Log.d("DB_PREP", "Справочники успешно восстановлены")
+            Log.d("DB_PREP", "База дозаправлена: еда=$fillFood, упражнения=$fillExercise")
         } catch (e: Exception) {
             Log.e("DB_PREP", "Ошибка при наполнении БД: ${e.message}")
         }

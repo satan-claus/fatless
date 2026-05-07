@@ -7,6 +7,7 @@ import com.niked.fatless.data.local.dao.WorkoutDao
 import com.niked.fatless.core.utils.Constants
 import com.niked.fatless.data.local.DatabasePrepCallback
 import com.niked.fatless.data.local.dao.ActivityDao
+import com.niked.fatless.data.local.dao.ExerciseDao
 import com.niked.fatless.data.local.dao.FoodDao
 import dagger.Module
 import dagger.Provides
@@ -24,7 +25,8 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(
         @ApplicationContext context: Context,
-        foodDaoProvider: Provider<FoodDao>
+        foodDaoProvider: Provider<FoodDao>,
+        exerciseDaoProvider: Provider<ExerciseDao>
     ): AppDatabase {
         return Room.databaseBuilder(
             context,
@@ -32,7 +34,7 @@ object DatabaseModule {
             Constants.DATABASE_NAME
         )
             .fallbackToDestructiveMigration()
-            .addCallback(DatabasePrepCallback(context, foodDaoProvider))
+            .addCallback(DatabasePrepCallback(context, foodDaoProvider, exerciseDaoProvider))
             .build()
     }
 
@@ -40,6 +42,11 @@ object DatabaseModule {
     @Provides
     fun provideActivityDao(db: AppDatabase): ActivityDao {
         return db.activityDao()
+    }
+
+    @Provides
+    fun provideExerciseDao(db: AppDatabase): ExerciseDao {
+        return db.exerciseDao()
     }
 
     @Provides

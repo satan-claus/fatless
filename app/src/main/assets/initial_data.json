@@ -52,5 +52,19 @@
 
     {"id": "s1", "name": "Масло оливковое", "proteins": 0.0, "fats": 99.8, "carbs": 0.0, "calories": 898, "categoryId": "cat_sauces", "unit": "GRAMS"},
     {"id": "s2", "name": "Кетчуп", "proteins": 1.5, "fats": 0.0, "carbs": 25.0, "calories": 110, "categoryId": "cat_sauces", "unit": "GRAMS"}
+  ],
+  "exerciseTypes": [
+    {
+      "id": "walk",
+      "nameResId": 2131820544,
+      "metValue": 3.5,
+      "iconResId": 2131230850
+    },
+    {
+      "id": "run",
+      "nameResId": 2131820545,
+      "metValue": 8.0,
+      "iconResId": 2131230851
+    }
   ]
 }
