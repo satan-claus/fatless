@@ -1,7 +1,7 @@
 package com.niked.fatless.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.niked.fatless.core.data.AppSettings
+import com.niked.fatless.domain.repository.ISettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,7 +10,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val settings: AppSettings
+    private val settingsRepository: ISettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -19,48 +19,48 @@ class SettingsViewModel @Inject constructor(
     init {
         // Загружаем текущие значения
         _uiState.update { it.copy(
-            isSoundEnabled = settings.isSoundEnabled,
-            soundVolume = settings.soundVolume,
-            autoFinishOnGoal = settings.autoFinishOnGoal,
-            stepGoal = settings.stepGoal,
-            userHeight = settings.userHeight,
-            userWeight = settings.userWeight
+            isSoundEnabled = settingsRepository.isSoundEnabled,
+            soundVolume = settingsRepository.soundVolume,
+            autoFinishOnGoal = settingsRepository.autoFinishOnGoal,
+            stepGoal = settingsRepository.stepGoal,
+            userHeight = settingsRepository.userHeight,
+            userWeight = settingsRepository.userWeight
         ) }
     }
 
-    fun isFirstLaunch(): Boolean = settings.isFirstLaunch
+    fun isFirstLaunch(): Boolean = settingsRepository.isFirstLaunch
 
     fun setFirstLaunchDone() {
-        settings.isFirstLaunch = false
+        settingsRepository.isFirstLaunch = false
     }
 
     fun toggleSound(enabled: Boolean) {
-        settings.isSoundEnabled = enabled
+        settingsRepository.isSoundEnabled = enabled
         _uiState.update { it.copy(isSoundEnabled = enabled) }
     }
 
     fun updateVolume(newVolume: Float) {
         _uiState.update { it.copy(soundVolume = newVolume) }
-        settings.soundVolume = newVolume
+        settingsRepository.soundVolume = newVolume
     }
 
     fun toggleAutoFinish(enabled: Boolean) {
-        settings.autoFinishOnGoal = enabled
+        settingsRepository.autoFinishOnGoal = enabled
         _uiState.update { it.copy(autoFinishOnGoal = enabled) }
     }
 
     fun updateStepGoal(newGoal: Int) {
-        settings.stepGoal = newGoal
+        settingsRepository.stepGoal = newGoal
         _uiState.update { it.copy(stepGoal = newGoal) }
     }
 
     fun updateHeight(newHeight: Int) {
-        settings.userHeight = newHeight
+        settingsRepository.userHeight = newHeight
         _uiState.update { it.copy(userHeight = newHeight) }
     }
 
     fun updateWeight(newWeight: Int) {
-        settings.userWeight = newWeight
+        settingsRepository.userWeight = newWeight
         _uiState.update { it.copy(userWeight = newWeight) }
     }
 }

@@ -2,9 +2,9 @@ package com.niked.fatless.ui.component.fatlesshistory
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.niked.fatless.core.data.AppSettings
 import com.niked.fatless.data.local.entities.DailyActivityEntity
 import com.niked.fatless.domain.repository.IActivityRepository
+import com.niked.fatless.domain.repository.ISettingsRepository
 import com.niked.fatless.ui.theme.ColorSteps
 import com.niked.fatless.ui.theme.ColorStepsToday
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,8 +25,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FatLessHistoryViewModel @Inject constructor(
-    private val repository: IActivityRepository,
-    val settings: AppSettings
+    private val activityRepository: IActivityRepository,
+    private val settingsRepository: ISettingsRepository
 ) : ViewModel() {
 
     private val _historyType = MutableStateFlow(FatLessHistoryType.STEPS)
@@ -36,7 +36,7 @@ class FatLessHistoryViewModel @Inject constructor(
     private val _weekOffset = MutableStateFlow(0)
     val weekOffset: StateFlow<Int> = _weekOffset.asStateFlow()
 
-    val allHistory = repository.getActivityHistory()
+    val allHistory = activityRepository.getActivityHistory()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
@@ -113,7 +113,7 @@ class FatLessHistoryViewModel @Inject constructor(
 
             val stepsValue = when {
                 isFuture -> 0f
-                isToday -> settings.todaySteps.toFloat()
+                isToday -> settingsRepository.todaySteps.toFloat()
                 // Если данных нет, возвращаем 0f
                 else -> dayData?.steps?.toFloat() ?: 0f
             }
@@ -121,11 +121,11 @@ class FatLessHistoryViewModel @Inject constructor(
             stepModels.add(HistoryBarModel(
                 label = dayLabel,
                 value = stepsValue,
-                goal = settings.stepGoal.toFloat(),
+                goal = settingsRepository.stepGoal.toFloat(),
                 isToday = isToday,
                 isFuture = isFuture,
                 barColor = if (isToday) ColorStepsToday else ColorSteps,
-                showStar = stepsValue >= settings.stepGoal && stepsValue > 0
+                showStar = stepsValue >= settingsRepository.stepGoal && stepsValue > 0
             ))
 
             val calValue = if (isFuture) 0f else (dayData?.calories ?: 0f)

@@ -3,12 +3,12 @@ package com.niked.fatless.ui.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.niked.fatless.core.data.AppSettings
 import com.niked.fatless.domain.model.Workout
 import com.niked.fatless.domain.model.WorkoutState
 import com.niked.fatless.domain.repository.IAudioPlayer
 import com.niked.fatless.domain.repository.IWorkoutRepository
 import com.niked.fatless.core.sensor.StepTracker
+import com.niked.fatless.domain.repository.ISettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -21,11 +21,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WorkoutViewModel @Inject constructor(
-    private val repository: IWorkoutRepository,
+    private val workoutRepository: IWorkoutRepository,
     savedStateHandle: SavedStateHandle,
     private val audioPlayer: IAudioPlayer,
     private val stepTracker: StepTracker,
-    private val settings: AppSettings
+    private val settingsRepository: ISettingsRepository
 ) : ViewModel() {
 
     private val workoutId: String = checkNotNull(savedStateHandle["workoutId"])
@@ -53,7 +53,7 @@ class WorkoutViewModel @Inject constructor(
                     if (steps >= currentInterval.reps) {
 
                         // Читаем общую настройку: рубить сразу или дать добегать время?
-                        if (settings.autoFinishOnGoal) {
+                        if (settingsRepository.autoFinishOnGoal) {
                             nextInterval() // Бац! Авто-переключение
                         }
                     }
@@ -64,7 +64,7 @@ class WorkoutViewModel @Inject constructor(
 
     private fun loadWorkout() {
         viewModelScope.launch {
-            repository.getWorkoutById(workoutId)?.let { workout ->
+            workoutRepository.getWorkoutById(workoutId)?.let { workout ->
                 _uiState.update { it.copy(
                     workout = workout,
                     timeLeft = workout.intervals.firstOrNull()?.seconds ?: 0
