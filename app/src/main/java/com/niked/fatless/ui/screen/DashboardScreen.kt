@@ -35,6 +35,7 @@ import com.niked.fatless.ui.viewmodel.DashboardViewModel
 @Composable
 fun DashboardScreen(
     onWorkoutClick: (String) -> Unit,
+    onEditWorkoutClick: (String) -> Unit,
     onAddWorkoutClick: () -> Unit,
     onNutritionClick: () -> Unit,
     onSettingsClick: () -> Unit,
@@ -102,7 +103,8 @@ fun DashboardScreen(
             items(workouts) { workout ->
                 WorkoutItem(
                     workout = workout,
-                    onClick = { onWorkoutClick(workout.id) }
+                    onClick = { onWorkoutClick(workout.id) },
+                    onEditClick = { onEditWorkoutClick(workout.id) }
                 )
             }
 

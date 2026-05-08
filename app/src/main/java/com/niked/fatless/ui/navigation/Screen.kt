@@ -8,7 +8,12 @@ sealed class Screen(val route: String) {
     }
     object Nutrition : Screen(route = "nutrition")
     object Settings : Screen(route = "settings")
-    object WorkoutCreate : Screen("workout_create")
+    object WorkoutCreate : Screen("workout_create?workoutId={workoutId}") {
+        // Вызов для создания новой (без ID)
+        fun createRoute() = "workout_create"
+        // Вызов для редактирования (с ID)
+        fun editRoute(workoutId: String) = "workout_create?workoutId=$workoutId"
+    }
     // Для этого экрана нам нужен аргумент в строке
     object WorkoutTimer : Screen("workout_timer/{workoutId}") {
         fun createRoute(workoutId: String) = "workout_timer/$workoutId"

@@ -142,6 +142,7 @@
     <string name="content_description_delete_food">Удалить продукт</string>
     <string name="content_description_delete_entry">Удалить запись</string>
     <string name="content_description_delete_meal">Удалить прием пищи</string>
+    <string name="content_description_edit">Редактировать тренировку</string>
     <string name="content_description_location">Местоположение</string>
     <string name="content_description_open_workout">Открыть тренировку</string>
     <string name="content_description_remove_interval">Удалить интервал</string>

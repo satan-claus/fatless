@@ -30,6 +30,9 @@ fun FatLessNavGraph() {
                 onWorkoutClick = { id ->
                     navController.navigate(Screen.WorkoutTimer.createRoute(id))
                 },
+                onEditWorkoutClick = { id ->
+                    navController.navigate(Screen.WorkoutCreate.editRoute(id))
+                },
                 onAddWorkoutClick = {
                     navController.navigate(Screen.WorkoutCreate.route)
                 },
@@ -39,7 +42,9 @@ fun FatLessNavGraph() {
                 onExitClick = {
                     (context as? MainActivity)?.minimizeApp()
                 },
-                onNutritionClick = { navController.navigate(Screen.Nutrition.route) }
+                onNutritionClick = {
+                    navController.navigate(Screen.Nutrition.route)
+                },
             )
         }
         // Экран добавления/удаления/редактирования справочника продуктов
@@ -81,7 +86,17 @@ fun FatLessNavGraph() {
             )
         }
         // Конструктор (Создание)
-        composable(Screen.WorkoutCreate.route) {
+        composable(
+            // Маршрут: "workout_create?workoutId={workoutId}"
+            route = Screen.WorkoutCreate.route,
+            arguments = listOf(
+                navArgument("workoutId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) {
             WorkoutCreateScreen(
                 onBackClick = { navController.popBackStack() }
             )

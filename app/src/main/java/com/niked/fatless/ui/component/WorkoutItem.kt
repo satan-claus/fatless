@@ -8,7 +8,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.niked.fatless.R
 import com.niked.fatless.domain.model.Workout
 import com.niked.fatless.core.utils.formatDuration
@@ -29,7 +33,8 @@ import com.niked.fatless.ui.theme.AppTypography
 @Composable
 fun WorkoutItem(
     workout: Workout,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onEditClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier
@@ -44,7 +49,6 @@ fun WorkoutItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                // Название тренировки
                 Text(
                     text = workout.title,
                     style = AppTypography.titleMedium,
@@ -61,13 +65,21 @@ fun WorkoutItem(
                     color = AppTextTertiary
                 )
             }
-            // Стрелочка вправо
-            Text(
-                text = "›",
-                fontSize = 24.sp,
-                color = AppTextTertiary,
-                modifier = Modifier.padding(start = 8.dp)
-            )
+
+            IconButton(
+                onClick = {
+                    onEditClick()
+                },
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = stringResource(R.string.content_description_edit),
+                    tint = AppTextTertiary.copy(alpha = 0.6f),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
     }
 }
+
