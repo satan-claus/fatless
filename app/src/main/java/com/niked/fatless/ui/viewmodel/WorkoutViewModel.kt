@@ -46,12 +46,9 @@ class WorkoutViewModel @Inject constructor(
                 // ЛОГИКА АВТОМАТИКИ
                 val currentInterval = _uiState.value.workout?.intervals?.getOrNull(_uiState.value.currentIntervalIndex)
 
-                // Если у интервала есть цель по шагам (допустим, мы добавим поле stepGoal)
+                // Проверяем: достигли цели?
                 if (currentInterval?.trackSteps == true && currentInterval.reps != null) {
-
-                    // Проверяем: достигли цели?
                     if (steps >= currentInterval.reps) {
-
                         // Читаем общую настройку: рубить сразу или дать добегать время?
                         if (settingsRepository.autoFinishOnGoal) {
                             nextInterval() // Бац! Авто-переключение
@@ -86,6 +83,16 @@ class WorkoutViewModel @Inject constructor(
 
         // Если в текущем интервале нужно считать шаги — запускаем датчик
         val currentInterval = _uiState.value.workout?.intervals?.getOrNull(_uiState.value.currentIntervalIndex)
+
+        // Включаем нужный MET при старте
+        currentInterval?.let {
+            settingsRepository.currentMetModifier = if (it.trackSteps) {
+                it.exerciseType?.metValue ?: 3.5f
+            } else {
+                1.2f
+            }
+        }
+
         if (currentInterval?.trackSteps == true) {
             stepTracker.startSession()
         }
@@ -137,14 +144,24 @@ class WorkoutViewModel @Inject constructor(
         val intervals = state.workout?.intervals ?: return
 
         if (nextIndex < intervals.size) {
+            val nextInterval = intervals[nextIndex]
+
+            // Переключаем MET на следующий интервал
+            settingsRepository.currentMetModifier = if (nextInterval.trackSteps) {
+                nextInterval.exerciseType?.metValue ?: 3.5f
+            } else {
+                1.2f
+            }
+
             audioPlayer.playNext()
             _uiState.update { it.copy(
                 currentIntervalIndex = nextIndex,
-                timeLeft = intervals[nextIndex].seconds,
-                // currentIntervalSteps = 0 больше не нужно писать вручную,
-                // оно прилетит из stepTracker.resetSession() через collect
+                timeLeft = nextInterval.seconds,
             ) }
         } else {
+            // Тренировка окончена, возвращаем фон
+            settingsRepository.currentMetModifier = 3.5f
+
             audioPlayer.playFinish()
             _uiState.update { it.copy(
                 status = WorkoutState.COMPLETED,
@@ -162,6 +179,9 @@ class WorkoutViewModel @Inject constructor(
         stepTracker.stopSession()
         stepTracker.resetSession()
 
+        // Сброс MET на базу
+        settingsRepository.currentMetModifier = 3.5f
+
         // 3. Откатываем всё к первому интервалу
         val firstIntervalSeconds = _uiState.value.workout?.intervals?.firstOrNull()?.seconds ?: 0
         _uiState.update { it.copy(
@@ -176,13 +196,16 @@ class WorkoutViewModel @Inject constructor(
         super.onCleared()
         timerJob?.cancel()
         stepTracker.stopSession()
+        // Гарантированный сброс MET при выходе с экрана
+        settingsRepository.currentMetModifier = 3.5f
     }
 }
+
 
 data class WorkoutUiState(
     val workout: Workout? = null,
     val currentIntervalIndex: Int = 0,
     val timeLeft: Int = 0,
-    val currentIntervalSteps: Int = 0, // Поле для отображения шагов на карточке
+    val currentIntervalSteps: Int = 0,
     val status: WorkoutState = WorkoutState.READY
 )

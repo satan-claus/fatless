@@ -1,5 +1,6 @@
 package com.niked.fatless.ui.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.niked.fatless.domain.model.*
@@ -16,17 +17,35 @@ import javax.inject.Inject
 @HiltViewModel
 class WorkoutCreateViewModel @Inject constructor(
     private val exerciseRepository: IExerciseRepository,
-    private val workoutRepository: IWorkoutRepository
+    private val workoutRepository: IWorkoutRepository,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    // Достаем ID из маршрута
+    private val workoutId: String? = savedStateHandle["workoutId"]
 
     private val _uiState = MutableStateFlow(WorkoutCreateUiState())
     val uiState = _uiState.asStateFlow()
 
-    // 1. Загружаем типы из справочника при старте
     init {
+        // 1. Загружаем типы из справочника (твой код)
         viewModelScope.launch {
             exerciseRepository.getExerciseTypes().collect { types ->
                 _uiState.update { it.copy(exerciseTypes = types) }
+            }
+        }
+
+        // 2. ЗАГРУЗКА ДАННЫХ: если редактируем
+        workoutId?.let { id ->
+            viewModelScope.launch {
+                workoutRepository.getWorkoutById(id)?.let { workout ->
+                    _uiState.update {
+                        it.copy(
+                            title = workout.title,
+                            intervals = workout.intervals
+                        )
+                    }
+                }
             }
         }
     }
@@ -38,48 +57,30 @@ class WorkoutCreateViewModel @Inject constructor(
     fun addInterval() {
         val lastInterval = _uiState.value.intervals.lastOrNull()
         if (lastInterval != null && lastInterval.name.isBlank()) return
-
-        // По умолчанию для нового интервала ставим тип WORK (Работа)
         val newInterval = Interval(name = "", seconds = 30, type = IntervalType.WORK)
         _uiState.update { it.copy(intervals = it.intervals + newInterval) }
     }
 
-    fun updateInterval(
-        index: Int,
-        name: String,
-        seconds: Int,
-        reps: Int?,
-        trackSteps: Boolean
-    ) {
+    fun updateInterval(index: Int, name: String, seconds: Int, reps: Int?, trackSteps: Boolean) {
         _uiState.update { state ->
             val newList = state.intervals.toMutableList()
             if (index in newList.indices) {
                 val currentInterval = newList[index]
-
-                // УМНАЯ ЛОГИКА: если юзер включил "Шаги", но тип упражнения не выбран,
-                // автоматически ставим "Ходьбу" (первый элемент из справочника)
                 val defaultType = if (trackSteps && currentInterval.exerciseType == null) {
                     state.exerciseTypes.firstOrNull { it.id == "walk" } ?: state.exerciseTypes.firstOrNull()
                 } else if (!trackSteps) {
-                    // Если шаги выключили — очищаем тип, чтобы не жечь лишнего
                     null
                 } else {
                     currentInterval.exerciseType
                 }
-
                 newList[index] = currentInterval.copy(
-                    name = name,
-                    seconds = seconds,
-                    reps = reps,
-                    trackSteps = trackSteps,
-                    exerciseType = defaultType
+                    name = name, seconds = seconds, reps = reps, trackSteps = trackSteps, exerciseType = defaultType
                 )
             }
             state.copy(intervals = newList)
         }
     }
 
-    // 2. Смена конкретно типа упражнения (выбор из селектора)
     fun updateIntervalExerciseType(intervalId: String, type: ExerciseType) {
         _uiState.update { state ->
             state.copy(
@@ -102,16 +103,16 @@ class WorkoutCreateViewModel @Inject constructor(
 
     fun saveWorkout(onSuccess: () -> Unit) {
         val state = _uiState.value
-        val canSave = state.title.isNotBlank() &&
-            state.intervals.all { it.name.isNotBlank() }
+        val canSave = state.title.isNotBlank() && state.intervals.all { it.name.isNotBlank() }
 
         if (!canSave || state.isSaving) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
             val workout = Workout(
-                // Генерим ID для новой тренировки
-                id = UUID.randomUUID().toString(),
+                // если workoutId есть — сохраняем под ним (перезапись),
+                // если нет — создаем новый UUID
+                id = workoutId ?: UUID.randomUUID().toString(),
                 title = state.title,
                 intervals = state.intervals
             )
