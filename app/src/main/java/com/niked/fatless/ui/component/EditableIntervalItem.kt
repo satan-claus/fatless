@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.niked.fatless.R
+import com.niked.fatless.domain.model.ExerciseType
 import com.niked.fatless.domain.model.Interval
 import com.niked.fatless.ui.theme.AppBorder
 import com.niked.fatless.ui.theme.AppError
@@ -45,12 +46,21 @@ import com.niked.fatless.ui.theme.AppTypography
 fun EditableIntervalItem(
     index: Int,
     interval: Interval,
+    allExerciseTypes: List<ExerciseType>,
     onNameChange: (String) -> Unit,
     onSecondsChange: (Int) -> Unit,
     onRepsChange: (Int?) -> Unit,
     onTrackStepsChange: (Boolean) -> Unit,
+    onExerciseTypeChange: (ExerciseType) -> Unit,
     onRemove: () -> Unit
 ) {
+    // Вычисляем заголовок для чекбокса
+    val stepsLabel = if (interval.trackSteps) {
+        stringResource(R.string.workout_interval_status_steps_active)
+    } else {
+        stringResource(R.string.workout_interval_status_steps_off)
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -157,9 +167,23 @@ fun EditableIntervalItem(
                     Text(stringResource(R.string.workout_interval_label_steps), style = AppTypography.titleSmall, color = AppTextSecondary, modifier = Modifier.width(44.dp))
 
                     Text(
-                        text = if (interval.trackSteps) stringResource(R.string.workout_interval_status_steps_active) else stringResource(R.string.workout_interval_status_steps_off),
+                        text = stepsLabel,
                         style = AppTypography.bodySmall,
                         color = if (interval.trackSteps) AppSecondary else AppTextTertiary
+                    )
+                }
+
+                if (interval.trackSteps && allExerciseTypes.isNotEmpty()) {
+                    ExerciseModeSelector(
+                        modifier = Modifier.padding(start = 8.dp),
+                        types = allExerciseTypes,
+                        selectedId = interval.exerciseType?.id,
+                        onSelect = { id ->
+                            val selectedType = allExerciseTypes.find { it.id == id }
+                            if (selectedType != null) {
+                                onExerciseTypeChange(selectedType)
+                            }
+                        }
                     )
                 }
             }

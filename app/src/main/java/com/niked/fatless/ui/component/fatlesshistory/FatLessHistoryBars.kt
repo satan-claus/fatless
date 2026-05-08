@@ -200,7 +200,7 @@ fun NutritionStackedBar(
         modifier = Modifier.fillMaxHeight()
     ) {
         Text(
-            text = totalCalories.roundToInt().toString(),
+            text = if (totalCalories > 0) totalCalories.roundToInt().toString() else "",
             style = AppTypography.bodySmall,
             color = AppTextSecondary,
             fontSize = 10.sp

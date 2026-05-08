@@ -5,8 +5,8 @@ import android.media.AudioAttributes
 import android.media.SoundPool
 import android.util.Log
 import com.niked.fatless.R
-import com.niked.fatless.core.data.AppSettings
 import com.niked.fatless.domain.repository.IAudioPlayer
+import com.niked.fatless.domain.repository.ISettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -14,7 +14,7 @@ import javax.inject.Singleton
 @Singleton
 class AndroidAudioPlayer @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val settings: AppSettings
+    private val settingsRepository: ISettingsRepository
 ) : IAudioPlayer {
 
     private var soundPool: SoundPool? = null
@@ -52,12 +52,12 @@ class AndroidAudioPlayer @Inject constructor(
     }
 
     private fun play(id: Int) {
-        if (!settings.isSoundEnabled || id == 0) return
+        if (!settingsRepository.isSoundEnabled || id == 0) return
 
         // На всякий случай: если почему-то пуст - инициализируем
         if (soundPool == null) setupSoundPool()
 
-        val vol = settings.soundVolume
+        val vol = settingsRepository.soundVolume
         if (vol < 0.01f) return
 
         soundPool?.play(id, vol, vol, 1, 0, 1f)

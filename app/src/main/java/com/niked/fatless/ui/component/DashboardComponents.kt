@@ -54,21 +54,34 @@ fun DailySummaryCard(
     stepGoal: Int,
     onClick: () -> Unit
 ) {
+    // Флаг, чтобы понять: мы только открыли экран или уже работаем
+    var isFirstLoad by remember { mutableStateOf(true) }
     var startAnim by remember { mutableStateOf(false) }
 
-    LaunchedEffect(steps, burnedCalories) {
-        startAnim = false
-        delay(50)
+    // Этот эффект сработает ТОЛЬКО ОДИН РАЗ при создании карточки
+    LaunchedEffect(Unit) {
+        // Маленькая пауза для плавности
+        delay(100)
         startAnim = true
+        // Ждем, пока первичная анимация от 0 до текущих шагов закончится
+        delay(1000)
+        // Выключаем режим анимации навсегда для этого сеанса
+        isFirstLoad = false
     }
 
-    val animatedSteps by animateNumberAsState(
-        targetValue = if (startAnim) steps else 0
-    )
+    // Если это первая загрузка — анимируем от 0.
+    // Если уже нет — берем реальное значение без посредников.
+    val displaySteps = if (isFirstLoad) {
+        animateNumberAsState(targetValue = if (startAnim) steps else 0).value
+    } else {
+        steps
+    }
 
-    val animatedBurned by animateFloatNumberAsState(
-        targetValue = if (startAnim) burnedCalories else 0f
-    )
+    val displayBurned = if (isFirstLoad) {
+        animateFloatNumberAsState(targetValue = if (startAnim) burnedCalories else 0f).value
+    } else {
+        burnedCalories
+    }
 
     Card(
         modifier = Modifier
@@ -102,7 +115,7 @@ fun DailySummaryCard(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = stringResource(R.string.daily_summary_steps_format, animatedSteps, stepGoal),
+                    text = stringResource(R.string.daily_summary_steps_format, displaySteps, stepGoal),
                     style = AppTypography.labelMedium,
                     color = ColorSteps
                 )
@@ -134,7 +147,7 @@ fun DailySummaryCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = stringResource(R.string.daily_summary_burned_format, animatedBurned.toInt()),
+                        text = stringResource(R.string.daily_summary_burned_format, displayBurned.toInt()),
                         style = AppTypography.bodySmall,
                         color = AppTextSecondary
                     )

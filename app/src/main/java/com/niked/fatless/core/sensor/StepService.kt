@@ -18,9 +18,9 @@ import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.toColorInt
 import com.niked.fatless.R
-import com.niked.fatless.core.data.AppSettings
 import com.niked.fatless.core.utils.Constants
 import com.niked.fatless.domain.repository.IActivityRepository
+import com.niked.fatless.domain.repository.ISettingsRepository
 import com.niked.fatless.ui.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -37,7 +37,7 @@ import javax.inject.Inject
 class StepService : Service(), SensorEventListener {
 
     @Inject
-    lateinit var settings: AppSettings
+    lateinit var settingsRepository: ISettingsRepository
 
     @Inject
     lateinit var activityRepository: IActivityRepository
@@ -57,7 +57,7 @@ class StepService : Service(), SensorEventListener {
 
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
 
-        val notification = createNotification(settings.todaySteps, settings.currentManualSteps)
+        val notification = createNotification(settingsRepository.todaySteps, settingsRepository.currentManualSteps)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(
@@ -75,20 +75,20 @@ class StepService : Service(), SensorEventListener {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             Constants.ACTION_START_MANUAL -> {
-                settings.isManualTracking = true
-                settings.manualBaseSteps = -1
-                settings.currentManualSteps = 0
+                settingsRepository.isManualTracking = true
+                settingsRepository.manualBaseSteps = -1
+                settingsRepository.currentManualSteps = 0
             }
             Constants.ACTION_STOP_MANUAL -> {
-                settings.isManualTracking = false
+                settingsRepository.isManualTracking = false
             }
             Constants.ACTION_CLEAR_MANUAL -> {
-                settings.currentManualSteps = 0
-                settings.manualBaseSteps = -1
+                settingsRepository.currentManualSteps = 0
+                settingsRepository.manualBaseSteps = -1
             }
         }
         reRegisterSensor()
-        updateNotification(settings.todaySteps, settings.currentManualSteps)
+        updateNotification(settingsRepository.todaySteps, settingsRepository.currentManualSteps)
         return START_STICKY
     }
 
@@ -103,51 +103,51 @@ class StepService : Service(), SensorEventListener {
             val totalStepsSinceBoot = event.values[0].toInt()
             val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
-            if (settings.lastStepResetDate != today) {
-                val yesterdayDate = settings.lastStepResetDate
-                val yesterdaySteps = settings.todaySteps
+            if (settingsRepository.lastStepResetDate != today) {
+                val yesterdayDate = settingsRepository.lastStepResetDate
+                val yesterdaySteps = settingsRepository.todaySteps
 
                 // СОХРАНЯЕМ ВЧЕРАШНИЙ ДЕНЬ В БАЗУ
                 if (yesterdayDate.isNotEmpty() && yesterdaySteps > 0) {
                     serviceScope.launch {
-                        activityRepository.saveSteps(yesterdayDate, yesterdaySteps, settings.userWeight.toFloat())
+                        activityRepository.saveSteps(yesterdayDate, yesterdaySteps, settingsRepository.userWeight.toFloat())
                     }
                 }
 
-                settings.stepBaseCount = totalStepsSinceBoot
-                settings.lastStepResetDate = today
-                settings.todaySteps = 0
-                if (!settings.isManualTracking) settings.manualBaseSteps = -1
+                settingsRepository.stepBaseCount = totalStepsSinceBoot
+                settingsRepository.lastStepResetDate = today
+                settingsRepository.todaySteps = 0
+                if (!settingsRepository.isManualTracking) settingsRepository.manualBaseSteps = -1
             }
 
-            if (settings.stepBaseCount <= 0) {
-                settings.stepBaseCount = totalStepsSinceBoot
+            if (settingsRepository.stepBaseCount <= 0) {
+                settingsRepository.stepBaseCount = totalStepsSinceBoot
             }
 
-            if (totalStepsSinceBoot < settings.stepBaseCount) {
-                settings.stepBaseCount = totalStepsSinceBoot - settings.todaySteps
+            if (totalStepsSinceBoot < settingsRepository.stepBaseCount) {
+                settingsRepository.stepBaseCount = totalStepsSinceBoot - settingsRepository.todaySteps
             }
 
-            val dailySteps = totalStepsSinceBoot - settings.stepBaseCount
-            if (dailySteps >= 0 && dailySteps != settings.todaySteps) {
-                settings.todaySteps = dailySteps
+            val dailySteps = totalStepsSinceBoot - settingsRepository.stepBaseCount
+            if (dailySteps >= 0 && dailySteps != settingsRepository.todaySteps) {
+                settingsRepository.todaySteps = dailySteps
             }
 
-            var currentManual = settings.currentManualSteps
-            if (settings.isManualTracking) {
-                if (settings.manualBaseSteps == -1 || totalStepsSinceBoot < settings.manualBaseSteps) {
-                    settings.manualBaseSteps = totalStepsSinceBoot - settings.currentManualSteps
+            var currentManual = settingsRepository.currentManualSteps
+            if (settingsRepository.isManualTracking) {
+                if (settingsRepository.manualBaseSteps == -1 || totalStepsSinceBoot < settingsRepository.manualBaseSteps) {
+                    settingsRepository.manualBaseSteps = totalStepsSinceBoot - settingsRepository.currentManualSteps
                 }
-                currentManual = totalStepsSinceBoot - settings.manualBaseSteps
-                if (currentManual >= 0) settings.currentManualSteps = currentManual
+                currentManual = totalStepsSinceBoot - settingsRepository.manualBaseSteps
+                if (currentManual >= 0) settingsRepository.currentManualSteps = currentManual
             }
 
-            updateNotification(settings.todaySteps, currentManual)
+            updateNotification(settingsRepository.todaySteps, currentManual)
         }
     }
 
     private fun createNotification(daily: Int, manual: Int): Notification {
-        val goal = settings.stepGoal
+        val goal = settingsRepository.stepGoal
         val progress = if (goal > 0) (daily * 100 / goal).coerceAtMost(100) else 0
 
         val intent = Intent(this, MainActivity::class.java).apply {
@@ -158,7 +158,7 @@ class StepService : Service(), SensorEventListener {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val contentText = if (settings.isManualTracking) {
+        val contentText = if (settingsRepository.isManualTracking) {
             "День: $daily | ЗАМЕР: $manual"
         } else {
             "Прогресс дня: $progress%"
@@ -169,7 +169,7 @@ class StepService : Service(), SensorEventListener {
         return NotificationCompat.Builder(this, Constants.STEP_CHANNEL_ID)
             .setContentTitle("FatLess: $daily / $goal")
             .setContentText(contentText)
-            .setSmallIcon(R.drawable.ic_directions_walk_24)
+            .setSmallIcon(R.drawable.ic_directions_walk_24_green)
             .setLargeIcon(largeIcon)
             .setColor("#4CAF50".toColorInt())
             .setContentIntent(pendingIntent)

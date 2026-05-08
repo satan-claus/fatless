@@ -104,6 +104,12 @@
     <string name="workout_btn_restart">ЗАПУСТИТЬ ЗАНОВО</string>
     <string name="workout_btn_to_menu">В МЕНЮ</string>
 
+    <!-- EXERCISE NAMES -->
+    <string name="exercise_walk">Ходьба</string>
+    <string name="exercise_run">Бег</string>
+    <string name="exercise_sprint">Спринт</string>
+    <string name="exercise_cycling">Велосипед</string>
+
     <!-- SETTINGS -->
     <string name="settings_title">Настройки</string>
     <string name="settings_subtitle">Конфигурация</string>

@@ -1,31 +1,34 @@
 package com.niked.fatless.data.mapper
 
 import com.niked.fatless.data.local.entities.IntervalEntity
+import com.niked.fatless.domain.model.ExerciseType
 import com.niked.fatless.domain.model.Interval
 import com.niked.fatless.domain.model.IntervalType
-import java.util.UUID
 
 // Из базы в бизнес-логику (Entity -> Domain)
-fun IntervalEntity.toDomain(): Interval {
+fun IntervalEntity.toDomain(exerciseType: ExerciseType?): Interval {
     return Interval(
-        name = name,
-        seconds = seconds,
-        type = IntervalType.valueOf(type),
-        reps = reps,
-        trackSteps = trackSteps
+        id = this.id,
+        name = this.name,
+        seconds = this.seconds,
+        type = IntervalType.valueOf(this.type),
+        reps = this.reps,
+        trackSteps = this.trackSteps,
+        exerciseType = exerciseType
     )
 }
 
 // Из бизнес-логики в базу (Domain -> Entity)
-fun Interval.toEntity(workoutId: String, index: Int): IntervalEntity {
+fun Interval.toEntity(workoutId: String, order: Int): IntervalEntity {
     return IntervalEntity(
-        id = UUID.randomUUID().toString(),
+        id = this.id,
         workoutId = workoutId,
-        name = name,
-        seconds = seconds,
-        type = type.name,
-        reps = reps,
-        trackSteps = trackSteps,
-        sortOrder = index
+        name = this.name,
+        seconds = this.seconds,
+        type = this.type.name,
+        reps = this.reps,
+        trackSteps = this.trackSteps,
+        sortOrder = order,
+        exerciseTypeId = this.exerciseType?.id
     )
 }

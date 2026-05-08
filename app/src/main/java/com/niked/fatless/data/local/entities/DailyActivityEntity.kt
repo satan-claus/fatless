@@ -8,10 +8,13 @@ import androidx.room.PrimaryKey
  */
 @Entity(tableName = "daily_activity")
 data class DailyActivityEntity(
-    @PrimaryKey val date: String, // "yyyy-MM-dd"
+    // "yyyy-MM-dd"
+    @PrimaryKey val date: String,
     val steps: Int = 0,
-    val calories: Float = 0f, // Съеденное
-    val burnedCalories: Float = 0f, // Сожженное (фиксируем по текущему весу)
+    // Съеденное
+    val calories: Float = 0f,
+    // Сожженное (фиксируем по текущему весу)
+    val burnedCalories: Float = 0f,
     val proteins: Float = 0f,
     val fats: Float = 0f,
     val carbs: Float = 0f

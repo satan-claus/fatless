@@ -1,5 +1,6 @@
 package com.niked.fatless.data.repository
 
+import android.content.Context
 import com.niked.fatless.data.local.dao.WorkoutDao
 import com.niked.fatless.data.local.entities.WorkoutEntity
 import com.niked.fatless.data.mapper.toDomain
@@ -8,38 +9,50 @@ import com.niked.fatless.domain.model.Interval
 import com.niked.fatless.domain.model.IntervalType
 import com.niked.fatless.domain.model.Workout
 import com.niked.fatless.domain.repository.IWorkoutRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class WorkoutRepositoryImpl @Inject constructor(
-    private val dao: WorkoutDao
+    private val dao: WorkoutDao,
+    @ApplicationContext private val context: Context
 ) : IWorkoutRepository {
 
     override fun observeAllWorkouts(): Flow<List<Workout>> {
-        return dao.observeAllWorkouts().map { entities ->
-            entities.map { entity ->
-                // Достаем интервалы для каждой тренировки, чтобы посчитать их
-                val intervals = dao.getIntervalsForWorkout(entity.id).map {
-                    Interval(it.name, it.seconds, IntervalType.valueOf(it.type))
-                }
-                Workout(id = entity.id, title = entity.title, intervals = intervals)
+        return dao.observeWorkoutsWithDetails().map { list ->
+            list.map { detail ->
+                Workout(
+                    id = detail.workout.id,
+                    title = detail.workout.title,
+                    intervals = detail.intervals.map { intervalDetail ->
+                        intervalDetail.interval.toDomain(
+                            exerciseType = intervalDetail.exerciseType?.toDomain(context)
+                        )
+                    }
+                )
             }
         }
     }
 
     override suspend fun getWorkoutById(id: String): Workout? {
-        val entity = dao.getWorkoutById(id) ?: return null
+        // Используем метод из DAO, который возвращает WorkoutWithDetails
+        val fullDetail = dao.getWorkoutWithDetailsById(id) ?: return null
 
-        val intervals = dao.getIntervalsForWorkout(id).map { it.toDomain() }
-
-        return Workout(id = entity.id, title = entity.title, intervals = intervals)
+        return Workout(
+            id = fullDetail.workout.id,
+            title = fullDetail.workout.title,
+            intervals = fullDetail.intervals.map { intervalDetail ->
+                intervalDetail.interval.toDomain(
+                    exerciseType = intervalDetail.exerciseType?.toDomain(context)
+                )
+            }
+        )
     }
 
     override suspend fun saveWorkout(workout: Workout) {
         val workoutEntity = WorkoutEntity(id = workout.id, title = workout.title)
 
-        // Генерируем сущности интервалов с привязкой к ID тренировки
         val intervalEntities = workout.intervals.mapIndexed { index, interval ->
             interval.toEntity(workout.id, index)
         }
@@ -58,12 +71,13 @@ class WorkoutRepositoryImpl @Inject constructor(
             val firstWorkout = Workout(
                 title = "Базовая разминка",
                 intervals = listOf(
-                    Interval("Подготовка", 5, IntervalType.PREPARATION),
-                    Interval("Работа", 5, IntervalType.WORK),
-                    Interval("Отдых", 5, IntervalType.REST)
+                    Interval(name = "Подготовка", seconds = 10, type = IntervalType.PREPARATION),
+                    Interval(name = "Работа", seconds = 30, type = IntervalType.WORK),
+                    Interval(name = "Отдых", seconds = 15, type = IntervalType.REST)
                 )
             )
             saveWorkout(firstWorkout)
         }
     }
 }
+

@@ -2,9 +2,9 @@ package com.niked.fatless.ui.component.fatlesshistory
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.niked.fatless.core.data.AppSettings
 import com.niked.fatless.data.local.entities.DailyActivityEntity
 import com.niked.fatless.domain.repository.IActivityRepository
+import com.niked.fatless.domain.repository.ISettingsRepository
 import com.niked.fatless.ui.theme.ColorSteps
 import com.niked.fatless.ui.theme.ColorStepsToday
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,8 +25,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FatLessHistoryViewModel @Inject constructor(
-    private val repository: IActivityRepository,
-    val settings: AppSettings
+    private val activityRepository: IActivityRepository,
+    private val settingsRepository: ISettingsRepository
 ) : ViewModel() {
 
     private val _historyType = MutableStateFlow(FatLessHistoryType.STEPS)
@@ -36,7 +36,7 @@ class FatLessHistoryViewModel @Inject constructor(
     private val _weekOffset = MutableStateFlow(0)
     val weekOffset: StateFlow<Int> = _weekOffset.asStateFlow()
 
-    val allHistory = repository.getActivityHistory()
+    val allHistory = activityRepository.getActivityHistory()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
@@ -55,14 +55,23 @@ class FatLessHistoryViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Lazily, "")
 
     // КОЛИЧЕСТВО СТРАНИЦ
-    val pageCount = repository.getActivityHistory().map { history ->
-        if (history.isEmpty()) return@map 3
-        val firstDate = LocalDate.parse(history.minOf { it.date })
-        val today = LocalDate.now()
-        val mondayOfFirstWeek = firstDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-        val weeksBetween = ChronoUnit.WEEKS.between(mondayOfFirstWeek, today).toInt()
-        (weeksBetween + 1 + 2).coerceAtLeast(3)
-    }.stateIn(viewModelScope, SharingStarted.Lazily, 3)
+    val pageCount = allHistory.map { historyList ->
+        if (historyList.isEmpty()) 1
+        else {
+            // 1. Берем самую раннюю дату из базы
+            val earliestDate = historyList.minOf { LocalDate.parse(it.date) }
+
+            // 2. Находим понедельники для обеих дат
+            val earliestMonday = earliestDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+            val currentMonday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+
+            // 3. Считаем разницу между понедельниками в неделях
+            val weeksBetween = ChronoUnit.WEEKS.between(earliestMonday, currentMonday)
+
+            // 4. Страниц всегда на одну больше, чем разница
+            (weeksBetween + 1).toInt().coerceAtLeast(1)
+        }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, 1)
 
     fun setHistoryType(type: FatLessHistoryType) {
         _historyType.value = type
@@ -91,18 +100,6 @@ class FatLessHistoryViewModel @Inject constructor(
 
         val weekDays = (0..6).map { monday.plusDays(it.toLong()) }
 
-        // --- МОКИ ---
-        val mockSteps = when(offset) {
-            -1 -> listOf(11000f, 9000f, 15000f, 12000f, 8000f, 5000f, 6000f)
-            -2 -> listOf(7000f, 7500f, 6000f, 8000f, 10000f, 12000f, 11000f)
-            else -> listOf(4841f, 12500f, 8900f, 0f, 0f, 0f, 0f)
-        }
-        val mockCal = when(offset) {
-            -1 -> listOf(0f, 0f, 0f, 0f, 0f, 0f, 0f)
-            -2 -> listOf(0f, 0f, 0f, 0f, 0f, 0f, 0f)
-            else -> listOf(2100f, 1800f, 2400f, 0f, 0f, 0f, 0f)
-        }
-
         val stepModels = mutableListOf<HistoryBarModel>()
         val nutritionModels = mutableListOf<NutritionBarModel>()
 
@@ -116,21 +113,22 @@ class FatLessHistoryViewModel @Inject constructor(
 
             val stepsValue = when {
                 isFuture -> 0f
-                isToday -> settings.todaySteps.toFloat()
-                else -> dayData?.steps?.toFloat() ?: mockSteps[index]
+                isToday -> settingsRepository.todaySteps.toFloat()
+                // Если данных нет, возвращаем 0f
+                else -> dayData?.steps?.toFloat() ?: 0f
             }
 
             stepModels.add(HistoryBarModel(
                 label = dayLabel,
                 value = stepsValue,
-                goal = settings.stepGoal.toFloat(),
+                goal = settingsRepository.stepGoal.toFloat(),
                 isToday = isToday,
                 isFuture = isFuture,
                 barColor = if (isToday) ColorStepsToday else ColorSteps,
-                showStar = stepsValue >= settings.stepGoal && stepsValue > 0
+                showStar = stepsValue >= settingsRepository.stepGoal && stepsValue > 0
             ))
 
-            val calValue = if (isFuture) 0f else (dayData?.calories ?: mockCal[index])
+            val calValue = if (isFuture) 0f else (dayData?.calories ?: 0f)
 
             nutritionModels.add(NutritionBarModel(
                 dayLabel = dayLabel,

@@ -14,10 +14,20 @@ import androidx.room.PrimaryKey
             childColumns = ["workoutId"],
             // Если удаляем воркаут — все интервалы летят следом
             onDelete = ForeignKey.CASCADE
+        ),
+        // СВЯЗЬ СО СПРАВОЧНИКОМ УПРАЖНЕНИЙ
+        ForeignKey(
+            entity = ExerciseTypeEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["exerciseTypeId"],
+            onDelete = ForeignKey.SET_NULL
         )
     ],
     // Индекс для быстрого поиска интервалов по ID воркаута
-    indices = [Index("workoutId")]
+    indices = [
+        Index("workoutId"),
+        Index("exerciseTypeId")
+    ]
 )
 data class IntervalEntity(
     @PrimaryKey
@@ -32,5 +42,6 @@ data class IntervalEntity(
     // Считать шаги в этом интервале
     val trackSteps: Boolean = false,
     // Порядок сортировки в списке
-    val sortOrder: Int
+    val sortOrder: Int,
+    val exerciseTypeId: String? = null
 )

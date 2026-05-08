@@ -25,6 +25,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -48,12 +51,24 @@ fun FatLessHistoryComponent(
     val pageCount by viewModel.pageCount.collectAsState()
     val weekRange by viewModel.weekRange.collectAsState()
 
+    // 1. Инициализируем стейт на последней странице
     val pagerState = rememberPagerState(
         initialPage = (pageCount - 1).coerceAtLeast(0),
         pageCount = { pageCount }
     )
 
-    // Синхронизируем офсет для заголовка (дат)
+    // Флаг, чтобы автоскролл сработал строго ОДИН РАЗ при запуске
+    var hasInitialScrollDone by remember { mutableStateOf(false) }
+
+    // 2. Автоскролл к последней странице при первой загрузке
+    LaunchedEffect(pageCount) {
+        if (pageCount > 1 && !hasInitialScrollDone) {
+            pagerState.scrollToPage(pageCount - 1)
+            hasInitialScrollDone = true
+        }
+    }
+
+    // 3. Синхронизируем офсет для заголовка дат при свайпах
     LaunchedEffect(pagerState.currentPage, pageCount) {
         viewModel.updateOffsetFromPage(pagerState.currentPage, pageCount)
     }
@@ -102,7 +117,7 @@ fun FatLessHistoryComponent(
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_directions_walk_24),
+                            painter = painterResource(id = R.drawable.ic_directions_walk_24_green),
                             contentDescription = stringResource(R.string.content_description_switch_to_steps),
                             tint = if (historyType == FatLessHistoryType.STEPS) AppPrimary else AppTextTertiary,
                             modifier = Modifier.size(20.dp)
