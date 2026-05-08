@@ -17,7 +17,7 @@ fun ExerciseTypeEntity.toDomain(context: Context): ExerciseType {
 
     // Ищем ID иконки по имени ключа
     val iconResId = resources.getIdentifier(iconKey, "drawable", packageName)
-        .let { if (it != 0) it else R.drawable.ic_directions_walk_24 }
+        .let { if (it != 0) it else R.drawable.ic_directions_walk_24_green }
 
     return ExerciseType(
         id = id,

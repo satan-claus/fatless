@@ -169,7 +169,7 @@ class StepService : Service(), SensorEventListener {
         return NotificationCompat.Builder(this, Constants.STEP_CHANNEL_ID)
             .setContentTitle("FatLess: $daily / $goal")
             .setContentText(contentText)
-            .setSmallIcon(R.drawable.ic_directions_walk_24)
+            .setSmallIcon(R.drawable.ic_directions_walk_24_green)
             .setLargeIcon(largeIcon)
             .setColor("#4CAF50".toColorInt())
             .setContentIntent(pendingIntent)

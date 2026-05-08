@@ -129,6 +129,7 @@ fun WorkoutCreateScreen(
                 EditableIntervalItem(
                     index = index,
                     interval = interval,
+                    allExerciseTypes = state.exerciseTypes,
                     onNameChange = { name ->
                         viewModel.updateInterval(index, name, interval.seconds, interval.reps, interval.trackSteps)
                     },
@@ -140,6 +141,9 @@ fun WorkoutCreateScreen(
                     },
                     onTrackStepsChange = { isEnabled ->
                         viewModel.updateInterval(index, interval.name, interval.seconds, interval.reps, isEnabled)
+                    },
+                    onExerciseTypeChange = {
+                        viewModel.updateIntervalExerciseType(interval.id, it)
                     },
                     onRemove = { viewModel.removeInterval(index) }
                 )

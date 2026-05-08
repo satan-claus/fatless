@@ -117,7 +117,7 @@ fun FatLessHistoryComponent(
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_directions_walk_24),
+                            painter = painterResource(id = R.drawable.ic_directions_walk_24_green),
                             contentDescription = stringResource(R.string.content_description_switch_to_steps),
                             tint = if (historyType == FatLessHistoryType.STEPS) AppPrimary else AppTextTertiary,
                             modifier = Modifier.size(20.dp)

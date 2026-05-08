@@ -56,15 +56,27 @@
   "exerciseTypes": [
     {
       "id": "walk",
-      "nameKey": "workout_interval_status_steps_active",
+      "nameKey": "exercise_walk",
       "metValue": 3.5,
-      "iconKey": "ic_directions_walk_24"
+      "iconKey": "ic_directions_walk_24dp"
     },
     {
       "id": "run",
-      "nameKey": "workout_timer_state_running",
+      "nameKey": "exercise_run",
       "metValue": 8.0,
-      "iconKey": "ic_directions_walk_24"
+      "iconKey": "ic_directions_run_24dp"
+    },
+    {
+      "id": "sprint",
+      "nameKey": "exercise_sprint",
+      "metValue": 12.5,
+      "iconKey": "ic_direction_sprint_24dp"
+    },
+    {
+      "id": "cycling",
+      "nameKey": "exercise_cycling",
+      "metValue": 12.5,
+      "iconKey": "ic_direction_bike_24dp"
     }
   ]
 }
