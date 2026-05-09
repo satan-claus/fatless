@@ -14,10 +14,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +34,10 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -41,6 +48,7 @@ import com.niked.fatless.R
 import com.niked.fatless.domain.model.DailyActivity
 import com.niked.fatless.ui.theme.AppRed
 import com.niked.fatless.ui.theme.AppSecondary
+import com.niked.fatless.ui.theme.AppSurface
 import com.niked.fatless.ui.theme.AppTextPrimary
 import com.niked.fatless.ui.theme.AppTextSecondary
 import com.niked.fatless.ui.theme.AppTextTertiary
@@ -52,6 +60,7 @@ import com.niked.fatless.ui.theme.ColorOverSteps
 import com.niked.fatless.ui.theme.ColorProteins
 import com.niked.fatless.ui.theme.ColorSteps
 import com.niked.fatless.ui.theme.ColorStepsToday
+import com.niked.fatless.ui.viewmodel.MonthSummary
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -489,6 +498,75 @@ fun ActivityChart(
         }
     }
 }
+
+@Composable
+fun MonthSummaryCard(summary: MonthSummary?) {
+    if (summary == null) return
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = AppSurface)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Дистанция
+            SummaryItem(
+                label = stringResource(R.string.history_summary_dist, summary.totalKm),
+                iconRes = R.drawable.ic_directions_walk_24dp,
+                color = ColorSteps
+            )
+            // Средний вес
+            SummaryItem(
+                label = stringResource(R.string.history_summary_weight, summary.avgWeight),
+                iconRes = R.drawable.ic_weight_24dp,
+                color = AppTextPrimary
+            )
+            // Количество выполненных целей
+            SummaryItem(
+                label = stringResource(R.string.history_summary_goals, summary.goalReachedDays),
+                icon = Icons.Default.Star,
+                color = ColorOverSteps
+            )
+        }
+    }
+}
+
+@Composable
+private fun SummaryItem(label: String, icon: ImageVector, color: Color) {
+    SummaryItemBase(label = label, painter = rememberVectorPainter(icon), color = color)
+}
+
+@Composable
+private fun SummaryItem(label: String, iconRes: Int, color: Color) {
+    SummaryItemBase(label = label, painter = painterResource(id = iconRes), color = color)
+}
+
+@Composable
+private fun SummaryItemBase(label: String, painter: Painter, color: Color) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            painter = painter,
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = label,
+            style = AppTypography.labelSmall,
+            color = AppTextPrimary
+        )
+    }
+}
+
 
 
 

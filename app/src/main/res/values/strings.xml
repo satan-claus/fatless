@@ -39,6 +39,7 @@
     <string name="diary_item_macros_format">Б:%1$s Ж:%2$s У:%3$s</string>
     <string name="food_result_macros_format">Б: %1$s | Ж: %2$s | У: %3$s (на 100%4$s)</string>
     <string name="food_result_calories_format">%1$s кКал</string>
+    <string name="food_dialog_question">Сколько %1$s съели?</string>
 
     <!-- FOOD FORM SCREEN -->
     <string name="food_form_title_new">Новый продукт</string>
@@ -82,6 +83,10 @@
     <string name="history_interval_5">15</string>
     <string name="history_interval_6">18</string>
     <string name="history_interval_7">21</string>
+    <string name="history_month_summary">Итоги месяца</string>
+    <string name="history_summary_weight">Ср. вес: %1$.1f кг</string>
+    <string name="history_summary_dist">Всего: %1$.1f км</string>
+    <string name="history_summary_goals">Цель: %1$d дн.</string>
 
     <!-- WORKOUT SCREENS -->
     <string name="workout_create_title">Новая тренировка</string>
@@ -215,4 +220,9 @@
     <string name="day_fri_short">Пт</string>
     <string name="day_sat_short">Сб</string>
     <string name="day_sun_short">Вс</string>
+
+    // Единицы измерения
+    <string name="unit_gr">гр</string>
+    <string name="unit_ml">мл</string>
+    <string name="unit_pc">шт</string>
 </resources>

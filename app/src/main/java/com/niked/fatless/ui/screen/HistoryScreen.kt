@@ -25,6 +25,7 @@ import com.niked.fatless.ui.component.ActivityChart
 import com.niked.fatless.ui.component.CalendarGrid
 import com.niked.fatless.ui.component.DayHistoryDetails
 import com.niked.fatless.ui.component.DaysOfWeekHeader
+import com.niked.fatless.ui.component.MonthSummaryCard
 import com.niked.fatless.ui.component.WeightChart
 import com.niked.fatless.ui.component.WorkoutTopBar
 import com.niked.fatless.ui.theme.AppBackground
@@ -45,6 +46,7 @@ fun HistoryScreen(
     val monthData by viewModel.monthData.collectAsState()
     val selectedActivity by viewModel.selectedDayActivity.collectAsState()
     val weightData by viewModel.weightData.collectAsState()
+    val summary by viewModel.monthSummary.collectAsState()
 
     // Состояние скролла для всего экрана
     val scrollState = rememberScrollState()
@@ -84,6 +86,10 @@ fun HistoryScreen(
                 monthData = monthData,
                 onDateClick = { viewModel.selectDate(it) }
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            MonthSummaryCard(summary = summary)
 
             Spacer(modifier = Modifier.height(16.dp))
 

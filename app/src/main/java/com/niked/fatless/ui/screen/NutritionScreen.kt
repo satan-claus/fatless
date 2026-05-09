@@ -40,10 +40,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.niked.fatless.R
 import com.niked.fatless.domain.model.Food
-import com.niked.fatless.ui.component.AddFoodDialog
 import com.niked.fatless.ui.component.CreateNewFoodHint
 import com.niked.fatless.ui.component.DiaryItem
 import com.niked.fatless.ui.component.EmptyDiaryHint
+import com.niked.fatless.ui.component.FoodInputDialog
 import com.niked.fatless.ui.component.FoodResultItem
 import com.niked.fatless.ui.component.NutrientInfo
 import com.niked.fatless.ui.component.NutritionalValueView
@@ -244,15 +244,14 @@ fun NutritionScreen(
         }
     }
 
-    // Диалог ввода веса (поверх всего)
     if (selectedFood != null) {
-        AddFoodDialog(
-            foodName = selectedFood!!.name,
+        FoodInputDialog(
+            food = selectedFood!!,
             onDismiss = { selectedFood = null },
-            onConfirm = { weight ->
-                viewModel.addMeal(selectedFood!!, weight)
+            onConfirm = { amount ->
+                viewModel.addMeal(selectedFood!!, amount)
                 selectedFood = null
-                // Очищаем поиск
+                // Очищаем поиск и закрываем его
                 viewModel.onQueryChange("")
                 isSearching = false
             }

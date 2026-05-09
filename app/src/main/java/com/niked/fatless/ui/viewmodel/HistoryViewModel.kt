@@ -6,6 +6,7 @@ import com.niked.fatless.domain.model.DailyActivity
 import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.domain.repository.ISettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 import javax.inject.Inject
@@ -31,22 +33,42 @@ class HistoryViewModel @Inject constructor(
     private val _currentMonth = MutableStateFlow(YearMonth.now())
     val currentMonth = _currentMonth.asStateFlow()
 
-    val monthData = _currentMonth.flatMapLatest { month ->
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val monthData: StateFlow<List<DailyActivity>> = _currentMonth.flatMapLatest { month ->
         activityRepository.getActivityForMonth(month.toString())
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val stepGoal = settingsRepository.stepGoal
 
+    // 🎯 ИТОГИ МЕСЯЦА
+    val monthSummary: StateFlow<MonthSummary?> = monthData.map { data ->
+        if (data.isEmpty()) return@map null
+
+        val totalSteps = data.sumOf { it.steps }
+        val stride = settingsRepository.userHeight * 0.415f
+        val totalKm = (totalSteps * stride) / 100_000f
+
+        val weights = data.filter { it.weight > 0 }.map { it.weight }
+        val avgWeight = if (weights.isNotEmpty()) weights.average().toFloat() else settingsRepository.userWeight
+
+        val goalReachedDays = data.count { it.steps >= settingsRepository.stepGoal }
+
+        MonthSummary(
+            totalKm = totalKm,
+            avgWeight = avgWeight,
+            goalReachedDays = goalReachedDays
+        )
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val selectedDayActivity: StateFlow<DailyActivity?> = combine(
         monthData,
-        selectedDate
+        _selectedDate
     ) { data, selected ->
         val dbActivity = data.find { it.date == selected.toString() }
         val today = LocalDate.now()
 
         if (selected == today) {
-            // Подтягиваем данные из префсов по тем же ключам через репозиторий
             DailyActivity(
                 date = selected.toString(),
                 steps = settingsRepository.todaySteps,
@@ -67,6 +89,23 @@ class HistoryViewModel @Inject constructor(
         list.filter { it.weight > 0 }.sortedBy { it.date }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    init {
+        // 🎯 СИНХРОНИЗАЦИЯ: при создании вьюмодели обновляем запись за сегодня в БД
+        syncCurrentDayToDatabase()
+    }
+
+    private fun syncCurrentDayToDatabase() {
+        viewModelScope.launch(Dispatchers.IO) {
+            activityRepository.saveSteps(
+                date = LocalDate.now().toString(),
+                steps = settingsRepository.todaySteps,
+                burnedCalories = settingsRepository.todayBurnedCalories,
+                currentWeight = settingsRepository.userWeight,
+                hourlySteps = settingsRepository.todayHourlySteps
+            )
+        }
+    }
+
     fun selectDate(date: LocalDate) {
         _selectedDate.value = date
     }
@@ -74,3 +113,9 @@ class HistoryViewModel @Inject constructor(
     fun nextMonth() { _currentMonth.value = _currentMonth.value.plusMonths(1) }
     fun prevMonth() { _currentMonth.value = _currentMonth.value.minusMonths(1) }
 }
+
+data class MonthSummary(
+    val totalKm: Float,
+    val avgWeight: Float,
+    val goalReachedDays: Int
+)
