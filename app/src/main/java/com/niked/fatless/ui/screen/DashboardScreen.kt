@@ -17,6 +17,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -24,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.niked.fatless.R
 import com.niked.fatless.ui.component.AddWorkoutButton
 import com.niked.fatless.ui.component.DailySummaryCard
+import com.niked.fatless.ui.component.WeightDialog
 import com.niked.fatless.ui.component.WorkoutItem
 import com.niked.fatless.ui.component.WorkoutTopBar
 import com.niked.fatless.ui.component.fatlesshistory.FatLessHistoryComponent
@@ -34,18 +38,21 @@ import com.niked.fatless.ui.viewmodel.DashboardViewModel
 
 @Composable
 fun DashboardScreen(
-    onWorkoutClick: (String) -> Unit,
-    onEditWorkoutClick: (String) -> Unit,
     onAddWorkoutClick: () -> Unit,
+    onEditWorkoutClick: (String) -> Unit,
+    onExitClick: () -> Unit,
+    onHistoryClick: () -> Unit,
     onNutritionClick: () -> Unit,
     onSettingsClick: () -> Unit,
-    onExitClick: () -> Unit,
+    onWorkoutClick: (String) -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val workouts by viewModel.workouts.collectAsState()
     val nutrition by viewModel.todayNutrition.collectAsState()
     val steps by viewModel.steps.collectAsState()
     val burnedCaloriesState by viewModel.burnedCalories.collectAsState()
+    val currentWeight by viewModel.weight.collectAsState()
+    var showWeightDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -84,8 +91,23 @@ fun DashboardScreen(
                     distance = distance,
                     burnedCalories = burnedCaloriesState,
                     stepGoal = viewModel.stepGoal,
-                    onClick = onNutritionClick
+                    weight = currentWeight,
+                    onWeightClick = { showWeightDialog = true },
+                    onClick = onNutritionClick,
+                    onHistoryClick = onHistoryClick
                 )
+
+                if (showWeightDialog) {
+                    // Вызываем простенький диалог с TextField
+                    WeightDialog(
+                        initialWeight = currentWeight.toFloat(),
+                        onDismiss = { showWeightDialog = false },
+                        onConfirm = {
+                            viewModel.updateWeight(it)
+                            showWeightDialog = false
+                        }
+                    )
+                }
             }
 
             item {

@@ -2,8 +2,11 @@ package com.niked.fatless.data.repository
 
 import com.niked.fatless.data.local.dao.ActivityDao
 import com.niked.fatless.data.local.entities.DailyActivityEntity
+import com.niked.fatless.data.mapper.toDomain
+import com.niked.fatless.domain.model.DailyActivity
 import com.niked.fatless.domain.repository.IActivityRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -12,18 +15,26 @@ class ActivityRepositoryImpl @Inject constructor(
     private val activityDao: ActivityDao
 ) : IActivityRepository {
 
-    override fun getActivityHistory(): Flow<List<DailyActivityEntity>> {
-        return activityDao.getActivityHistory()
+    override fun getActivityHistory(): Flow<List<DailyActivity>> {
+        return activityDao.getActivityHistory().map { list ->
+            list.map { it.toDomain() }
+        }
     }
 
-    override suspend fun saveSteps(date: String, steps: Int, currentWeight: Float) {
-        val current = activityDao.getActivityByDate(date) ?: DailyActivityEntity(date)
-        // Считаем расход здесь и сейчас
-        val burned = steps.toFloat() * currentWeight * 0.0005f
+    override suspend fun saveSteps(
+        date: String,
+        steps: Int,
+        burnedCalories: Float,
+        currentWeight: Float,
+        hourlySteps: String
+    ) {
+        val entity = activityDao.getActivityByDateOnce(date) ?: DailyActivityEntity(date = date)
         activityDao.insertActivity(
-            current.copy(
+            entity.copy(
                 steps = steps,
-                burnedCalories = burned
+                burnedCalories = burnedCalories,
+                weight = currentWeight,
+                hourlySteps = hourlySteps
             )
         )
     }
@@ -32,11 +43,30 @@ class ActivityRepositoryImpl @Inject constructor(
         val current = activityDao.getActivityByDate(date) ?: DailyActivityEntity(date)
         activityDao.insertActivity(
             current.copy(
-                calories = (current.calories + cal).coerceAtLeast(0f),
+                consumedCalories = (current.consumedCalories + cal).coerceAtLeast(0f),
                 proteins = (current.proteins + p).coerceAtLeast(0f),
                 fats = (current.fats + f).coerceAtLeast(0f),
                 carbs = (current.carbs + c).coerceAtLeast(0f)
             )
         )
+    }
+
+    override fun getActivityForMonth(month: String): Flow<List<DailyActivity>> {
+        return activityDao.getActivityForMonth(month).map { list ->
+            list.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun getLatestWeight(): Float {
+        // Ищем последний вес в базе. Если база пуста (чего быть не должно после онбординга) — берем 75кг как заглушку.
+        return activityDao.getLatestWeight() ?: 75f
+    }
+
+    override suspend fun saveWeight(date: String, weight: Float) {
+        // 1. Пытаемся найти запись за сегодня
+        val entity = activityDao.getActivityByDateOnce(date) ?: DailyActivityEntity(date = date)
+
+        // 2. Копируем её с новым весом и сохраняем
+        activityDao.insertActivity(entity.copy(weight = weight))
     }
 }

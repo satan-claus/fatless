@@ -61,6 +61,27 @@
     <string name="history_unit_steps">шагов</string>
     <string name="history_unit_kcal">ккал</string>
     <string name="history_bar_today_label">Сегодня</string>
+    <string name="history_title">История</string>
+    <string name="history_no_data">Нет записей за этот день</string>
+    <string name="history_energy_balance">Энергетический баланс</string>
+    <string name="history_macronutrients">Макронутриенты</string>
+    <string name="history_consumed_format">Съедено: %1$d ккал</string>
+    <string name="history_burned_format">Сжёг: %1$d ккал</string>
+    <string name="history_proteins">Белки</string>
+    <string name="history_fats">Жиры</string>
+    <string name="history_carbs">Углеводы</string>
+    <string name="history_grams_format">%1$dг</string>
+    <string name="history_weight_chart">Динамика веса</string>
+    <string name="history_weight_format">%1$.1f кг</string>
+    <string name="history_activity_chart_title">Активность по часам</string>
+    <string name="history_interval_0">00</string>
+    <string name="history_interval_1">03</string>
+    <string name="history_interval_2">06</string>
+    <string name="history_interval_3">09</string>
+    <string name="history_interval_4">12</string>
+    <string name="history_interval_5">15</string>
+    <string name="history_interval_6">18</string>
+    <string name="history_interval_7">21</string>
 
     <!-- WORKOUT SCREENS -->
     <string name="workout_create_title">Новая тренировка</string>
@@ -133,6 +154,19 @@
     <string name="settings_volume_label">Уровень громкости</string>
     <string name="settings_volume_format">%1$d%%</string>
 
+    <!-- SETUP SCREEN -->
+    <string name="setup_title">Добро пожаловать!</string>
+    <string name="setup_subtitle">Введите ваши данные, чтобы Слоник мог точно считать калории</string>
+    <string name="setup_height_label">Рост (см)</string>
+    <string name="setup_weight_label">Вес (кг)</string>
+    <string name="setup_button">Погнали!</string>
+
+    <!-- Диалог ввода веса -->
+    <string name="weight_dialog_title">Ваш вес сегодня</string>
+    <string name="weight_dialog_label">Вес в кг</string>
+    <string name="weight_dialog_confirm">Сохранить</string>
+    <string name="weight_dialog_dismiss">Отмена</string>
+
     <!-- CONTENT DESCRIPTIONS (PODVAL) -->
     <string name="content_description_add_new_food">Добавить новый продукт</string>
     <string name="content_description_burned_calories">Сожженные калории</string>
@@ -154,4 +188,31 @@
     <string name="content_description_switch_to_nutrition">Переключить на питание</string>
     <string name="content_description_toggle">Переключатель</string>
     <string name="content_description_volume_slider">Регулятор громкости</string>
+    <string name="content_description_prev_month">Предыдущий месяц</string>
+    <string name="content_description_next_month">Следующий месяц</string>
+    <string name="content_description_calendar_day">Выбрать день %1$d</string>
+    <!-- Дни недели: Описания для TalkBack -->
+    <string name="content_description_day_mon">Понедельник</string>
+    <string name="content_description_day_tue">Вторник</string>
+    <string name="content_description_day_wed">Среда</string>
+    <string name="content_description_day_thu">Четверг</string>
+    <string name="content_description_day_fri">Пятница</string>
+    <string name="content_description_day_sat">Суббота</string>
+    <string name="content_description_day_sun">Воскресенье</string>
+
+
+
+    <!-- Единицы измерения и описание -->
+    <string name="weight_unit_kg">%1$d кг</string>
+    <string name="weight_unit_kg_float">%1$.1f кг</string>
+    <string name="content_description_edit_weight">Редактировать вес</string>
+
+    <!-- Дни недели: Видимые метки -->
+    <string name="day_mon_short">Пн</string>
+    <string name="day_tue_short">Вт</string>
+    <string name="day_wed_short">Ср</string>
+    <string name="day_thu_short">Чт</string>
+    <string name="day_fri_short">Пт</string>
+    <string name="day_sat_short">Сб</string>
+    <string name="day_sun_short">Вс</string>
 </resources>

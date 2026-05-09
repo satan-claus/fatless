@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -79,6 +80,9 @@ class DashboardViewModel @Inject constructor(
         (currentSteps * strideInCm) / 100_000f
     }.stateIn(viewModelScope, SharingStarted.Lazily, 0f)
 
+    private val _weight = MutableStateFlow(settingsRepository.userWeight)
+    val weight = _weight.asStateFlow()
+
     private var prefsListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
 
     init {
@@ -91,9 +95,19 @@ class DashboardViewModel @Inject constructor(
                 "pref_today_burned_calories" -> {
                     _burnedCalories.value = prefs.getFloat(key, 0f)
                 }
+                "pref_user_weight" -> {
+                    _weight.value = prefs.getFloat(key, 75.0f)
+                }
             }
         }
         settingsRepository.registerListener(prefsListener!!)
+    }
+
+    fun updateWeight(newWeight: Float) {
+        settingsRepository.userWeight = newWeight
+        viewModelScope.launch {
+            activityRepository.saveWeight(LocalDate.now().toString(), newWeight)
+        }
     }
 
     override fun onCleared() {

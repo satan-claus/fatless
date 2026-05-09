@@ -1,10 +1,19 @@
 package com.niked.fatless.domain.repository
 
-import com.niked.fatless.data.local.entities.DailyActivityEntity
+import com.niked.fatless.domain.model.DailyActivity
 import kotlinx.coroutines.flow.Flow
 
 interface IActivityRepository {
-    fun getActivityHistory(): Flow<List<DailyActivityEntity>>
-    suspend fun saveSteps(date: String, steps: Int, currentWeight: Float)
+    fun getActivityHistory(): Flow<List<DailyActivity>>
+    suspend fun saveSteps(
+        date: String,
+        steps: Int,
+        burnedCalories: Float,
+        currentWeight: Float,
+        hourlySteps: String
+    )
     suspend fun saveNutrition(date: String, cal: Int, p: Float, f: Float, c: Float)
+    fun getActivityForMonth(month: String): Flow<List<DailyActivity>>
+    suspend fun getLatestWeight(): Float
+    suspend fun saveWeight(date: String, weight: Float)
 }
