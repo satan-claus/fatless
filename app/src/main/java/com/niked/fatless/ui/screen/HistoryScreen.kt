@@ -84,6 +84,7 @@ fun HistoryScreen(
                 month = month,
                 selectedDate = selectedDate,
                 monthData = monthData,
+                stepGoal = viewModel.stepGoal,
                 onDateClick = { viewModel.selectDate(it) }
             )
 

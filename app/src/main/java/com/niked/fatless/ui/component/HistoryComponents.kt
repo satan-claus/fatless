@@ -69,13 +69,13 @@ fun CalendarGrid(
     month: YearMonth,
     selectedDate: LocalDate,
     monthData: List<DailyActivity>,
+    stepGoal: Int,
     onDateClick: (LocalDate) -> Unit
 ) {
     val daysInMonth = month.lengthOfMonth()
     val firstDayOfWeek = month.atDay(1).dayOfWeek.value
     val offset = firstDayOfWeek - 1
 
-    // Весь список ячеек (пустые + числа)
     val totalCells = offset + daysInMonth
     val rows = (totalCells + 6) / 7
 
@@ -89,13 +89,20 @@ fun CalendarGrid(
                     Box(modifier = Modifier.weight(1f)) {
                         if (dayNumber in 1..daysInMonth) {
                             val date = month.atDay(dayNumber)
-                            val hasData = monthData.any { it.date == date.toString() }
+
+                            // Ищем данные за этот конкретный день
+                            val dayActivity = monthData.find { it.date == date.toString() }
+                            val hasData = dayActivity != null
+
+                            // Проверяем, выполнена ли цель (оверстеп)
+                            val isGoalReached = (dayActivity?.steps ?: 0) >= stepGoal
 
                             DayItem(
                                 day = dayNumber,
                                 isSelected = selectedDate == date,
                                 hasData = hasData,
                                 isToday = date == LocalDate.now(),
+                                isGoalReached = isGoalReached,
                                 onClick = { onDateClick(date) }
                             )
                         } else {
@@ -120,7 +127,9 @@ fun DaysOfWeekHeader() {
         R.string.day_sun_short to R.string.content_description_day_sun
     )
 
-    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 8.dp)) {
         days.forEach { (shortRes, fullRes) ->
             val fullDayName = stringResource(fullRes)
             Text(
@@ -142,6 +151,7 @@ fun DayItem(
     isSelected: Boolean,
     hasData: Boolean,
     isToday: Boolean,
+    isGoalReached: Boolean,
     onClick: () -> Unit
 ) {
     Box(
@@ -149,7 +159,13 @@ fun DayItem(
             .aspectRatio(1f)
             .padding(4.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(if (isSelected) AppSecondary else Color.Transparent)
+            .background(
+                when {
+                    isSelected -> AppSecondary
+                    isGoalReached -> ColorOverSteps.copy(alpha = 0.15f)
+                    else -> Color.Transparent
+                }
+            )
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
@@ -159,6 +175,7 @@ fun DayItem(
                 style = AppTypography.bodyMedium,
                 color = when {
                     isSelected -> Color.White
+                    isGoalReached -> ColorOverSteps
                     isToday -> AppSecondary
                     else -> AppTextPrimary
                 },
@@ -170,7 +187,13 @@ fun DayItem(
                         .padding(top = 2.dp)
                         .size(4.dp)
                         .clip(CircleShape)
-                        .background(if (isSelected) Color.White else AppSecondary)
+                        .background(
+                            when {
+                                isSelected -> Color.White
+                                isGoalReached -> ColorOverSteps
+                                else -> AppSecondary
+                            }
+                        )
                 )
             }
         }
@@ -181,7 +204,9 @@ fun DayItem(
 fun DayHistoryDetails(activity: DailyActivity?) {
     if (activity == null) {
         Box(
-            modifier = Modifier.fillMaxWidth().padding(48.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(48.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -193,7 +218,9 @@ fun DayHistoryDetails(activity: DailyActivity?) {
         return
     }
 
-    Column(modifier = Modifier.padding(24.dp).fillMaxWidth()) {
+    Column(modifier = Modifier
+        .padding(24.dp)
+        .fillMaxWidth()) {
         Text(
             text = stringResource(R.string.history_energy_balance),
             style = AppTypography.titleSmall,
@@ -235,11 +262,21 @@ fun EnergySaldoBar(consumed: Float, burned: Float) {
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Row(modifier = Modifier.fillMaxWidth().height(10.dp).clip(CircleShape).background(ColorCarbohydrates.copy(alpha = 0.2f))) {
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .height(10.dp)
+            .clip(CircleShape)
+            .background(ColorCarbohydrates.copy(alpha = 0.2f))) {
             // Синяя часть (Съедено)
-            Box(modifier = Modifier.fillMaxHeight().weight(consumedWeight.coerceAtLeast(0.01f)).background(ColorCalories))
+            Box(modifier = Modifier
+                .fillMaxHeight()
+                .weight(consumedWeight.coerceAtLeast(0.01f))
+                .background(ColorCalories))
             // Красная часть (Сжёг)
-            Box(modifier = Modifier.fillMaxHeight().weight((1f - consumedWeight).coerceAtLeast(0.01f)).background(ColorCarbohydrates))
+            Box(modifier = Modifier
+                .fillMaxHeight()
+                .weight((1f - consumedWeight).coerceAtLeast(0.01f))
+                .background(ColorCarbohydrates))
         }
     }
 }
@@ -295,7 +332,9 @@ fun WeightChart(data: List<DailyActivity>) {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        Canvas(modifier = Modifier.fillMaxWidth().height(150.dp)) {
+        Canvas(modifier = Modifier
+            .fillMaxWidth()
+            .height(150.dp)) {
             val paddingPx = 8.dp.toPx()
             val usableWidth = size.width - (paddingPx * 2)
             val height = size.height
