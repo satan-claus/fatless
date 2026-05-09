@@ -16,11 +16,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
@@ -35,25 +33,22 @@ class DashboardViewModel @Inject constructor(
     private val workoutRepository: IWorkoutRepository,
 ) : ViewModel() {
 
+    // Таймер даты
     val currentDate = flow {
         while(true) {
             emit(LocalDate.now().toString())
-            delay(60000) // Проверяем раз в минуту
+            delay(60000)
         }
     }.distinctUntilChanged()
 
-    // 1. Тренировки
+    // 1. ТРЕНИРОВКИ
     val workouts: StateFlow<List<Workout>> = workoutRepository.observeAllWorkouts()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    // 2. Питание
+    // 2. ПИТАНИЕ
     @OptIn(ExperimentalCoroutinesApi::class)
     val todayNutrition: StateFlow<NutritionUiState> = currentDate
-        .flatMapLatest { date ->
-            // Теперь мы просим данные для КОНКРЕТНОЙ даты,
-            // которую выдал наш таймер currentDate
-            nutritionRepository.getDiaryForToday(date)
-        }
+        .flatMapLatest { date -> nutritionRepository.getDiaryForToday(date) }
         .map { entries ->
             NutritionUiState(
                 totalProteins = entries.sumOf { it.totalProteins.toDouble() }.toFloat(),
@@ -63,74 +58,47 @@ class DashboardViewModel @Inject constructor(
             )
         }.stateIn(viewModelScope, SharingStarted.Lazily, NutritionUiState())
 
-    // 3. ЖИВЫЕ ШАГИ
+    // 3. ЖИВЫЕ ДАННЫЕ (из SharedPreferences через слушателя)
     private val _steps = MutableStateFlow(settingsRepository.todaySteps)
     val steps = _steps.asStateFlow()
 
-    val stepGoal = settingsRepository.stepGoal
+    private val _burnedCalories = MutableStateFlow(settingsRepository.todayBurnedCalories)
+    val burnedCalories = _burnedCalories.asStateFlow()
 
-    val historyState = activityRepository.getActivityHistory()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Lazily,
-            initialValue = emptyList()
-        )
-
-    val distanceKm: StateFlow<Float> = steps.map { currentSteps ->
-        val strideInCm = settingsRepository.userHeight * 0.415f
-        // см -> км
-        (currentSteps * strideInCm) / 100_000f
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = 0f
-    )
-
-    // Храним слушателя как поле класса, чтобы GC его не сожрал
-    private var stepsListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
-
-    // Загружаем типы упражнений из БД
+    // 4. СПРАВОЧНИК УПРАЖНЕНИЙ (Для UI, если он нужен на Dashboard)
     val exerciseTypes = exerciseRepository.getExerciseTypes()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    // Стейт для выбранного ID (по умолчанию ходьба)
-    private val _selectedExerciseId = MutableStateFlow("walk")
+    // 5. ОСТАЛЬНОЕ
+    val stepGoal = settingsRepository.stepGoal
+    val historyState = activityRepository.getActivityHistory()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    // Комбинируем список и ID в один объект ExerciseType
-    val selectedExercise = combine(exerciseTypes, _selectedExerciseId) { types, id ->
-        types.find { it.id == id } ?: types.firstOrNull()
-    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
-
-    fun onExerciseTypeSelected(id: String) {
-        _selectedExerciseId.value = id
-    }
-
-    // УМНЫЙ РАСЧЕТ Сожженных калорий
-    // Калории = Шаги * Вес * (MET / 7000)
-    // Коэффициент 7000 — усредненный множитель интенсивности для шагов
-    val burnedCalories = combine(
-        steps, // Твой Flow шагов
-        selectedExercise,
-        // Оборачиваем вес в Flow, чтобы пересчитывать при смене веса в настройках
-        flowOf(settingsRepository.userWeight)
-    ) { currentSteps, activity, weight ->
-        val met = activity?.metValue ?: 3.5f
-        val userWeight = if (weight > 0) weight.toFloat() else 75f
-
-        currentSteps * userWeight * (met / 7000f)
+    val distanceKm: StateFlow<Float> = steps.map { currentSteps ->
+        val strideInCm = settingsRepository.userHeight * 0.415f
+        (currentSteps * strideInCm) / 100_000f
     }.stateIn(viewModelScope, SharingStarted.Lazily, 0f)
 
+    private var prefsListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
 
     init {
-        // Регистрируем слушателя в SharedPreferences через AppSettings
-        stepsListener = settingsRepository.observeSteps { newSteps ->
-            _steps.value = newSteps
+        // Слушаем изменения в префсах, которые валит StepService
+        prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
+            when (key) {
+                "pref_today_steps" -> {
+                    _steps.value = prefs.getInt(key, 0)
+                }
+                "pref_today_burned_calories" -> {
+                    _burnedCalories.value = prefs.getFloat(key, 0f)
+                }
+            }
         }
+        settingsRepository.registerListener(prefsListener!!)
     }
 
     override fun onCleared() {
         super.onCleared()
-        // Обязательно отписываемся, чтобы не было утечек памяти
-        stepsListener?.let { settingsRepository.unregisterListener(it) }
+        prefsListener?.let { settingsRepository.unregisterListener(it) }
     }
 }
+

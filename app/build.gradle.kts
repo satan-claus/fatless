@@ -67,6 +67,7 @@ dependencies {
 
     // HILT (ключи в TOML: hilt-android, hilt-compiler, hilt-navigation-compose)
     implementation(libs.hilt.android)
+    implementation(libs.androidx.lifecycle.service)
     "ksp"(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 

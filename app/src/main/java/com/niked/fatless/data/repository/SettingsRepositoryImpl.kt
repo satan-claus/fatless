@@ -15,6 +15,7 @@ import com.niked.fatless.core.utils.Constants.PREF_MANUAL_BASE_STEPS
 import com.niked.fatless.core.utils.Constants.PREF_SOUND_VOLUME
 import com.niked.fatless.core.utils.Constants.PREF_STEP_BASE_COUNT
 import com.niked.fatless.core.utils.Constants.PREF_STEP_GOAL
+import com.niked.fatless.core.utils.Constants.PREF_TODAY_BURNED_CALORIES
 import com.niked.fatless.core.utils.Constants.PREF_TODAY_STEPS
 import com.niked.fatless.core.utils.Constants.PREF_USER_HEIGHT
 import com.niked.fatless.core.utils.Constants.PREF_USER_WEIGHT
@@ -85,6 +86,10 @@ class SettingsRepositoryImpl @Inject constructor(
     override var currentMetModifier: Float
         get() = prefs.getFloat(PREF_CURRENT_MET, 3.5f)
         set(value) = prefs.edit { putFloat(PREF_CURRENT_MET, value) }
+
+    override var todayBurnedCalories: Float
+        get() = prefs.getFloat(PREF_TODAY_BURNED_CALORIES, 0f)
+        set(value) = prefs.edit { putFloat(PREF_TODAY_BURNED_CALORIES, value) }
 
     override fun observeSteps(onStepsChanged: (Int) -> Unit): SharedPreferences.OnSharedPreferenceChangeListener {
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->

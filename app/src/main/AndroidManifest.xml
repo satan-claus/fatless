@@ -46,6 +46,7 @@
         <service
             android:name=".core.sensor.StepService"
             android:foregroundServiceType="health"
+            android:stopWithTask="false"
             android:enabled="true"
             android:exported="false" />
 
