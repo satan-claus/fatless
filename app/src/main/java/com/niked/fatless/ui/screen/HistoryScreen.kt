@@ -41,6 +41,7 @@ fun HistoryScreen(
 ) {
     val month by viewModel.currentMonth.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
+    val isSelectedToday = selectedDate == java.time.LocalDate.now()
     val monthData by viewModel.monthData.collectAsState()
     val selectedActivity by viewModel.selectedDayActivity.collectAsState()
     val weightData by viewModel.weightData.collectAsState()
@@ -91,7 +92,10 @@ fun HistoryScreen(
 
             // 2. График активности (столбики)
             if (selectedActivity != null) {
-                ActivityChart(hourlySteps = selectedActivity!!.hourlySteps)
+                ActivityChart(
+                    hourlySteps = selectedActivity!!.hourlySteps,
+                    isToday = isSelectedToday
+                )
             }
 
             // 3. Динамика веса (линия)

@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.niked.fatless.domain.model.DailyActivity
 import com.niked.fatless.domain.repository.IActivityRepository
+import com.niked.fatless.domain.repository.ISettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +21,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HistoryViewModel @Inject constructor(
-    private val activityRepository: IActivityRepository
+    private val activityRepository: IActivityRepository,
+    private val settingsRepository: ISettingsRepository
 ) : ViewModel() {
 
     private val _selectedDate = MutableStateFlow(LocalDate.now())
@@ -32,26 +35,35 @@ class HistoryViewModel @Inject constructor(
         activityRepository.getActivityForMonth(month.toString())
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val selectedDayActivity: StateFlow<DailyActivity?> = combine(
         monthData,
-        _selectedDate
+        selectedDate
     ) { data, selected ->
-        data.find { it.date == selected.toString() }
+        val dbActivity = data.find { it.date == selected.toString() }
+        val today = LocalDate.now()
+
+        if (selected == today) {
+            // Подтягиваем данные из префсов по тем же ключам через репозиторий
+            DailyActivity(
+                date = selected.toString(),
+                steps = settingsRepository.todaySteps,
+                consumedCalories = dbActivity?.consumedCalories ?: 0f,
+                burnedCalories = settingsRepository.todayBurnedCalories,
+                proteins = dbActivity?.proteins ?: 0f,
+                fats = dbActivity?.fats ?: 0f,
+                carbs = dbActivity?.carbs ?: 0f,
+                weight = settingsRepository.userWeight,
+                hourlySteps = settingsRepository.todayHourlySteps
+            )
+        } else {
+            dbActivity
+        }
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val weightData: StateFlow<List<DailyActivity>> = monthData.map { list ->
         list.filter { it.weight > 0 }.sortedBy { it.date }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-//    // ВРЕМЕННО для теста (потом удалишь)
-//    val weightData: StateFlow<List<DailyActivity>> = MutableStateFlow(
-//        listOf(
-//            DailyActivity(date = "2024-05-01", steps = 0, consumedCalories = 0f, burnedCalories = 0f, proteins = 0f, fats = 0f, carbs = 0f, weight = 85.5f),
-//            DailyActivity(date = "2024-05-03", steps = 0, consumedCalories = 0f, burnedCalories = 0f, proteins = 0f, fats = 0f, carbs = 0f, weight = 84.8f),
-//            DailyActivity(date = "2024-05-05", steps = 0, consumedCalories = 0f, burnedCalories = 0f, proteins = 0f, fats = 0f, carbs = 0f, weight = 85.2f),
-//            DailyActivity(date = "2024-05-07", steps = 0, consumedCalories = 0f, burnedCalories = 0f, proteins = 0f, fats = 0f, carbs = 0f, weight = 83.9f)
-//        )
-//    ).stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     fun selectDate(date: LocalDate) {
         _selectedDate.value = date

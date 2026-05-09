@@ -36,13 +36,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.niked.fatless.R
 import com.niked.fatless.domain.model.DailyActivity
-import com.niked.fatless.ui.theme.AppOrange
 import com.niked.fatless.ui.theme.AppRed
 import com.niked.fatless.ui.theme.AppSecondary
 import com.niked.fatless.ui.theme.AppTextPrimary
 import com.niked.fatless.ui.theme.AppTextSecondary
 import com.niked.fatless.ui.theme.AppTextTertiary
 import com.niked.fatless.ui.theme.AppTypography
+import com.niked.fatless.ui.theme.ColorCalories
+import com.niked.fatless.ui.theme.ColorCarbohydrates
+import com.niked.fatless.ui.theme.ColorFats
+import com.niked.fatless.ui.theme.ColorProteins
+import com.niked.fatless.ui.theme.ColorSteps
+import com.niked.fatless.ui.theme.ColorStepsToday
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -208,28 +213,39 @@ fun EnergySaldoBar(consumed: Float, burned: Float) {
             Text(
                 text = stringResource(R.string.history_consumed_format, consumed.toInt()),
                 style = AppTypography.bodySmall,
-                color = AppSecondary
+                color = ColorCalories // Синий
             )
             Text(
                 text = stringResource(R.string.history_burned_format, burned.toInt()),
                 style = AppTypography.bodySmall,
-                color = AppRed
+                color = ColorCarbohydrates // Красный
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Row(modifier = Modifier.fillMaxWidth().height(10.dp).clip(CircleShape).background(AppRed.copy(alpha = 0.2f))) {
-            Box(modifier = Modifier.fillMaxHeight().weight(consumedWeight.coerceAtLeast(0.01f)).background(AppSecondary))
-            Box(modifier = Modifier.fillMaxHeight().weight((1f - consumedWeight).coerceAtLeast(0.01f)).background(AppRed))
+        Row(modifier = Modifier.fillMaxWidth().height(10.dp).clip(CircleShape).background(ColorCarbohydrates.copy(alpha = 0.2f))) {
+            // Синяя часть (Съедено)
+            Box(modifier = Modifier.fillMaxHeight().weight(consumedWeight.coerceAtLeast(0.01f)).background(ColorCalories))
+            // Красная часть (Сжёг)
+            Box(modifier = Modifier.fillMaxHeight().weight((1f - consumedWeight).coerceAtLeast(0.01f)).background(ColorCarbohydrates))
         }
     }
 }
 
+
 @Composable
 fun BjuRow(p: Float, f: Float, c: Float) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        BjuItem(stringResource(R.string.history_proteins), p, AppSecondary)
-        BjuItem(stringResource(R.string.history_fats), f, AppOrange)
-        BjuItem(stringResource(R.string.history_carbs), c, AppRed)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        // Белки — Зеленый
+        BjuItem(stringResource(R.string.history_proteins), p, ColorProteins)
+
+        // Жиры — Желтый
+        BjuItem(stringResource(R.string.history_fats), f, ColorFats)
+
+        // Углеводы — Красный
+        BjuItem(stringResource(R.string.history_carbs), c, ColorCarbohydrates)
     }
 }
 
@@ -353,7 +369,12 @@ fun WeightChart(data: List<DailyActivity>) {
 }
 
 @Composable
-fun ActivityChart(hourlySteps: String) {
+fun ActivityChart(
+    hourlySteps: String,
+    isToday: Boolean
+) {
+    val barColor = if (isToday) ColorStepsToday else ColorSteps
+
     val data = try {
         hourlySteps.split(",").map { it.toFloat() }
     } catch (e: Exception) {
@@ -379,7 +400,7 @@ fun ActivityChart(hourlySteps: String) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(120.dp),
+                .height(140.dp),
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -387,19 +408,39 @@ fun ActivityChart(hourlySteps: String) {
                 val barHeightFraction = (steps / maxSteps).coerceIn(0.05f, 1f)
 
                 Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Bottom
                 ) {
-                    // Столбик
+                    if (steps > 0) {
+                        Text(
+                            text = steps.toInt().toString(),
+                            style = AppTypography.labelSmall,
+                            color = barColor, // 🎯 Текст в цвет столбика
+                            modifier = Modifier.padding(bottom = 2.dp)
+                        )
+                    }
+
                     Box(
                         modifier = Modifier
-                            .fillMaxHeight(barHeightFraction)
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                            .background(if (steps > 0) AppSecondary else AppTextTertiary.copy(alpha = 0.1f))
-                    )
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.BottomCenter
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight(barHeightFraction)
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                                // 🎯 Используем barColor и системный цвет для пустых
+                                .background(if (steps > 0) barColor else AppTextTertiary.copy(alpha = 0.1f))
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(8.dp))
-                    // Подпись
+
                     Text(
                         text = stringResource(labels[index]),
                         style = AppTypography.labelSmall,
@@ -410,4 +451,6 @@ fun ActivityChart(hourlySteps: String) {
         }
     }
 }
+
+
 

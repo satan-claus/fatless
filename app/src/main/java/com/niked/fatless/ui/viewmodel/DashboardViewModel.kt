@@ -3,6 +3,9 @@ package com.niked.fatless.ui.viewmodel
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.niked.fatless.core.utils.Constants.PREF_TODAY_BURNED_CALORIES
+import com.niked.fatless.core.utils.Constants.PREF_TODAY_STEPS
+import com.niked.fatless.core.utils.Constants.PREF_USER_WEIGHT
 import com.niked.fatless.domain.model.Workout
 import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.domain.repository.IExerciseRepository
@@ -89,13 +92,13 @@ class DashboardViewModel @Inject constructor(
         // Слушаем изменения в префсах, которые валит StepService
         prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
             when (key) {
-                "pref_today_steps" -> {
+                PREF_TODAY_STEPS -> {
                     _steps.value = prefs.getInt(key, 0)
                 }
-                "pref_today_burned_calories" -> {
+                PREF_TODAY_BURNED_CALORIES -> {
                     _burnedCalories.value = prefs.getFloat(key, 0f)
                 }
-                "pref_user_weight" -> {
+                PREF_USER_WEIGHT -> {
                     _weight.value = prefs.getFloat(key, 75.0f)
                 }
             }
