@@ -2,7 +2,7 @@ package com.niked.fatless.ui.component.fatlesshistory
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.niked.fatless.data.local.entities.DailyActivityEntity
+import com.niked.fatless.domain.model.DailyActivity
 import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.domain.repository.ISettingsRepository
 import com.niked.fatless.ui.theme.ColorSteps
@@ -78,7 +78,7 @@ class FatLessHistoryViewModel @Inject constructor(
     }
 
     // Получение данных для конкретной страницы пейджера
-    fun getWeekData(page: Int, totalPages: Int, history: List<DailyActivityEntity>): Pair<List<HistoryBarModel>, List<NutritionBarModel>> {
+    fun getWeekData(page: Int, totalPages: Int, history: List<DailyActivity>): Pair<List<HistoryBarModel>, List<NutritionBarModel>> {
         val offset = page - (totalPages - 1)
         return prepareData(history, offset)
     }
@@ -89,7 +89,7 @@ class FatLessHistoryViewModel @Inject constructor(
     }
 
     private fun prepareData(
-        history: List<DailyActivityEntity>,
+        history: List<DailyActivity>,
         offset: Int
     ): Pair<List<HistoryBarModel>, List<NutritionBarModel>> {
 
@@ -128,7 +128,7 @@ class FatLessHistoryViewModel @Inject constructor(
                 showStar = stepsValue >= settingsRepository.stepGoal && stepsValue > 0
             ))
 
-            val calValue = if (isFuture) 0f else (dayData?.calories ?: 0f)
+            val calValue = if (isFuture) 0f else (dayData?.consumedCalories ?: 0f)
 
             nutritionModels.add(NutritionBarModel(
                 dayLabel = dayLabel,

@@ -17,4 +17,8 @@ interface ActivityDao {
 
     @Query("SELECT * FROM daily_activity WHERE date = :date")
     suspend fun getActivityByDate(date: String): DailyActivityEntity?
+
+    @Query("SELECT * FROM daily_activity WHERE date LIKE :monthPrefix || '%' ORDER BY date ASC")
+    fun getActivityForMonth(monthPrefix: String): Flow<List<DailyActivityEntity>>
+
 }

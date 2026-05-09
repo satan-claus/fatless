@@ -61,6 +61,7 @@
     <string name="history_unit_steps">шагов</string>
     <string name="history_unit_kcal">ккал</string>
     <string name="history_bar_today_label">Сегодня</string>
+    <string name="history_title">История</string>
 
     <!-- WORKOUT SCREENS -->
     <string name="workout_create_title">Новая тренировка</string>
@@ -154,4 +155,24 @@
     <string name="content_description_switch_to_nutrition">Переключить на питание</string>
     <string name="content_description_toggle">Переключатель</string>
     <string name="content_description_volume_slider">Регулятор громкости</string>
+    <string name="content_description_prev_month">Предыдущий месяц</string>
+    <string name="content_description_next_month">Следующий месяц</string>
+    <string name="content_description_calendar_day">Выбрать день %1$d</string>
+    <!-- Дни недели: Описания для TalkBack -->
+    <string name="content_description_day_mon">Понедельник</string>
+    <string name="content_description_day_tue">Вторник</string>
+    <string name="content_description_day_wed">Среда</string>
+    <string name="content_description_day_thu">Четверг</string>
+    <string name="content_description_day_fri">Пятница</string>
+    <string name="content_description_day_sat">Суббота</string>
+    <string name="content_description_day_sun">Воскресенье</string>
+
+    <!-- Дни недели: Видимые метки -->
+    <string name="day_mon_short">Пн</string>
+    <string name="day_tue_short">Вт</string>
+    <string name="day_wed_short">Ср</string>
+    <string name="day_thu_short">Чт</string>
+    <string name="day_fri_short">Пт</string>
+    <string name="day_sat_short">Сб</string>
+    <string name="day_sun_short">Вс</string>
 </resources>
