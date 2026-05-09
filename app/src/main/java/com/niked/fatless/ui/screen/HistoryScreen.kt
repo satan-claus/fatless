@@ -23,8 +23,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.niked.fatless.R
+import com.niked.fatless.ui.component.DayHistoryDetails
 import com.niked.fatless.ui.component.DayItem
 import com.niked.fatless.ui.component.DaysOfWeekHeader
+import com.niked.fatless.ui.component.WeightChart
 import com.niked.fatless.ui.component.WorkoutTopBar
 import com.niked.fatless.ui.theme.AppBackground
 import com.niked.fatless.ui.theme.AppTextPrimary
@@ -42,6 +44,7 @@ fun HistoryScreen(
     val month by viewModel.currentMonth.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
     val monthData by viewModel.monthData.collectAsState()
+    val selectedActivity by viewModel.selectedDayActivity.collectAsState()
 
     // Настройка календаря
     val daysInMonth = month.lengthOfMonth()
@@ -114,6 +117,12 @@ fun HistoryScreen(
             }
         }
 
-        // Тут потом будет карточка с деталями за выбранный день
+        DayHistoryDetails(activity = selectedActivity)
+
+        val weightData by viewModel.weightData.collectAsState()
+
+        if (weightData.isNotEmpty()) {
+            WeightChart(data = weightData)
+        }
     }
 }

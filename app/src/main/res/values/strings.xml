@@ -62,6 +62,17 @@
     <string name="history_unit_kcal">ккал</string>
     <string name="history_bar_today_label">Сегодня</string>
     <string name="history_title">История</string>
+    <string name="history_no_data">Нет записей за этот день</string>
+    <string name="history_energy_balance">Энергетический баланс</string>
+    <string name="history_macronutrients">Макронутриенты</string>
+    <string name="history_consumed_format">Съедено: %1$d ккал</string>
+    <string name="history_burned_format">Сжёг: %1$d ккал</string>
+    <string name="history_proteins">Белки</string>
+    <string name="history_fats">Жиры</string>
+    <string name="history_carbs">Углеводы</string>
+    <string name="history_grams_format">%1$dг</string>
+    <string name="history_weight_chart">Динамика веса</string>
+    <string name="history_weight_format">%1$.1f кг</string>
 
     <!-- WORKOUT SCREENS -->
     <string name="workout_create_title">Новая тренировка</string>

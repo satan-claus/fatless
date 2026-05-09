@@ -1,12 +1,17 @@
 package com.niked.fatless.ui.component
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -16,7 +21,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -24,10 +34,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.niked.fatless.R
+import com.niked.fatless.domain.model.DailyActivity
+import com.niked.fatless.ui.theme.AppOrange
 import com.niked.fatless.ui.theme.AppRed
 import com.niked.fatless.ui.theme.AppSecondary
 import com.niked.fatless.ui.theme.AppTextPrimary
 import com.niked.fatless.ui.theme.AppTextSecondary
+import com.niked.fatless.ui.theme.AppTextTertiary
 import com.niked.fatless.ui.theme.AppTypography
 
 @Composable
@@ -95,6 +108,166 @@ fun DayItem(
                         .background(if (isSelected) Color.White else AppSecondary)
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun DayHistoryDetails(activity: DailyActivity?) {
+    if (activity == null) {
+        Box(
+            modifier = Modifier.fillMaxWidth().padding(48.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(R.string.history_no_data),
+                style = AppTypography.bodyMedium,
+                color = AppTextTertiary
+            )
+        }
+        return
+    }
+
+    Column(modifier = Modifier.padding(24.dp).fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.history_energy_balance),
+            style = AppTypography.titleSmall,
+            color = AppTextPrimary
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        EnergySaldoBar(consumed = activity.consumedCalories, burned = activity.burnedCalories)
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Text(
+            text = stringResource(R.string.history_macronutrients),
+            style = AppTypography.titleSmall,
+            color = AppTextPrimary
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        BjuRow(p = activity.proteins, f = activity.fats, c = activity.carbs)
+    }
+}
+
+@Composable
+fun EnergySaldoBar(consumed: Float, burned: Float) {
+    val total = (consumed + burned).coerceAtLeast(1f)
+    val consumedWeight = consumed / total
+
+    Column {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(
+                text = stringResource(R.string.history_consumed_format, consumed.toInt()),
+                style = AppTypography.bodySmall,
+                color = AppSecondary
+            )
+            Text(
+                text = stringResource(R.string.history_burned_format, burned.toInt()),
+                style = AppTypography.bodySmall,
+                color = AppRed
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(modifier = Modifier.fillMaxWidth().height(10.dp).clip(CircleShape).background(AppRed.copy(alpha = 0.2f))) {
+            Box(modifier = Modifier.fillMaxHeight().weight(consumedWeight.coerceAtLeast(0.01f)).background(AppSecondary))
+            Box(modifier = Modifier.fillMaxHeight().weight((1f - consumedWeight).coerceAtLeast(0.01f)).background(AppRed))
+        }
+    }
+}
+
+@Composable
+fun BjuRow(p: Float, f: Float, c: Float) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        BjuItem(stringResource(R.string.history_proteins), p, AppSecondary)
+        BjuItem(stringResource(R.string.history_fats), f, AppOrange)
+        BjuItem(stringResource(R.string.history_carbs), c, AppRed)
+    }
+}
+
+@Composable
+fun BjuItem(label: String, value: Float, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = stringResource(R.string.history_grams_format, value.toInt()),
+            style = AppTypography.bodyLarge,
+            color = color,
+            fontWeight = FontWeight.Bold
+        )
+        Text(text = label, style = AppTypography.labelSmall, color = AppTextTertiary)
+    }
+}
+
+@Composable
+fun WeightChart(data: List<DailyActivity>) {
+    // Для графика нужно хотя бы 2 точки
+    if (data.size < 2) return
+
+    val weights = data.map { it.weight }
+    val minWeight = weights.minOrNull() ?: 0f
+    val maxWeight = weights.maxOrNull() ?: 0f
+    val range = (maxWeight - minWeight).coerceAtLeast(1f)
+
+    Column(modifier = Modifier.padding(24.dp)) {
+        Text(
+            text = stringResource(R.string.history_weight_chart),
+            style = AppTypography.titleSmall,
+            color = AppTextPrimary
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Canvas(modifier = Modifier.fillMaxWidth().height(150.dp)) {
+            val paddingPx = 8.dp.toPx() // Отступ, чтобы крайние точки не обрезались
+            val usableWidth = size.width - (paddingPx * 2)
+            val height = size.height
+
+            // Интервал между точками теперь считается от полезной ширины
+            val spacing = if (data.size > 1) usableWidth / (data.size - 1) else 0f
+
+            val points = data.indices.map { i ->
+                // Добавляем paddingPx к каждому X, чтобы сдвинуть весь график вправо
+                val x = i * spacing + paddingPx
+                // Рассчитываем Y (тут все верно, но можно добавить небольшой отступ сверху/снизу)
+                val y = height - ((data[i].weight - minWeight) / range) * height
+                Offset(x, y)
+            }
+
+            // 1. Рисуем линию
+            if (points.isNotEmpty()) {
+                val path = Path().apply {
+                    moveTo(points.first().x, points.first().y)
+                    for (i in 1 until points.size) {
+                        lineTo(points[i].x, points[i].y)
+                    }
+                }
+
+                drawPath(
+                    path = path,
+                    color = AppSecondary,
+                    style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+                )
+
+                // 2. Рисуем точки (поверх линии)
+                points.forEach { point ->
+                    drawCircle(
+                        color = AppSecondary,
+                        radius = 4.dp.toPx(),
+                        center = point
+                    )
+                    drawCircle(
+                        color = Color.White,
+                        radius = 2.dp.toPx(),
+                        center = point
+                    )
+                }
+            }
+        }
+
+        // Подписи min/max
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(stringResource(R.string.history_weight_format, minWeight), style = AppTypography.labelSmall, color = AppTextTertiary)
+            Text(stringResource(R.string.history_weight_format, maxWeight), style = AppTypography.labelSmall, color = AppTextTertiary)
         }
     }
 }
