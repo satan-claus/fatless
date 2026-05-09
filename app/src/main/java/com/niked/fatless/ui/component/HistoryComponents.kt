@@ -16,6 +16,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -45,6 +48,7 @@ import com.niked.fatless.ui.theme.AppTypography
 import com.niked.fatless.ui.theme.ColorCalories
 import com.niked.fatless.ui.theme.ColorCarbohydrates
 import com.niked.fatless.ui.theme.ColorFats
+import com.niked.fatless.ui.theme.ColorOverSteps
 import com.niked.fatless.ui.theme.ColorProteins
 import com.niked.fatless.ui.theme.ColorSteps
 import com.niked.fatless.ui.theme.ColorStepsToday
@@ -371,17 +375,31 @@ fun WeightChart(data: List<DailyActivity>) {
 @Composable
 fun ActivityChart(
     hourlySteps: String,
-    isToday: Boolean
+    isToday: Boolean,
+    stepGoal: Int
 ) {
-    val barColor = if (isToday) ColorStepsToday else ColorSteps
-
+    // 1. Парсим данные
     val data = try {
-        hourlySteps.split(",").map { it.toFloat() }
+        hourlySteps.split(",").map { it.toFloatOrNull() ?: 0f }
     } catch (e: Exception) {
         List(8) { 0f }
     }
 
-    val maxSteps = data.maxOrNull()?.coerceAtLeast(1f) ?: 1f
+    // 2. Вычисляем состояние дня
+    val totalSteps = data.sum().toInt()
+    val isGoalReached = totalSteps >= stepGoal
+
+    // Находим самый высокий столбик для звезды (только если есть шаги)
+    val maxStepsValue = data.maxOrNull() ?: 0f
+    val championIndex = if (isGoalReached && maxStepsValue > 0f) data.indexOf(maxStepsValue) else -1
+
+    // 3. Определяем цвета по твоему стандарту
+    val barColor = when {
+        isGoalReached -> ColorOverSteps // Фиолетовый
+        isToday -> ColorStepsToday      // Оранжевый
+        else -> ColorSteps              // Синий
+    }
+
     val labels = listOf(
         R.string.history_interval_0, R.string.history_interval_1,
         R.string.history_interval_2, R.string.history_interval_3,
@@ -395,6 +413,7 @@ fun ActivityChart(
             style = AppTypography.titleSmall,
             color = AppTextPrimary
         )
+
         Spacer(modifier = Modifier.height(20.dp))
 
         Row(
@@ -405,7 +424,10 @@ fun ActivityChart(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             data.forEachIndexed { index, steps ->
-                val barHeightFraction = (steps / maxSteps).coerceIn(0.05f, 1f)
+                // Рассчитываем высоту столбика (минимум 5% для видимости)
+                val barHeightFraction = if (maxStepsValue > 0) {
+                    (steps / maxStepsValue).coerceIn(0.05f, 1f)
+                } else 0.05f
 
                 Column(
                     modifier = Modifier
@@ -414,15 +436,18 @@ fun ActivityChart(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Bottom
                 ) {
+                    // Число шагов над столбиком
                     if (steps > 0) {
                         Text(
                             text = steps.toInt().toString(),
                             style = AppTypography.labelSmall,
-                            color = barColor, // 🎯 Текст в цвет столбика
-                            modifier = Modifier.padding(bottom = 2.dp)
+                            color = barColor,
+                            modifier = Modifier.padding(bottom = 2.dp),
+                            maxLines = 1
                         )
                     }
 
+                    // Контейнер столбика
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -434,13 +459,26 @@ fun ActivityChart(
                                 .fillMaxHeight(barHeightFraction)
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                                // 🎯 Используем barColor и системный цвет для пустых
-                                .background(if (steps > 0) barColor else AppTextTertiary.copy(alpha = 0.1f))
-                        )
+                                .background(if (steps > 0) barColor else AppTextTertiary.copy(alpha = 0.1f)),
+                            contentAlignment = Alignment.TopCenter
+                        ) {
+                            // ЗОЛОТАЯ ЗВЕЗДА ГЕРОЯ
+                            if (index == championIndex) {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null,
+                                    tint = Color(0xFFFFD700),
+                                    modifier = Modifier
+                                        .padding(top = 2.dp)
+                                        .size(10.dp)
+                                )
+                            }
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    // Подпись времени
                     Text(
                         text = stringResource(labels[index]),
                         style = AppTypography.labelSmall,
@@ -451,6 +489,7 @@ fun ActivityChart(
         }
     }
 }
+
 
 
 

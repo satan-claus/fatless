@@ -35,6 +35,8 @@ class HistoryViewModel @Inject constructor(
         activityRepository.getActivityForMonth(month.toString())
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    val stepGoal = settingsRepository.stepGoal
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val selectedDayActivity: StateFlow<DailyActivity?> = combine(
         monthData,

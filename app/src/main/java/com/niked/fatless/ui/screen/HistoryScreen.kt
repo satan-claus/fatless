@@ -94,7 +94,8 @@ fun HistoryScreen(
             if (selectedActivity != null) {
                 ActivityChart(
                     hourlySteps = selectedActivity!!.hourlySteps,
-                    isToday = isSelectedToday
+                    isToday = isSelectedToday,
+                    stepGoal = viewModel.stepGoal
                 )
             }
 
