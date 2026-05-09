@@ -34,12 +34,13 @@ import com.niked.fatless.ui.viewmodel.DashboardViewModel
 
 @Composable
 fun DashboardScreen(
-    onWorkoutClick: (String) -> Unit,
-    onEditWorkoutClick: (String) -> Unit,
     onAddWorkoutClick: () -> Unit,
+    onEditWorkoutClick: (String) -> Unit,
+    onExitClick: () -> Unit,
+    onHistoryClick: () -> Unit,
     onNutritionClick: () -> Unit,
     onSettingsClick: () -> Unit,
-    onExitClick: () -> Unit,
+    onWorkoutClick: (String) -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val workouts by viewModel.workouts.collectAsState()
@@ -84,7 +85,8 @@ fun DashboardScreen(
                     distance = distance,
                     burnedCalories = burnedCaloriesState,
                     stepGoal = viewModel.stepGoal,
-                    onClick = onNutritionClick
+                    onClick = onNutritionClick,
+                    onHistoryClick = onHistoryClick
                 )
             }
 

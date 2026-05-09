@@ -10,6 +10,7 @@ import androidx.navigation.navArgument
 import com.niked.fatless.ui.MainActivity
 import com.niked.fatless.ui.screen.DashboardScreen
 import com.niked.fatless.ui.screen.FoodFormScreen
+import com.niked.fatless.ui.screen.HistoryScreen
 import com.niked.fatless.ui.screen.NutritionScreen
 import com.niked.fatless.ui.screen.SettingsScreen
 import com.niked.fatless.ui.screen.WorkoutScreen
@@ -27,24 +28,27 @@ fun FatLessNavGraph() {
         // Dashboard - главный экран
         composable(Screen.Dashboard.route) {
             DashboardScreen(
-                onWorkoutClick = { id ->
-                    navController.navigate(Screen.WorkoutTimer.createRoute(id))
+                onAddWorkoutClick = {
+                    navController.navigate(Screen.WorkoutCreate.route)
                 },
                 onEditWorkoutClick = { id ->
                     navController.navigate(Screen.WorkoutCreate.editRoute(id))
                 },
-                onAddWorkoutClick = {
-                    navController.navigate(Screen.WorkoutCreate.route)
-                },
-                onSettingsClick = {
-                    navController.navigate(Screen.Settings.route)
-                },
                 onExitClick = {
                     (context as? MainActivity)?.minimizeApp()
+                },
+                onHistoryClick = {
+                    navController.navigate(Screen.History.route)
                 },
                 onNutritionClick = {
                     navController.navigate(Screen.Nutrition.route)
                 },
+                onSettingsClick = {
+                    navController.navigate(Screen.Settings.route)
+                },
+                onWorkoutClick = { id ->
+                    navController.navigate(Screen.WorkoutTimer.createRoute(id))
+                }
             )
         }
         // Экран добавления/удаления/редактирования справочника продуктов
@@ -64,6 +68,9 @@ fun FatLessNavGraph() {
             )
         ) {
             FoodFormScreen(onBackClick = { navController.popBackStack() })
+        }
+        composable(Screen.History.route) {
+            HistoryScreen(onBackClick = { navController.popBackStack() })
         }
         // Экран "Дневник питания"
         composable(Screen.Nutrition.route) {

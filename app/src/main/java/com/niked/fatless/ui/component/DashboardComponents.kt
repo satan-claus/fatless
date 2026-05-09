@@ -2,6 +2,7 @@ package com.niked.fatless.ui.component
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,10 +14,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +43,7 @@ import com.niked.fatless.ui.theme.AppRed
 import com.niked.fatless.ui.theme.AppSurface
 import com.niked.fatless.ui.theme.AppTextPrimary
 import com.niked.fatless.ui.theme.AppTextSecondary
+import com.niked.fatless.ui.theme.AppTextTertiary
 import com.niked.fatless.ui.theme.AppTypography
 import com.niked.fatless.ui.theme.ColorSteps
 import com.niked.fatless.ui.viewmodel.NutritionUiState
@@ -52,7 +56,8 @@ fun DailySummaryCard(
     distance: Float,
     burnedCalories: Float,
     stepGoal: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onHistoryClick: () -> Unit
 ) {
     // Флаг, чтобы понять: мы только открыли экран или уже работаем
     var isFirstLoad by remember { mutableStateOf(true) }
@@ -91,73 +96,96 @@ fun DailySummaryCard(
         colors = CardDefaults.cardColors(containerColor = AppSurface),
         border = BorderStroke(1.dp, AppBorder)
     ) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            NutritionalValueView(
-                proteins = nutrition.totalProteins,
-                fats = nutrition.totalFats,
-                carbs = nutrition.totalCarbs,
-                calories = nutrition.totalCalories.toInt(),
-                size = 100.dp
-            )
-
-            Spacer(modifier = Modifier.width(20.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(R.string.daily_summary_today),
-                    style = AppTypography.titleMedium,
-                    color = AppTextPrimary
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.padding(20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                NutritionalValueView(
+                    proteins = nutrition.totalProteins,
+                    fats = nutrition.totalFats,
+                    carbs = nutrition.totalCarbs,
+                    calories = nutrition.totalCalories.toInt(),
+                    size = 100.dp
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.width(20.dp))
 
-                Text(
-                    text = stringResource(R.string.daily_summary_steps_format, displaySteps, stepGoal),
-                    style = AppTypography.labelMedium,
-                    color = ColorSteps
-                )
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 4.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_location_on_24),
-                        contentDescription = stringResource(R.string.content_description_location),
-                        modifier = Modifier.size(14.dp),
-                        tint = AppRed
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(R.string.daily_summary_distance_format, distance),
-                        style = AppTypography.bodySmall,
-                        color = AppTextSecondary
+                        text = stringResource(R.string.daily_summary_today),
+                        style = AppTypography.titleMedium,
+                        color = AppTextPrimary
                     )
 
-                    Spacer(modifier = Modifier.width(16.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_fire_24),
-                        contentDescription = stringResource(R.string.content_description_burned_calories),
-                        modifier = Modifier.size(14.dp),
-                        tint = AppOrange
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = stringResource(R.string.daily_summary_burned_format, displayBurned.toInt()),
-                        style = AppTypography.bodySmall,
-                        color = AppTextSecondary
+                        text = stringResource(
+                            R.string.daily_summary_steps_format,
+                            displaySteps,
+                            stepGoal
+                        ),
+                        style = AppTypography.labelMedium,
+                        color = ColorSteps
+                    )
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_location_on_24),
+                            contentDescription = stringResource(R.string.content_description_location),
+                            modifier = Modifier.size(14.dp),
+                            tint = AppRed
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = stringResource(R.string.daily_summary_distance_format, distance),
+                            style = AppTypography.bodySmall,
+                            color = AppTextSecondary
+                        )
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_fire_24),
+                            contentDescription = stringResource(R.string.content_description_burned_calories),
+                            modifier = Modifier.size(14.dp),
+                            tint = AppOrange
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = stringResource(
+                                R.string.daily_summary_burned_format,
+                                displayBurned.toInt()
+                            ),
+                            style = AppTypography.bodySmall,
+                            color = AppTextSecondary
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    OverstepLinearProgress(
+                        steps = steps,
+                        stepGoal = stepGoal
                     )
                 }
+            }
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                OverstepLinearProgress(
-                    steps = steps,
-                    stepGoal = stepGoal
+            IconButton(
+                onClick = onHistoryClick,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.DateRange,
+                    contentDescription = "История",
+                    tint = AppTextTertiary,
+                    modifier = Modifier.size(20.dp)
                 )
             }
         }
