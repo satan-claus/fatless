@@ -22,6 +22,7 @@ object Constants {
     const val PREF_CURRENT_MET = "pref_current_met"
     const val PREF_IS_MANUAL_TRACKING = "pref_is_manual_tracking"
     const val PREF_TODAY_BURNED_CALORIES = "pref_today_burned_calories"
+    const val PREF_HOURLY_STEPS = "pref_today_hourly_steps"
 
     // Actions для управления сервисом
     const val ACTION_START_MANUAL = "ACTION_START_MANUAL"

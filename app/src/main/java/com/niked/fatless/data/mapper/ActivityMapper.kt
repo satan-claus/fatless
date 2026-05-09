@@ -12,6 +12,7 @@ fun DailyActivityEntity.toDomain(): DailyActivity {
         proteins = this.proteins,
         fats = this.fats,
         carbs = this.carbs,
-        weight = this.weight
+        weight = this.weight,
+        hourlySteps = this.hourlySteps
     )
 }

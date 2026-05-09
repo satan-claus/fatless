@@ -8,5 +8,6 @@ data class DailyActivity(
     val proteins: Float,
     val fats: Float,
     val carbs: Float,
-    val weight: Float
+    val weight: Float,
+    val hourlySteps: String
 )

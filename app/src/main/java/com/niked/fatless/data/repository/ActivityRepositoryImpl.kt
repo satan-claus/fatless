@@ -21,14 +21,20 @@ class ActivityRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun saveSteps(date: String, steps: Int, currentWeight: Float) {
-        val current = activityDao.getActivityByDate(date) ?: DailyActivityEntity(date)
-        // Считаем расход здесь и сейчас
-        val burned = steps.toFloat() * currentWeight * 0.0005f
+    override suspend fun saveSteps(
+        date: String,
+        steps: Int,
+        burnedCalories: Float,
+        currentWeight: Float,
+        hourlySteps: String
+    ) {
+        val entity = activityDao.getActivityByDateOnce(date) ?: DailyActivityEntity(date = date)
         activityDao.insertActivity(
-            current.copy(
+            entity.copy(
                 steps = steps,
-                burnedCalories = burned
+                burnedCalories = burnedCalories,
+                weight = currentWeight,
+                hourlySteps = hourlySteps
             )
         )
     }

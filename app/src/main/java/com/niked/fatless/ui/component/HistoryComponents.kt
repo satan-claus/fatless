@@ -43,6 +43,52 @@ import com.niked.fatless.ui.theme.AppTextPrimary
 import com.niked.fatless.ui.theme.AppTextSecondary
 import com.niked.fatless.ui.theme.AppTextTertiary
 import com.niked.fatless.ui.theme.AppTypography
+import java.time.LocalDate
+import java.time.YearMonth
+
+@Composable
+fun CalendarGrid(
+    month: YearMonth,
+    selectedDate: LocalDate,
+    monthData: List<DailyActivity>,
+    onDateClick: (LocalDate) -> Unit
+) {
+    val daysInMonth = month.lengthOfMonth()
+    val firstDayOfWeek = month.atDay(1).dayOfWeek.value
+    val offset = firstDayOfWeek - 1
+
+    // Весь список ячеек (пустые + числа)
+    val totalCells = offset + daysInMonth
+    val rows = (totalCells + 6) / 7
+
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        for (row in 0 until rows) {
+            Row(modifier = Modifier.fillMaxWidth()) {
+                for (column in 0 until 7) {
+                    val cellIndex = row * 7 + column
+                    val dayNumber = cellIndex - offset + 1
+
+                    Box(modifier = Modifier.weight(1f)) {
+                        if (dayNumber in 1..daysInMonth) {
+                            val date = month.atDay(dayNumber)
+                            val hasData = monthData.any { it.date == date.toString() }
+
+                            DayItem(
+                                day = dayNumber,
+                                isSelected = selectedDate == date,
+                                hasData = hasData,
+                                isToday = date == LocalDate.now(),
+                                onClick = { onDateClick(date) }
+                            )
+                        } else {
+                            Spacer(modifier = Modifier.aspectRatio(1f))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun DaysOfWeekHeader() {
@@ -301,6 +347,65 @@ fun WeightChart(data: List<DailyActivity>) {
                     style = AppTypography.labelSmall,
                     color = AppTextTertiary
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun ActivityChart(hourlySteps: String) {
+    val data = try {
+        hourlySteps.split(",").map { it.toFloat() }
+    } catch (e: Exception) {
+        List(8) { 0f }
+    }
+
+    val maxSteps = data.maxOrNull()?.coerceAtLeast(1f) ?: 1f
+    val labels = listOf(
+        R.string.history_interval_0, R.string.history_interval_1,
+        R.string.history_interval_2, R.string.history_interval_3,
+        R.string.history_interval_4, R.string.history_interval_5,
+        R.string.history_interval_6, R.string.history_interval_7
+    )
+
+    Column(modifier = Modifier.padding(24.dp)) {
+        Text(
+            text = stringResource(R.string.history_activity_chart_title),
+            style = AppTypography.titleSmall,
+            color = AppTextPrimary
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp),
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            data.forEachIndexed { index, steps ->
+                val barHeightFraction = (steps / maxSteps).coerceIn(0.05f, 1f)
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Столбик
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight(barHeightFraction)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                            .background(if (steps > 0) AppSecondary else AppTextTertiary.copy(alpha = 0.1f))
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    // Подпись
+                    Text(
+                        text = stringResource(labels[index]),
+                        style = AppTypography.labelSmall,
+                        color = AppTextTertiary
+                    )
+                }
             }
         }
     }

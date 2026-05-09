@@ -7,6 +7,7 @@ import com.niked.fatless.core.utils.Constants.PREFS_NAME
 import com.niked.fatless.core.utils.Constants.PREF_AUTO_FINISH_ON_GOAL
 import com.niked.fatless.core.utils.Constants.PREF_CURRENT_MANUAL_STEPS
 import com.niked.fatless.core.utils.Constants.PREF_CURRENT_MET
+import com.niked.fatless.core.utils.Constants.PREF_HOURLY_STEPS
 import com.niked.fatless.core.utils.Constants.PREF_IS_FIRST_LAUNCH
 import com.niked.fatless.core.utils.Constants.PREF_IS_MANUAL_TRACKING
 import com.niked.fatless.core.utils.Constants.PREF_IS_SOUND_ENABLED
@@ -90,6 +91,10 @@ class SettingsRepositoryImpl @Inject constructor(
     override var todayBurnedCalories: Float
         get() = prefs.getFloat(PREF_TODAY_BURNED_CALORIES, 0f)
         set(value) = prefs.edit { putFloat(PREF_TODAY_BURNED_CALORIES, value) }
+
+    override var todayHourlySteps: String
+        get() = prefs.getString(PREF_HOURLY_STEPS, "0,0,0,0,0,0,0,0") ?: "0,0,0,0,0,0,0,0"
+        set(value) = prefs.edit { putString(PREF_HOURLY_STEPS, value) }
 
     override fun observeSteps(onStepsChanged: (Int) -> Unit): SharedPreferences.OnSharedPreferenceChangeListener {
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->

@@ -5,7 +5,13 @@ import kotlinx.coroutines.flow.Flow
 
 interface IActivityRepository {
     fun getActivityHistory(): Flow<List<DailyActivity>>
-    suspend fun saveSteps(date: String, steps: Int, currentWeight: Float)
+    suspend fun saveSteps(
+        date: String,
+        steps: Int,
+        burnedCalories: Float,
+        currentWeight: Float,
+        hourlySteps: String
+    )
     suspend fun saveNutrition(date: String, cal: Int, p: Float, f: Float, c: Float)
     fun getActivityForMonth(month: String): Flow<List<DailyActivity>>
     suspend fun getLatestWeight(): Float

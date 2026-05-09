@@ -18,6 +18,8 @@ interface ISettingsRepository {
     var autoFinishOnGoal: Boolean
     var currentMetModifier: Float
     var todayBurnedCalories: Float
+    // Храним как "0,0,500,..."
+    var todayHourlySteps: String
 
     fun observeSteps(onStepsChanged: (Int) -> Unit): SharedPreferences.OnSharedPreferenceChangeListener
 

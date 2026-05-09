@@ -30,6 +30,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
@@ -106,27 +107,36 @@ class StepService : LifecycleService(), SensorEventListener {
             val totalStepsSinceBoot = event.values[0].toInt()
             val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
-            // 1. СМЕНА ДНЯ
+            // 1. СМЕНА ДНЯ (Сброс и сохранение)
             if (settingsRepository.lastStepResetDate != today) {
                 val yesterdayDate = settingsRepository.lastStepResetDate
                 val yesterdaySteps = settingsRepository.todaySteps
                 val yesterdayCalories = settingsRepository.todayBurnedCalories
+                val yesterdayWeight = settingsRepository.userWeight // Берем вес из префсов
+                val hourlyData = settingsRepository.todayHourlySteps // Берем накопленные часы
 
                 if (yesterdayDate.isNotEmpty() && (yesterdaySteps > 0 || yesterdayCalories > 0)) {
-                    // Используем lifecycleScope для чистоты
                     lifecycleScope.launch(Dispatchers.IO) {
-                        activityRepository.saveSteps(yesterdayDate, yesterdaySteps, yesterdayCalories)
+                        activityRepository.saveSteps(
+                            date = yesterdayDate,
+                            steps = yesterdaySteps,
+                            burnedCalories = yesterdayCalories,
+                            currentWeight = yesterdayWeight,
+                            hourlySteps = hourlyData
+                        )
                     }
                 }
 
+                // СБРОС ДАННЫХ ДЛЯ НОВОГО ДНЯ
                 settingsRepository.stepBaseCount = totalStepsSinceBoot
                 settingsRepository.lastStepResetDate = today
                 settingsRepository.todaySteps = 0
                 settingsRepository.todayBurnedCalories = 0f
+                settingsRepository.todayHourlySteps = "0,0,0,0,0,0,0,0"
                 if (!settingsRepository.isManualTracking) settingsRepository.manualBaseSteps = -1
             }
 
-            // 2. ИНИЦИАЛИЗАЦИЯ И ЗАЩИТА ОТ РЕБУТА
+            // 2. ИНИЦИАЛИЗАЦИЯ (Защита от ребута)
             if (settingsRepository.stepBaseCount <= 0) {
                 settingsRepository.stepBaseCount = totalStepsSinceBoot
             }
@@ -134,22 +144,34 @@ class StepService : LifecycleService(), SensorEventListener {
                 settingsRepository.stepBaseCount = totalStepsSinceBoot - settingsRepository.todaySteps
             }
 
-            // 3. РАСЧЕТ ДЕЛЬТЫ И ОБНОВЛЕНИЕ ПРЕФСОВ
+            // 3. РАСЧЕТ ДЕЛЬТЫ И ОБНОВЛЕНИЕ ДАННЫХ (Активный режим)
             val dailySteps = totalStepsSinceBoot - settingsRepository.stepBaseCount
             if (dailySteps >= 0 && dailySteps != settingsRepository.todaySteps) {
                 val delta = dailySteps - settingsRepository.todaySteps
 
-                // Расчет сожженного за эти конкретные шаги
-                val weight = settingsRepository.userWeight.toFloat()
+                val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+                val intervalIndex = (currentHour / 3).coerceIn(0, 7)
+
+                val stepsArray = settingsRepository.todayHourlySteps.split(",")
+                    .map { it.toIntOrNull() ?: 0 }
+                    .toMutableList()
+
+                if (stepsArray.size == 8) {
+                    stepsArray[intervalIndex] += delta
+                    settingsRepository.todayHourlySteps = stepsArray.joinToString(",")
+                }
+
+                // РАСЧЕТ КАЛОРИЙ
+                val weight = settingsRepository.userWeight
                 val met = settingsRepository.currentMetModifier
                 val calorieIncrement = delta * weight * (met / 7000f)
 
-                // Пишем в префсы (мгновенно)
+                // ПИШЕМ В ПРЕФСЫ
                 settingsRepository.todaySteps = dailySteps
                 settingsRepository.todayBurnedCalories += calorieIncrement
             }
 
-            // 4. РУЧНОЙ ЗАМЕР (БЕЗ ИЗМЕНЕНИЙ)
+            // 4. РУЧНОЙ ЗАМЕР
             var currentManual = settingsRepository.currentManualSteps
             if (settingsRepository.isManualTracking) {
                 if (settingsRepository.manualBaseSteps == -1 || totalStepsSinceBoot < settingsRepository.manualBaseSteps) {

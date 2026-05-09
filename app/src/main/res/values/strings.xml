@@ -73,6 +73,15 @@
     <string name="history_grams_format">%1$dг</string>
     <string name="history_weight_chart">Динамика веса</string>
     <string name="history_weight_format">%1$.1f кг</string>
+    <string name="history_activity_chart_title">Активность по часам</string>
+    <string name="history_interval_0">00</string>
+    <string name="history_interval_1">03</string>
+    <string name="history_interval_2">06</string>
+    <string name="history_interval_3">09</string>
+    <string name="history_interval_4">12</string>
+    <string name="history_interval_5">15</string>
+    <string name="history_interval_6">18</string>
+    <string name="history_interval_7">21</string>
 
     <!-- WORKOUT SCREENS -->
     <string name="workout_create_title">Новая тренировка</string>
