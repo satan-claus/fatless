@@ -16,8 +16,8 @@ interface ISettingsRepository {
     var isSoundEnabled: Boolean
     var soundVolume: Float
     var autoFinishOnGoal: Boolean
-
     var currentMetModifier: Float
+    var todayBurnedCalories: Float
 
     fun observeSteps(onStepsChanged: (Int) -> Unit): SharedPreferences.OnSharedPreferenceChangeListener
 

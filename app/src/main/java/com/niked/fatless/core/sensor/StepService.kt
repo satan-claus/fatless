@@ -4,7 +4,6 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.graphics.BitmapFactory
@@ -17,6 +16,8 @@ import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.toColorInt
+import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.lifecycleScope
 import com.niked.fatless.R
 import com.niked.fatless.core.utils.Constants
 import com.niked.fatless.domain.repository.IActivityRepository
@@ -34,7 +35,7 @@ import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class StepService : Service(), SensorEventListener {
+class StepService : LifecycleService(), SensorEventListener {
 
     @Inject
     lateinit var settingsRepository: ISettingsRepository
@@ -73,6 +74,8 @@ class StepService : Service(), SensorEventListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
+
         when (intent?.action) {
             Constants.ACTION_START_MANUAL -> {
                 settingsRepository.isManualTracking = true
@@ -103,36 +106,50 @@ class StepService : Service(), SensorEventListener {
             val totalStepsSinceBoot = event.values[0].toInt()
             val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
+            // 1. СМЕНА ДНЯ
             if (settingsRepository.lastStepResetDate != today) {
                 val yesterdayDate = settingsRepository.lastStepResetDate
                 val yesterdaySteps = settingsRepository.todaySteps
+                val yesterdayCalories = settingsRepository.todayBurnedCalories
 
-                // СОХРАНЯЕМ ВЧЕРАШНИЙ ДЕНЬ В БАЗУ
-                if (yesterdayDate.isNotEmpty() && yesterdaySteps > 0) {
-                    serviceScope.launch {
-                        activityRepository.saveSteps(yesterdayDate, yesterdaySteps, settingsRepository.userWeight.toFloat())
+                if (yesterdayDate.isNotEmpty() && (yesterdaySteps > 0 || yesterdayCalories > 0)) {
+                    // Используем lifecycleScope для чистоты
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        activityRepository.saveSteps(yesterdayDate, yesterdaySteps, yesterdayCalories)
                     }
                 }
 
                 settingsRepository.stepBaseCount = totalStepsSinceBoot
                 settingsRepository.lastStepResetDate = today
                 settingsRepository.todaySteps = 0
+                settingsRepository.todayBurnedCalories = 0f
                 if (!settingsRepository.isManualTracking) settingsRepository.manualBaseSteps = -1
             }
 
+            // 2. ИНИЦИАЛИЗАЦИЯ И ЗАЩИТА ОТ РЕБУТА
             if (settingsRepository.stepBaseCount <= 0) {
                 settingsRepository.stepBaseCount = totalStepsSinceBoot
             }
-
             if (totalStepsSinceBoot < settingsRepository.stepBaseCount) {
                 settingsRepository.stepBaseCount = totalStepsSinceBoot - settingsRepository.todaySteps
             }
 
+            // 3. РАСЧЕТ ДЕЛЬТЫ И ОБНОВЛЕНИЕ ПРЕФСОВ
             val dailySteps = totalStepsSinceBoot - settingsRepository.stepBaseCount
             if (dailySteps >= 0 && dailySteps != settingsRepository.todaySteps) {
+                val delta = dailySteps - settingsRepository.todaySteps
+
+                // Расчет сожженного за эти конкретные шаги
+                val weight = settingsRepository.userWeight.toFloat()
+                val met = settingsRepository.currentMetModifier
+                val calorieIncrement = delta * weight * (met / 7000f)
+
+                // Пишем в префсы (мгновенно)
                 settingsRepository.todaySteps = dailySteps
+                settingsRepository.todayBurnedCalories += calorieIncrement
             }
 
+            // 4. РУЧНОЙ ЗАМЕР (БЕЗ ИЗМЕНЕНИЙ)
             var currentManual = settingsRepository.currentManualSteps
             if (settingsRepository.isManualTracking) {
                 if (settingsRepository.manualBaseSteps == -1 || totalStepsSinceBoot < settingsRepository.manualBaseSteps) {
@@ -201,7 +218,10 @@ class StepService : Service(), SensorEventListener {
         manager.notify(Constants.STEP_NOTIFICATION_ID, createNotification(daily, manual))
     }
 
-    override fun onBind(intent: Intent?): IBinder? = null
+    override fun onBind(intent: Intent): IBinder? {
+        super.onBind(intent)
+        return null
+    }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
