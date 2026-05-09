@@ -7,23 +7,29 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.niked.fatless.domain.repository.ISettingsRepository
 import com.niked.fatless.ui.MainActivity
 import com.niked.fatless.ui.screen.DashboardScreen
 import com.niked.fatless.ui.screen.FoodFormScreen
 import com.niked.fatless.ui.screen.HistoryScreen
 import com.niked.fatless.ui.screen.NutritionScreen
 import com.niked.fatless.ui.screen.SettingsScreen
+import com.niked.fatless.ui.screen.SetupProfileScreen
 import com.niked.fatless.ui.screen.WorkoutScreen
 import com.niked.fatless.ui.screen.WorkoutCreateScreen
 
 @Composable
-fun FatLessNavGraph() {
+fun FatLessNavGraph(
+    settingsRepository: ISettingsRepository
+) {
     val navController = rememberNavController()
     val context = LocalContext.current
 
+    val startDestination = if (settingsRepository.isFirstLaunch) Screen.SetupProfile.route else Screen.Dashboard.route
+
     NavHost(
         navController = navController,
-        startDestination = Screen.Dashboard.route
+        startDestination = startDestination
     ) {
         // Dashboard - главный экран
         composable(Screen.Dashboard.route) {
@@ -91,6 +97,15 @@ fun FatLessNavGraph() {
             SettingsScreen(
                 onBackClick = { navController.popBackStack() }
             )
+        }
+        // Экран первоначальных установок
+        composable(Screen.SetupProfile.route) {
+            SetupProfileScreen(onSuccess = {
+                // Уходим на Дашборд и ЧИСТИМ стек, чтобы нельзя было вернуться назад
+                navController.navigate(Screen.Dashboard.route) {
+                    popUpTo(route = Screen.SetupProfile.route) { inclusive = true }
+                }
+            })
         }
         // Конструктор (Создание)
         composable(

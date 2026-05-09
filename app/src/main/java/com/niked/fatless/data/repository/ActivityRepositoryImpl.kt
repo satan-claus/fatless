@@ -50,4 +50,17 @@ class ActivityRepositoryImpl @Inject constructor(
             list.map { it.toDomain() }
         }
     }
+
+    override suspend fun getLatestWeight(): Float {
+        // Ищем последний вес в базе. Если база пуста (чего быть не должно после онбординга) — берем 75кг как заглушку.
+        return activityDao.getLatestWeight() ?: 75f
+    }
+
+    override suspend fun saveWeight(date: String, weight: Float) {
+        // 1. Пытаемся найти запись за сегодня
+        val entity = activityDao.getActivityByDateOnce(date) ?: DailyActivityEntity(date = date)
+
+        // 2. Копируем её с новым весом и сохраняем
+        activityDao.insertActivity(entity.copy(weight = weight))
+    }
 }

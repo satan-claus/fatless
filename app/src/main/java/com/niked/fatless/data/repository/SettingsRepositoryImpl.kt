@@ -39,9 +39,9 @@ class SettingsRepositoryImpl @Inject constructor(
         get() = prefs.getInt(PREF_USER_HEIGHT, 175)
         set(value) = prefs.edit { putInt(PREF_USER_HEIGHT, value) }
 
-    override var userWeight: Int
-        get() = prefs.getInt(PREF_USER_WEIGHT, 75)
-        set(value) = prefs.edit { putInt(PREF_USER_WEIGHT, value) }
+    override var userWeight: Float
+        get() = prefs.getFloat(PREF_USER_WEIGHT, 75.0f)
+        set(value) = prefs.edit { putFloat(PREF_USER_WEIGHT, value) }
 
     override var stepBaseCount: Int
         get() = prefs.getInt(PREF_STEP_BASE_COUNT, -1)

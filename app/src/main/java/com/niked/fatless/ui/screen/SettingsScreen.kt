@@ -115,8 +115,8 @@ fun SettingsScreen(
                 )
                 // ВЕС
                 OutlinedTextField(
-                    value = if (state.userWeight == 0) "" else state.userWeight.toString(),
-                    onValueChange = { val v = it.filter { c -> c.isDigit() }; if (v.length <= 3) viewModel.updateWeight(v.toIntOrNull() ?: 0) },
+                    value = if (state.userWeight == 0.0f) "" else state.userWeight.toString(),
+                    onValueChange = { val v = it.filter { c -> c.isDigit() }; if (v.length <= 3) viewModel.updateWeight(v.toFloatOrNull() ?: 0.0f) },
                     label = { Text(stringResource(R.string.settings_label_weight)) },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),

@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 interface ISettingsRepository {
     var isFirstLaunch: Boolean
     var userHeight: Int
-    var userWeight: Int
+    var userWeight: Float
     var stepBaseCount: Int
     var manualBaseSteps: Int
     var lastStepResetDate: String

@@ -21,4 +21,9 @@ interface ActivityDao {
     @Query("SELECT * FROM daily_activity WHERE date LIKE :monthPrefix || '%' ORDER BY date ASC")
     fun getActivityForMonth(monthPrefix: String): Flow<List<DailyActivityEntity>>
 
+    @Query("SELECT weight FROM daily_activity WHERE weight > 0 ORDER BY date DESC LIMIT 1")
+    suspend fun getLatestWeight(): Float?
+
+    @Query("SELECT * FROM daily_activity WHERE date = :date LIMIT 1")
+    suspend fun getActivityByDateOnce(date: String): DailyActivityEntity?
 }

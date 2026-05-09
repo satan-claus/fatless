@@ -8,4 +8,6 @@ interface IActivityRepository {
     suspend fun saveSteps(date: String, steps: Int, currentWeight: Float)
     suspend fun saveNutrition(date: String, cal: Int, p: Float, f: Float, c: Float)
     fun getActivityForMonth(month: String): Flow<List<DailyActivity>>
+    suspend fun getLatestWeight(): Float
+    suspend fun saveWeight(date: String, weight: Float)
 }

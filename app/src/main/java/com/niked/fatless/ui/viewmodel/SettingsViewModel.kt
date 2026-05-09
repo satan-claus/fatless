@@ -59,7 +59,7 @@ class SettingsViewModel @Inject constructor(
         _uiState.update { it.copy(userHeight = newHeight) }
     }
 
-    fun updateWeight(newWeight: Int) {
+    fun updateWeight(newWeight: Float) {
         settingsRepository.userWeight = newWeight
         _uiState.update { it.copy(userWeight = newWeight) }
     }
@@ -70,6 +70,6 @@ data class SettingsUiState(
     val soundVolume: Float = 1.0f,
     val stepGoal: Int = 10000,
     val userHeight: Int = 175,
-    val userWeight: Int = 75,
+    val userWeight: Float = 75.0f,
     val autoFinishOnGoal: Boolean = false
 )

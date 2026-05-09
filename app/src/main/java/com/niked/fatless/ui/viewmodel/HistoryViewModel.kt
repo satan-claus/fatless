@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
 import java.time.YearMonth
@@ -38,19 +39,19 @@ class HistoryViewModel @Inject constructor(
         data.find { it.date == selected.toString() }
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-//    val weightData: StateFlow<List<DailyActivity>> = monthData.map { list ->
-//        list.filter { it.weight > 0 }.sortedBy { it.date }
-//    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val weightData: StateFlow<List<DailyActivity>> = monthData.map { list ->
+        list.filter { it.weight > 0 }.sortedBy { it.date }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    // ВРЕМЕННО для теста (потом удалишь)
-    val weightData: StateFlow<List<DailyActivity>> = MutableStateFlow(
-        listOf(
-            DailyActivity(date = "2024-05-01", steps = 0, consumedCalories = 0f, burnedCalories = 0f, proteins = 0f, fats = 0f, carbs = 0f, weight = 85.5f),
-            DailyActivity(date = "2024-05-03", steps = 0, consumedCalories = 0f, burnedCalories = 0f, proteins = 0f, fats = 0f, carbs = 0f, weight = 84.8f),
-            DailyActivity(date = "2024-05-05", steps = 0, consumedCalories = 0f, burnedCalories = 0f, proteins = 0f, fats = 0f, carbs = 0f, weight = 85.2f),
-            DailyActivity(date = "2024-05-07", steps = 0, consumedCalories = 0f, burnedCalories = 0f, proteins = 0f, fats = 0f, carbs = 0f, weight = 83.9f)
-        )
-    ).stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+//    // ВРЕМЕННО для теста (потом удалишь)
+//    val weightData: StateFlow<List<DailyActivity>> = MutableStateFlow(
+//        listOf(
+//            DailyActivity(date = "2024-05-01", steps = 0, consumedCalories = 0f, burnedCalories = 0f, proteins = 0f, fats = 0f, carbs = 0f, weight = 85.5f),
+//            DailyActivity(date = "2024-05-03", steps = 0, consumedCalories = 0f, burnedCalories = 0f, proteins = 0f, fats = 0f, carbs = 0f, weight = 84.8f),
+//            DailyActivity(date = "2024-05-05", steps = 0, consumedCalories = 0f, burnedCalories = 0f, proteins = 0f, fats = 0f, carbs = 0f, weight = 85.2f),
+//            DailyActivity(date = "2024-05-07", steps = 0, consumedCalories = 0f, burnedCalories = 0f, proteins = 0f, fats = 0f, carbs = 0f, weight = 83.9f)
+//        )
+//    ).stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     fun selectDate(date: LocalDate) {
         _selectedDate.value = date

@@ -24,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -201,13 +202,15 @@ fun BjuItem(label: String, value: Float, color: Color) {
 
 @Composable
 fun WeightChart(data: List<DailyActivity>) {
-    // Для графика нужно хотя бы 2 точки
-    if (data.size < 2) return
+    // Если данных нет совсем — уходим
+    if (data.isEmpty()) return
 
     val weights = data.map { it.weight }
     val minWeight = weights.minOrNull() ?: 0f
     val maxWeight = weights.maxOrNull() ?: 0f
-    val range = (maxWeight - minWeight).coerceAtLeast(1f)
+
+    // Защита от деления на 0: если вес один и тот же, берем диапазон в 2 кг
+    val range = (maxWeight - minWeight).let { if (it == 0f) 2f else it }
 
     Column(modifier = Modifier.padding(24.dp)) {
         Text(
@@ -218,28 +221,39 @@ fun WeightChart(data: List<DailyActivity>) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Canvas(modifier = Modifier.fillMaxWidth().height(150.dp)) {
-            val paddingPx = 8.dp.toPx() // Отступ, чтобы крайние точки не обрезались
+            val paddingPx = 8.dp.toPx()
             val usableWidth = size.width - (paddingPx * 2)
             val height = size.height
 
-            // Интервал между точками теперь считается от полезной ширины
-            val spacing = if (data.size > 1) usableWidth / (data.size - 1) else 0f
+            // 1. РИСУЕМ ФОНОВУЮ СЕТКУ (Min / Max линии)
+            val dashEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+            // Линия Max
+            drawLine(
+                color = AppTextTertiary.copy(alpha = 0.2f),
+                start = Offset(0f, 0f),
+                end = Offset(size.width, 0f),
+                pathEffect = dashEffect
+            )
+            // Линия Min
+            drawLine(
+                color = AppTextTertiary.copy(alpha = 0.2f),
+                start = Offset(0f, height),
+                end = Offset(size.width, height),
+                pathEffect = dashEffect
+            )
 
-            val points = data.indices.map { i ->
-                // Добавляем paddingPx к каждому X, чтобы сдвинуть весь график вправо
-                val x = i * spacing + paddingPx
-                // Рассчитываем Y (тут все верно, но можно добавить небольшой отступ сверху/снизу)
-                val y = height - ((data[i].weight - minWeight) / range) * height
-                Offset(x, y)
-            }
+            if (data.size > 1) {
+                // 2. РИСУЕМ ТРЕНД (если 2+ точки)
+                val spacing = usableWidth / (data.size - 1)
+                val points = data.indices.map { i ->
+                    val x = i * spacing + paddingPx
+                    val y = height - ((data[i].weight - minWeight) / range) * height
+                    Offset(x, y)
+                }
 
-            // 1. Рисуем линию
-            if (points.isNotEmpty()) {
                 val path = Path().apply {
                     moveTo(points.first().x, points.first().y)
-                    for (i in 1 until points.size) {
-                        lineTo(points[i].x, points[i].y)
-                    }
+                    for (i in 1 until points.size) lineTo(points[i].x, points[i].y)
                 }
 
                 drawPath(
@@ -248,26 +262,47 @@ fun WeightChart(data: List<DailyActivity>) {
                     style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
                 )
 
-                // 2. Рисуем точки (поверх линии)
                 points.forEach { point ->
-                    drawCircle(
-                        color = AppSecondary,
-                        radius = 4.dp.toPx(),
-                        center = point
-                    )
-                    drawCircle(
-                        color = Color.White,
-                        radius = 2.dp.toPx(),
-                        center = point
-                    )
+                    drawCircle(AppSecondary, 4.dp.toPx(), point)
+                    drawCircle(Color.White, 2.dp.toPx(), point)
                 }
+            } else {
+                // 3. РИСУЕМ ОДНУ ТОЧКУ (если замер только один)
+                val centerPoint = Offset(size.width / 2, height / 2)
+                drawCircle(AppSecondary, 6.dp.toPx(), centerPoint)
+                drawCircle(Color.White, 3.dp.toPx(), centerPoint)
             }
         }
 
-        // Подписи min/max
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 4. УМНЫЕ ПОДПИСИ (Логика: Начало -> Текущий)
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(stringResource(R.string.history_weight_format, minWeight), style = AppTypography.labelSmall, color = AppTextTertiary)
-            Text(stringResource(R.string.history_weight_format, maxWeight), style = AppTypography.labelSmall, color = AppTextTertiary)
+            if (data.size > 1) {
+                // Вес самого первого дня в списке
+                Text(
+                    text = stringResource(R.string.history_weight_format, data.first().weight),
+                    style = AppTypography.labelSmall,
+                    color = AppTextTertiary
+                )
+                // Вес последнего дня в списке (сегодня)
+                Text(
+                    text = stringResource(R.string.history_weight_format, data.last().weight),
+                    style = AppTypography.labelSmall,
+                    color = AppSecondary,
+                    fontWeight = FontWeight.Bold
+                )
+            } else {
+                // Если точка одна
+                Text(
+                    text = "Старт: ${data.first().weight} кг",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    style = AppTypography.labelSmall,
+                    color = AppTextTertiary
+                )
+            }
         }
     }
 }
+

@@ -16,6 +16,7 @@ import androidx.work.WorkManager
 import com.niked.fatless.core.audio.AndroidAudioPlayer
 import com.niked.fatless.core.sensor.StepService
 import com.niked.fatless.core.sensor.StepRestartWorker
+import com.niked.fatless.domain.repository.ISettingsRepository
 import com.niked.fatless.ui.navigation.FatLessNavGraph
 import com.niked.fatless.ui.theme.FatLessTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -24,6 +25,9 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var settingsRepository: ISettingsRepository
 
     @Inject
     lateinit var audioPlayer: AndroidAudioPlayer
@@ -50,7 +54,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             FatLessTheme {
-                FatLessNavGraph()
+                FatLessNavGraph(settingsRepository = settingsRepository)
             }
         }
     }
