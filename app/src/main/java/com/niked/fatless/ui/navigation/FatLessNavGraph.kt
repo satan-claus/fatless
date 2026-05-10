@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.niked.fatless.domain.repository.ISettingsRepository
 import com.niked.fatless.ui.MainActivity
+import com.niked.fatless.ui.screen.BleScanScreen
 import com.niked.fatless.ui.screen.DashboardScreen
 import com.niked.fatless.ui.screen.FoodFormScreen
 import com.niked.fatless.ui.screen.HistoryScreen
@@ -32,6 +33,12 @@ fun FatLessNavGraph(
         navController = navController,
         startDestination = startDestination
     ) {
+        // ЭКРАН СКАНЕРА
+        composable(Screen.BleScan.route) {
+            BleScanScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
         // Dashboard - главный экран
         composable(Screen.Dashboard.route) {
             DashboardScreen(
@@ -109,7 +116,10 @@ fun FatLessNavGraph(
         // Экран настроек
         composable(Screen.Settings.route) {
             SettingsScreen(
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                onBleScanClick = {
+                    navController.navigate(Screen.BleScan.route)
+                }
             )
         }
         // Экран первоначальных установок

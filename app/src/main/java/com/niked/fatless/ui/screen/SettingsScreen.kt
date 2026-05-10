@@ -50,16 +50,19 @@ import com.niked.fatless.ui.theme.AppBackground
 import com.niked.fatless.ui.theme.AppBorder
 import com.niked.fatless.ui.theme.AppDisabledBg
 import com.niked.fatless.ui.theme.AppPrimary
+import com.niked.fatless.ui.theme.AppSecondary
 import com.niked.fatless.ui.theme.AppSurface
 import com.niked.fatless.ui.theme.AppTextPrimary
 import com.niked.fatless.ui.theme.AppTextSecondary
 import com.niked.fatless.ui.theme.AppTextTertiary
 import com.niked.fatless.ui.theme.AppTypography
+import com.niked.fatless.ui.theme.ColorBug
 import com.niked.fatless.ui.viewmodel.SettingsViewModel
 
 @Composable
 fun SettingsScreen(
     onBackClick: () -> Unit,
+    onBleScanClick: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -196,7 +199,7 @@ fun SettingsScreen(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_bug_report_24dp),
                     contentDescription = null,
-                    tint = AppTextTertiary,
+                    tint = ColorBug,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
@@ -208,6 +211,35 @@ fun SettingsScreen(
                     )
                     Text(
                         text = stringResource(R.string.settings_logs_subtitle),
+                        style = AppTypography.labelSmall,
+                        color = AppTextTertiary
+                    )
+                }
+            }
+
+            // КНОПКА СКАНЕРА BLE
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onBleScanClick() }
+                    .padding(vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_bluetooth_24dp),
+                    contentDescription = null,
+                    tint = AppSecondary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = stringResource(R.string.settings_ble_title),
+                        style = AppTypography.bodyMedium,
+                        color = AppTextPrimary
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_ble_subtitle),
                         style = AppTypography.labelSmall,
                         color = AppTextTertiary
                     )
