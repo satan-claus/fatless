@@ -1,6 +1,7 @@
 package com.niked.fatless.ui.navigation
 
 sealed class Screen(val route: String) {
+    data object BleScan : Screen("ble_scan")
     object Dashboard : Screen("dashboard")
     object FoodForm : Screen("food_form?initName={initName}&foodId={foodId}") {
         fun createForNew(name: String) = "food_form?initName=${android.net.Uri.encode(name)}"

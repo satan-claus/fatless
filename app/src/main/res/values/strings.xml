@@ -6,6 +6,11 @@
     <string name="app_slogan_size">Хватит расширяться — пора сужаться!</string>
     <string name="app_slogan_control">Держи габариты под контролем</string>
 
+    <!-- BLE SCREEN -->
+    <string name="ble_scan_title">Поиск датчиков</string>
+    <string name="ble_scan_empty">Датчики не найдены</string>
+    <string name="ble_scan_unknown">Неизвестное устройство</string>
+
     <!-- DASHBOARD SCREEN -->
     <string name="dashboard_title">Dashboard</string>
     <string name="dashboard_subtitle">Твои показатели сегодня</string>
@@ -162,6 +167,8 @@
     <string name="settings_logs_title">Экспорт логов</string>
     <string name="settings_logs_subtitle">Отправить файл отладки разработчику</string>
     <string name="settings_logs_chooser_title">Отправить логи FatLess</string>
+    <string name="settings_ble_title">Подключить датчик</string>
+    <string name="settings_ble_subtitle">Поиск внешних пульсометров и весов</string>
 
     <!-- SETUP SCREEN -->
     <string name="setup_title">Добро пожаловать!</string>
