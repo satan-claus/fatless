@@ -1,39 +1,37 @@
 package com.niked.fatless.ui.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.niked.fatless.domain.model.TrackSegment
 import com.niked.fatless.domain.model.UserLocation
 import com.niked.fatless.domain.repository.IActivityRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import org.osmdroid.util.GeoPoint
 import javax.inject.Inject
 
 @HiltViewModel
 class MapViewModel @Inject constructor(
-    private val activityRepository: IActivityRepository
+    private val activityRepository: IActivityRepository,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+    // Вытаскиваем sessionId
+    private val sessionId: Long = savedStateHandle["sessionId"] ?: 0L
 
-    private val _points = MutableStateFlow<List<UserLocation>>(emptyList())
-    val points: StateFlow<List<UserLocation>> = _points.asStateFlow()
-
-    // Состояние для отрисовки сегментов на карте
-    private val _trackSegments = MutableStateFlow<List<TrackSegment>>(emptyList())
-    val trackSegments: StateFlow<List<TrackSegment>> = _trackSegments.asStateFlow()
-
-    fun loadSession(sessionId: Long) {
-        viewModelScope.launch {
-            activityRepository.getPointsForSession(sessionId).collect { userLocations ->
-                _points.value = userLocations
-                // Сразу подготавливаем сегменты для карты
-                _trackSegments.value = prepareSegments(userLocations)
-            }
+    val trackSegments: StateFlow<List<TrackSegment>> = activityRepository
+        .getPointsForSession(sessionId)
+        .map { userLocations ->
+            prepareSegments(userLocations)
         }
-    }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Lazily,
+            initialValue = emptyList()
+        )
 
     /**
      * Группируем точки в цветные сегменты

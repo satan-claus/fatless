@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.niked.fatless.core.utils.AppLogger
 import com.niked.fatless.core.utils.Constants.LogLevel
+import com.niked.fatless.core.utils.toSessionId
 import com.niked.fatless.domain.model.DailyActivity
 import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.domain.repository.ISettingsRepository
@@ -42,6 +43,9 @@ class HistoryViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val stepGoal = settingsRepository.stepGoal
+
+    private val _hasGpsData = MutableStateFlow(false)
+    val hasGpsData = _hasGpsData.asStateFlow()
 
     // ИТОГИ МЕСЯЦА
     val monthSummary: StateFlow<MonthSummary?> = monthData.map { data ->
@@ -98,6 +102,12 @@ class HistoryViewModel @Inject constructor(
 
         // СИНХРОНИЗАЦИЯ: при создании вьюмодели обновляем запись за сегодня в БД
         syncCurrentDayToDatabase()
+
+        viewModelScope.launch {
+            selectedDate.collect { date ->
+                checkGpsData(date)
+            }
+        }
     }
 
     private fun syncCurrentDayToDatabase() {
@@ -136,6 +146,17 @@ class HistoryViewModel @Inject constructor(
     fun prevMonth() {
         _currentMonth.value = _currentMonth.value.minusMonths(1)
         logger.log(LogLevel.INFO, "HISTORY", "Переход на месяц назад: ${_currentMonth.value}")
+    }
+
+    private fun checkGpsData(date: LocalDate) {
+        viewModelScope.launch {
+            val sessionId = date.toSessionId()
+            _hasGpsData.value = activityRepository.hasLocationPoints(sessionId)
+
+            if (_hasGpsData.value) {
+                logger.log(LogLevel.DEBUG, "HISTORY", "Для даты $date найден маршрут (ID: $sessionId)")
+            }
+        }
     }
 }
 

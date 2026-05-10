@@ -87,6 +87,7 @@
     <string name="history_summary_weight">Ср. вес: %1$.1f кг</string>
     <string name="history_summary_dist">Всего: %1$.1f км</string>
     <string name="history_summary_goals">Цель: %1$d дн.</string>
+    <string name="history_view_map">Посмотреть маршрут на карте</string>
 
     <!-- WORKOUT SCREENS -->
     <string name="workout_create_title">Новая тренировка</string>

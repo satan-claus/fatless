@@ -93,5 +93,9 @@ class ActivityRepositoryImpl @Inject constructor(
     override suspend fun deleteSession(sessionId: Long) {
         locationDao.deleteSession(sessionId)
     }
+
+    override suspend fun hasLocationPoints(sessionId: Long): Boolean {
+        return locationDao.hasPoints(sessionId)
+    }
 }
 

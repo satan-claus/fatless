@@ -7,6 +7,9 @@ sealed class Screen(val route: String) {
         fun createForEdit(id: String) = "food_form?foodId=$id"
     }
     object History : Screen(route = "history")
+    data object Map : Screen("map_screen/{sessionId}") {
+        fun passSessionId(id: Long) = "map_screen/$id"
+    }
     object Nutrition : Screen(route = "nutrition")
     object Settings : Screen(route = "settings")
     object SetupProfile : Screen(route = "setup_profile")

@@ -18,4 +18,7 @@ interface LocationDao {
     // Удалить старые треки (например, старше месяца), если захотим чистить
     @Query("DELETE FROM location_points WHERE sessionId = :sessionId")
     suspend fun deleteSession(sessionId: Long)
+
+    @Query("SELECT EXISTS(SELECT 1 FROM location_points WHERE sessionId = :sessionId LIMIT 1)")
+    suspend fun hasPoints(sessionId: Long): Boolean
 }

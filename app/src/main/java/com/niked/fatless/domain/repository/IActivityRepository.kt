@@ -28,4 +28,5 @@ interface IActivityRepository {
     suspend fun saveLocationPoint(sessionId: Long, location: UserLocation)
     fun getPointsForSession(sessionId: Long): Flow<List<UserLocation>>
     suspend fun deleteSession(sessionId: Long)
+    suspend fun hasLocationPoints(sessionId: Long): Boolean
 }

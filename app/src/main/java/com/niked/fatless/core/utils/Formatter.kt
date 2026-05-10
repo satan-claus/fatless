@@ -1,6 +1,7 @@
 package com.niked.fatless.core.utils
 
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.util.Date
 import java.util.Locale
 
@@ -25,4 +26,11 @@ fun formatLogTime(timestamp: Long): String {
 fun formatFileNameTime(timestamp: Long): String {
     val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
     return sdf.format(Date(timestamp))
+}
+
+/**
+ * Превращает дату в Long ID для сессии GPS: 2026-05-10 -> 20260510
+ */
+fun LocalDate.toSessionId(): Long {
+    return String.format(Locale.getDefault(), "%04d%02d%02d", year, monthValue, dayOfMonth).toLong()
 }
