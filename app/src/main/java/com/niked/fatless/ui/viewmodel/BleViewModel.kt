@@ -25,6 +25,10 @@ class BleViewModel @Inject constructor(
 
     private var scanJob: Job? = null
 
+    fun isBtEnabled(): Boolean {
+        return bleManager.isBtEnabled()
+    }
+
     fun startScan() {
         if (_isScanning.value) return
 
@@ -33,9 +37,19 @@ class BleViewModel @Inject constructor(
 
         scanJob = bleManager.startScanning()
             .onEach { newDevice ->
-                if (_devices.value.none { it.address == newDevice.address }) {
-                    _devices.value = _devices.value + newDevice
+                val currentList = _devices.value.toMutableList()
+                val existingIndex = currentList.indexOfFirst { it.address == newDevice.address }
+
+                if (existingIndex != -1) {
+                    // ОБНОВЛЯЕМ уровень сигнала у уже найденного
+                    currentList[existingIndex] = newDevice
+                } else {
+                    // Добавляем новое
+                    currentList.add(newDevice)
                 }
+
+                // СОРТИРУЕМ: самые мощные (близкие) — сверху
+                _devices.value = currentList.sortedByDescending { it.rssi }
             }
             .launchIn(viewModelScope)
     }

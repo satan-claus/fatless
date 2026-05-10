@@ -1,5 +1,6 @@
 package com.niked.fatless.ui
 
+import android.bluetooth.BluetoothAdapter
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
@@ -16,6 +17,8 @@ import androidx.work.WorkManager
 import com.niked.fatless.core.audio.AndroidAudioPlayer
 import com.niked.fatless.core.sensor.StepService
 import com.niked.fatless.core.sensor.StepRestartWorker
+import com.niked.fatless.core.utils.AppLogger
+import com.niked.fatless.core.utils.Constants.LogLevel
 import com.niked.fatless.domain.repository.ISettingsRepository
 import com.niked.fatless.ui.navigation.FatLessNavGraph
 import com.niked.fatless.ui.theme.FatLessTheme
@@ -31,6 +34,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var audioPlayer: AndroidAudioPlayer
+
+    @Inject
+    lateinit var logger: AppLogger
 
     // 1. Создаем лаунчер для запроса пачки разрешений
     private val requestPermissionLauncher = registerForActivityResult(
@@ -130,5 +136,18 @@ class MainActivity : ComponentActivity() {
             ExistingPeriodicWorkPolicy.KEEP, // Если уже работает — не перезапускать
             restartWorkRequest
         )
+    }
+
+    private val enableBtLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            logger.log(LogLevel.INFO, "BLE", "Bluetooth включен юзером")
+        }
+    }
+
+    fun askToEnableBluetooth() {
+        val intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+        enableBtLauncher.launch(intent)
     }
 }

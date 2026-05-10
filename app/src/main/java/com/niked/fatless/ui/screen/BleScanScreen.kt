@@ -31,15 +31,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.niked.fatless.R
 import com.niked.fatless.domain.model.BleDevice
+import com.niked.fatless.ui.MainActivity
 import com.niked.fatless.ui.theme.AppBackground
 import com.niked.fatless.ui.theme.AppPrimary
 import com.niked.fatless.ui.theme.AppSecondary
@@ -55,10 +58,19 @@ fun BleScanScreen(
     onBackClick: () -> Unit,
     viewModel: BleViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val devices by viewModel.devices.collectAsState()
     val isScanning by viewModel.isScanning.collectAsState()
 
+    // Фильтруем список: убираем мусор со слишком слабым сигналом
+    val filteredDevices = remember(devices) {
+        devices.filter { it.rssi > -100 }
+    }
+
     LaunchedEffect(Unit) {
+        if (!viewModel.isBtEnabled()) {
+            (context as? MainActivity)?.askToEnableBluetooth()
+        }
         viewModel.startScan()
     }
 
@@ -99,7 +111,8 @@ fun BleScanScreen(
                 .padding(padding)
                 .background(AppBackground)
         ) {
-            if (devices.isEmpty() && !isScanning) {
+            // Проверяем именно отфильтрованный список
+            if (filteredDevices.isEmpty() && !isScanning) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
                         text = stringResource(R.string.ble_scan_empty),
@@ -113,15 +126,18 @@ fun BleScanScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(devices) { device ->
+                // Выводим только то, что прошло фильтр
+                items(filteredDevices, key = { it.address }) { device ->
                     BleDeviceItem(device = device, onClick = {
                         viewModel.stopScan()
+                        // TODO Тут будет навигация
                     })
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun BleDeviceItem(device: BleDevice, onClick: () -> Unit) {
