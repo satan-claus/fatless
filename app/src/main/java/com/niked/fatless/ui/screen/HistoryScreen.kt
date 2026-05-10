@@ -108,10 +108,14 @@ fun HistoryScreen(
             // 1. Детали калорий и БЖУ
             DayHistoryDetails(activity = selectedActivity)
 
+            // 2. GPS-трекер
             if (hasGpsData) {
                 Button(
                     onClick = { onMapClick(selectedDate.toSessionId()) },
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(vertical = 8.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AppSecondary)
                 ) {
                     Icon(
@@ -122,7 +126,7 @@ fun HistoryScreen(
                 }
             }
 
-            // 2. График активности (столбики)
+            // 3. График активности (столбики)
             if (selectedActivity != null) {
                 ActivityChart(
                     hourlySteps = selectedActivity!!.hourlySteps,
@@ -131,7 +135,7 @@ fun HistoryScreen(
                 )
             }
 
-            // 3. Динамика веса (линия)
+            // 4. Динамика веса (линия)
             if (weightData.isNotEmpty()) {
                 WeightChart(data = weightData)
             }

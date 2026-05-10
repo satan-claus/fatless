@@ -14,6 +14,7 @@ import com.niked.fatless.core.utils.Constants
 import com.niked.fatless.core.utils.Constants.ACTION_START_TRACKING
 import com.niked.fatless.core.utils.Constants.ACTION_STOP_TRACKING
 import com.niked.fatless.core.utils.Constants.LogLevel
+import com.niked.fatless.core.utils.toSessionId
 import com.niked.fatless.domain.location.ILocationClient
 import com.niked.fatless.domain.model.ActivityType
 import com.niked.fatless.domain.model.UserLocation
@@ -25,6 +26,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -35,7 +38,6 @@ class TrackingService : LifecycleService() {
     @Inject lateinit var settingsRepository: ISettingsRepository
     @Inject lateinit var logger: AppLogger
 
-    private var currentSessionId: Long = 0
     private var lastStepCount: Int = 0
 
     override fun onCreate() {
@@ -53,11 +55,11 @@ class TrackingService : LifecycleService() {
     }
 
     private fun startTracking() {
-        // Генерируем новый ID сессии на основе времени
-        currentSessionId = System.currentTimeMillis()
+        // Фиксируем шаги на момент старта
         lastStepCount = settingsRepository.todaySteps
 
-        logger.log(LogLevel.SYSTEM, "GPS", "Старт записи трека. Session: $currentSessionId")
+        val initialId = LocalDate.now().toSessionId()
+        logger.log(LogLevel.SYSTEM, "GPS", "Старт записи. Текущий ID дня: $initialId")
 
         val notification = NotificationCompat.Builder(this, "location")
             .setContentTitle("FatLess Трекер")
@@ -68,7 +70,6 @@ class TrackingService : LifecycleService() {
 
         startForeground(Constants.LOCATION_NOTIFICATION_ID, notification)
 
-        // Запускаем поток обновлений (раз в 5 секунд)
         locationClient.getLocationUpdates(5000L)
             .catch { e -> logger.log(LogLevel.ERROR, "GPS", "Ошибка потока: ${e.message}") }
             .onEach { location ->
@@ -79,13 +80,12 @@ class TrackingService : LifecycleService() {
 
     private fun processLocation(location: Location) {
         val currentSteps = settingsRepository.todaySteps
+        // Если шагов стало больше, чем было при прошлой точке - значит идем
         val hasSteps = currentSteps > lastStepCount
         lastStepCount = currentSteps
 
-        // 1. Определяем тип активности (наш Enum)
         val type = resolveActivityType(location.speed, hasSteps)
 
-        // 2. Создаем чистую доменную модель UserLocation
         val userLocation = UserLocation(
             latitude = location.latitude,
             longitude = location.longitude,
@@ -94,12 +94,18 @@ class TrackingService : LifecycleService() {
             timestamp = System.currentTimeMillis()
         )
 
+        // Динамический ID: 2026-05-10 -> 20260510
+        val dynamicSessionId = LocalDate.now().toSessionId()
+
         lifecycleScope.launch(Dispatchers.IO) {
-            // ВЫЗОВ РЕПОЗИТОРИЯ: передаем ID сессии и доменную модель
-            activityRepository.saveLocationPoint(
-                sessionId = currentSessionId,
-                location = userLocation
-            )
+            try {
+                activityRepository.saveLocationPoint(
+                    sessionId = dynamicSessionId,
+                    location = userLocation
+                )
+            } catch (e: Exception) {
+                logger.log(LogLevel.ERROR, "GPS", "Ошибка БД: ${e.message}")
+            }
         }
 
         updateNotification(location.speed)
@@ -108,15 +114,19 @@ class TrackingService : LifecycleService() {
     private fun resolveActivityType(speedMs: Float, hasSteps: Boolean): ActivityType {
         val speedKmH = speedMs * 3.6f
         return when {
+            // Идем, если есть шаги и скорость не как у ракеты
             hasSteps && speedKmH < 15f -> ActivityType.WALK
+            // Велик/Самокат: шагов нет, скорость средняя
             !hasSteps && speedKmH in 5f..25f -> ActivityType.BIKE
+            // Транспорт: летим быстро
             speedKmH >= 25f -> ActivityType.TRANSPORT
+            // Стоим
             else -> ActivityType.STAY
         }
     }
 
     private fun stopTracking() {
-        logger.log(LogLevel.SYSTEM, "GPS", "Запись трека остановлена")
+        logger.log(LogLevel.SYSTEM, "GPS", "Запись остановлена")
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
@@ -134,7 +144,7 @@ class TrackingService : LifecycleService() {
     }
 
     private fun updateNotification(speedMs: Float) {
-        val speedKmH = String.format("%.1f", speedMs * 3.6f)
+        val speedKmH = String.format(Locale.getDefault(), "%.1f", speedMs * 3.6f)
         val notification = NotificationCompat.Builder(this, "location")
             .setContentTitle("FatLess Трекер")
             .setContentText("Скорость: $speedKmH км/ч | Идёт запись...")
