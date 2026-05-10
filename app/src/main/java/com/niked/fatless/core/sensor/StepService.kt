@@ -20,9 +20,11 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.niked.fatless.R
 import com.niked.fatless.core.utils.Constants
+import com.niked.fatless.core.utils.Constants.LogLevel
 import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.domain.repository.ISettingsRepository
 import com.niked.fatless.ui.MainActivity
+import com.niked.fatless.util.AppLogger
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -44,12 +46,17 @@ class StepService : LifecycleService(), SensorEventListener {
     @Inject
     lateinit var activityRepository: IActivityRepository
 
+    @Inject lateinit var logger: AppLogger
+
     private lateinit var sensorManager: SensorManager
     private var wakeLock: PowerManager.WakeLock? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
         super.onCreate()
+
+        // ЛОГ: Старт сервиса
+        logger.log(LogLevel.SYSTEM, "SERVICE", "StepService создан (onCreate)")
 
         createNotificationChannel()
 
@@ -76,6 +83,11 @@ class StepService : LifecycleService(), SensorEventListener {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
+
+        // ЛОГ: Команды управления
+        if (intent?.action != null) {
+            logger.log(LogLevel.SYSTEM, "SERVICE", "Получена команда: ${intent.action}")
+        }
 
         when (intent?.action) {
             Constants.ACTION_START_MANUAL -> {
@@ -115,15 +127,23 @@ class StepService : LifecycleService(), SensorEventListener {
                 val yesterdayWeight = settingsRepository.userWeight // Берем вес из префсов
                 val hourlyData = settingsRepository.todayHourlySteps // Берем накопленные часы
 
+                // ЛОГ: Обнаружена смена даты
+                logger.log(LogLevel.SYSTEM, "SERVICE", "Смена дня: $yesterdayDate -> $today. Шаги за вчера: $yesterdaySteps")
+
                 if (yesterdayDate.isNotEmpty() && (yesterdaySteps > 0 || yesterdayCalories > 0)) {
                     lifecycleScope.launch(Dispatchers.IO) {
-                        activityRepository.saveSteps(
-                            date = yesterdayDate,
-                            steps = yesterdaySteps,
-                            burnedCalories = yesterdayCalories,
-                            currentWeight = yesterdayWeight,
-                            hourlySteps = hourlyData
-                        )
+                        try {
+                            activityRepository.saveSteps(
+                                date = yesterdayDate,
+                                steps = yesterdaySteps,
+                                burnedCalories = yesterdayCalories,
+                                currentWeight = yesterdayWeight,
+                                hourlySteps = hourlyData
+                            )
+                            logger.log(LogLevel.INFO, "DATABASE", "Вчерашние данные заархивированы")
+                        } catch (e: Exception) {
+                            logger.log(LogLevel.ERROR, "DATABASE", "Ошибка архивации вчерашнего дня: ${e.message}")
+                        }
                     }
                 }
 
@@ -138,9 +158,11 @@ class StepService : LifecycleService(), SensorEventListener {
 
             // 2. ИНИЦИАЛИЗАЦИЯ (Защита от ребута)
             if (settingsRepository.stepBaseCount <= 0) {
+                logger.log(LogLevel.SYSTEM, "SERVICE", "Инициализация stepBaseCount: $totalStepsSinceBoot")
                 settingsRepository.stepBaseCount = totalStepsSinceBoot
             }
             if (totalStepsSinceBoot < settingsRepository.stepBaseCount) {
+                logger.log(LogLevel.SYSTEM, "SENSOR", "Датчик сброшен или перезагружен. Корректировка базы.")
                 settingsRepository.stepBaseCount = totalStepsSinceBoot - settingsRepository.todaySteps
             }
 
@@ -169,6 +191,9 @@ class StepService : LifecycleService(), SensorEventListener {
                 // ПИШЕМ В ПРЕФСЫ
                 settingsRepository.todaySteps = dailySteps
                 settingsRepository.todayBurnedCalories += calorieIncrement
+            } else if (dailySteps < 0) {
+                // ЛОГ: Аномалия
+                logger.log(LogLevel.ERROR, "SENSOR", "Отрицательные шаги: dailySteps = $dailySteps. Проверь базу данных!")
             }
 
             // 4. РУЧНОЙ ЗАМЕР
@@ -249,6 +274,8 @@ class StepService : LifecycleService(), SensorEventListener {
 
     override fun onDestroy() {
         super.onDestroy()
+        // ЛОГ: Уничтожение сервиса
+        logger.log(LogLevel.SYSTEM, "SERVICE", "StepService уничтожен (onDestroy)")
         serviceScope.cancel()
         wakeLock?.release()
         sensorManager.unregisterListener(this)

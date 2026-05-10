@@ -1,7 +1,10 @@
 package com.niked.fatless.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.niked.fatless.core.utils.Constants.LogLevel
 import com.niked.fatless.domain.repository.ISettingsRepository
+import com.niked.fatless.util.AppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,6 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
+    private val logger: AppLogger,
     private val settingsRepository: ISettingsRepository
 ) : ViewModel() {
 
@@ -62,6 +66,12 @@ class SettingsViewModel @Inject constructor(
     fun updateWeight(newWeight: Float) {
         settingsRepository.userWeight = newWeight
         _uiState.update { it.copy(userWeight = newWeight) }
+    }
+
+    fun exportLogs(context: android.content.Context) {
+        // ЛОГ: Юзер инициировал выгрузку
+        logger.log(LogLevel.SYSTEM, "SETTINGS", "Пользователь запросил экспорт логов")
+        logger.shareLogs(context, viewModelScope)
     }
 }
 
