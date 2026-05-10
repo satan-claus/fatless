@@ -4,6 +4,14 @@ object Constants {
     const val DATABASE_NAME = "fatless_db"
     const val DATABASE_VERSION = 2
     const val LOG_TAG = "Fatless LOG"
+    const val LOG_FILE_NAME = "app_logs.txt"
+
+    enum class LogLevel {
+        INFO,
+        ERROR,
+        DEBUG,
+        SYSTEM
+    }
 
     // Настройки
     const val PREFS_NAME = "fatless_settings"
