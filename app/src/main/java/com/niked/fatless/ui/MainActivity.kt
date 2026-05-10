@@ -52,6 +52,12 @@ class MainActivity : ComponentActivity() {
 
         checkAndRequestPermissions()
 
+        // Инициализация OSMDroid
+        org.osmdroid.config.Configuration.getInstance().load(
+            applicationContext,
+            android.preference.PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        )
+
         setContent {
             FatLessTheme {
                 FatLessNavGraph(settingsRepository = settingsRepository)

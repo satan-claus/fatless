@@ -2,6 +2,7 @@ package com.niked.fatless.di
 
 import android.content.Context
 import androidx.room.Room
+import com.niked.fatless.core.utils.AppLogger
 import com.niked.fatless.data.local.AppDatabase
 import com.niked.fatless.data.local.dao.WorkoutDao
 import com.niked.fatless.core.utils.Constants
@@ -9,8 +10,8 @@ import com.niked.fatless.data.local.DatabasePrepCallback
 import com.niked.fatless.data.local.dao.ActivityDao
 import com.niked.fatless.data.local.dao.ExerciseDao
 import com.niked.fatless.data.local.dao.FoodDao
+import com.niked.fatless.data.local.dao.LocationDao
 import com.niked.fatless.data.local.dao.LogDao
-import com.niked.fatless.util.AppLogger
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -54,6 +55,11 @@ object DatabaseModule {
     @Provides
     fun provideFoodDao(db: AppDatabase): FoodDao {
         return db.foodDao()
+    }
+
+    @Provides
+    fun provideLocationDao(db: AppDatabase): LocationDao {
+        return db.locationDao()
     }
 
     @Provides

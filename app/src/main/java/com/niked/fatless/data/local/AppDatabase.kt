@@ -9,12 +9,14 @@ import com.niked.fatless.core.utils.Constants.DATABASE_VERSION
 import com.niked.fatless.data.local.dao.ActivityDao
 import com.niked.fatless.data.local.dao.ExerciseDao
 import com.niked.fatless.data.local.dao.FoodDao
+import com.niked.fatless.data.local.dao.LocationDao
 import com.niked.fatless.data.local.dao.LogDao
 import com.niked.fatless.data.local.entities.DailyActivityEntity
 import com.niked.fatless.data.local.entities.ExerciseTypeEntity
 import com.niked.fatless.data.local.entities.FoodCategoryEntity
 import com.niked.fatless.data.local.entities.FoodDiaryEntity
 import com.niked.fatless.data.local.entities.FoodEntity
+import com.niked.fatless.data.local.entities.LocationEntity
 import com.niked.fatless.data.local.entity.LogEntity
 
 @Database(
@@ -25,6 +27,7 @@ import com.niked.fatless.data.local.entity.LogEntity
         FoodDiaryEntity::class,
         FoodEntity::class,
         IntervalEntity::class,
+        LocationEntity::class,
         LogEntity::class,
         WorkoutEntity::class,
     ],
@@ -35,6 +38,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun activityDao(): ActivityDao
     abstract fun exerciseDao(): ExerciseDao
     abstract fun foodDao(): FoodDao
+    abstract fun locationDao(): LocationDao
     abstract fun logDao(): LogDao
     abstract fun workoutDao(): WorkoutDao
 }
