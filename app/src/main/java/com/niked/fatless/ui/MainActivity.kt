@@ -94,6 +94,10 @@ class MainActivity : ComponentActivity() {
             permissionsToRequest.add(android.Manifest.permission.POST_NOTIFICATIONS)
         }
 
+        // 3. GPS (Нужны для старта TrackingService на Android 14+)
+        permissionsToRequest.add(android.Manifest.permission.ACCESS_FINE_LOCATION)
+        permissionsToRequest.add(android.Manifest.permission.ACCESS_COARSE_LOCATION)
+
         // Фильтруем те, что уже даны
         val notGranted = permissionsToRequest.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
