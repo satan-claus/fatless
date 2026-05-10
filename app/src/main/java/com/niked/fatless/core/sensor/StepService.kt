@@ -86,7 +86,7 @@ class StepService : LifecycleService(), SensorEventListener {
 
         // ЛОГ: Команды управления
         if (intent?.action != null) {
-            logger.log(LogLevel.INFO, "SERVICE", "Получена команда: ${intent.action}")
+            logger.log(LogLevel.SYSTEM, "SERVICE", "Получена команда: ${intent.action}")
         }
 
         when (intent?.action) {
@@ -140,7 +140,7 @@ class StepService : LifecycleService(), SensorEventListener {
                                 currentWeight = yesterdayWeight,
                                 hourlySteps = hourlyData
                             )
-                            logger.log(LogLevel.INFO, "DATABASE", "Данные за вчера успешно заархивированы")
+                            logger.log(LogLevel.INFO, "DATABASE", "Вчерашние данные заархивированы")
                         } catch (e: Exception) {
                             logger.log(LogLevel.ERROR, "DATABASE", "Ошибка архивации вчерашнего дня: ${e.message}")
                         }
@@ -158,7 +158,7 @@ class StepService : LifecycleService(), SensorEventListener {
 
             // 2. ИНИЦИАЛИЗАЦИЯ (Защита от ребута)
             if (settingsRepository.stepBaseCount <= 0) {
-                logger.log(LogLevel.INFO, "SERVICE", "Инициализация stepBaseCount: $totalStepsSinceBoot")
+                logger.log(LogLevel.SYSTEM, "SERVICE", "Инициализация stepBaseCount: $totalStepsSinceBoot")
                 settingsRepository.stepBaseCount = totalStepsSinceBoot
             }
             if (totalStepsSinceBoot < settingsRepository.stepBaseCount) {

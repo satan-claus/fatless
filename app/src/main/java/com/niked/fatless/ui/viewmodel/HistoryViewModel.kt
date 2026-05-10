@@ -2,9 +2,11 @@ package com.niked.fatless.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.niked.fatless.core.utils.Constants.LogLevel
 import com.niked.fatless.domain.model.DailyActivity
 import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.domain.repository.ISettingsRepository
+import com.niked.fatless.util.AppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,7 +26,8 @@ import javax.inject.Inject
 @HiltViewModel
 class HistoryViewModel @Inject constructor(
     private val activityRepository: IActivityRepository,
-    private val settingsRepository: ISettingsRepository
+    private val settingsRepository: ISettingsRepository,
+    private val logger: AppLogger
 ) : ViewModel() {
 
     private val _selectedDate = MutableStateFlow(LocalDate.now())
@@ -40,7 +43,7 @@ class HistoryViewModel @Inject constructor(
 
     val stepGoal = settingsRepository.stepGoal
 
-    // 🎯 ИТОГИ МЕСЯЦА
+    // ИТОГИ МЕСЯЦА
     val monthSummary: StateFlow<MonthSummary?> = monthData.map { data ->
         if (data.isEmpty()) return@map null
 
@@ -90,28 +93,50 @@ class HistoryViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     init {
-        // 🎯 СИНХРОНИЗАЦИЯ: при создании вьюмодели обновляем запись за сегодня в БД
+        // ЛОГ: Вход в историю
+        logger.log(LogLevel.INFO, "HISTORY", "Экран Истории открыт. Месяц: ${_currentMonth.value}")
+
+        // СИНХРОНИЗАЦИЯ: при создании вьюмодели обновляем запись за сегодня в БД
         syncCurrentDayToDatabase()
     }
 
     private fun syncCurrentDayToDatabase() {
         viewModelScope.launch(Dispatchers.IO) {
-            activityRepository.saveSteps(
-                date = LocalDate.now().toString(),
-                steps = settingsRepository.todaySteps,
-                burnedCalories = settingsRepository.todayBurnedCalories,
-                currentWeight = settingsRepository.userWeight,
-                hourlySteps = settingsRepository.todayHourlySteps
-            )
+            val today = LocalDate.now().toString()
+            val steps = settingsRepository.todaySteps
+
+            // ЛОГ: Синхронизация
+            logger.log(LogLevel.INFO, "HISTORY", "Запущена синхронизация за сегодня ($today). Текущие шаги: $steps")
+
+            try {
+                activityRepository.saveSteps(
+                    date = today,
+                    steps = steps,
+                    burnedCalories = settingsRepository.todayBurnedCalories,
+                    currentWeight = settingsRepository.userWeight,
+                    hourlySteps = settingsRepository.todayHourlySteps
+                )
+                logger.log(LogLevel.DEBUG, "DATABASE", "Синхронизация завершена успешно")
+            } catch (e: Exception) {
+                logger.log(LogLevel.ERROR, "DATABASE", "Ошибка синхронизации: ${e.message}")
+            }
         }
     }
 
     fun selectDate(date: LocalDate) {
         _selectedDate.value = date
+        // ЛОГ: Выбор даты
+        logger.log(LogLevel.DEBUG, "HISTORY", "Выбрана дата: $date")
     }
 
-    fun nextMonth() { _currentMonth.value = _currentMonth.value.plusMonths(1) }
-    fun prevMonth() { _currentMonth.value = _currentMonth.value.minusMonths(1) }
+    fun nextMonth() {
+        _currentMonth.value = _currentMonth.value.plusMonths(1)
+        logger.log(LogLevel.INFO, "HISTORY", "Переход на месяц вперед: ${_currentMonth.value}")
+    }
+    fun prevMonth() {
+        _currentMonth.value = _currentMonth.value.minusMonths(1)
+        logger.log(LogLevel.INFO, "HISTORY", "Переход на месяц назад: ${_currentMonth.value}")
+    }
 }
 
 data class MonthSummary(

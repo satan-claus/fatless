@@ -5,6 +5,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.content.FileProvider
 import com.niked.fatless.BuildConfig
+import com.niked.fatless.R
 import com.niked.fatless.core.utils.Constants.LOG_TAG
 import com.niked.fatless.core.utils.Constants.LogLevel
 import com.niked.fatless.core.utils.formatFileNameTime
@@ -18,6 +19,20 @@ import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * LogLevel.SYSTEM:
+ * - StepService.onCreate / onDestroy — «Жив ли сервис?».
+ * - onSensorChanged (смена дня) — «Улетели ли данные?».
+ * - syncCurrentDayToDatabase — «Зафиксирован ли текущий день?».
+ *
+ * LogLevel.ERROR:
+ * - Все catch блоки.
+ * - sensorManager.getDefaultSensor == null.
+ *
+ * LogLevel.INFO:
+ * - selectDate(date) — «Куда нажал юзер?».
+ * - nextMonth() / prevMonth() — «Что он там листал?».
+ */
 @Singleton
 class AppLogger @Inject constructor(
     private val logDao: LogDao
@@ -30,30 +45,35 @@ class AppLogger @Inject constructor(
         val currentTime = System.currentTimeMillis()
         val formattedTime = formatLogTime(currentTime)
 
-        // 1. Вывод в консоль (КОТалоги)
+        // 1. КОНСОЛЬ (Logcat): только в Debug
         if (BuildConfig.DEBUG) {
             val consoleMessage = "[$level] [$tag] $message"
-            if (level == LogLevel.ERROR) {
-                Log.e(LOG_TAG, consoleMessage)
-            } else {
-                Log.d(LOG_TAG, consoleMessage)
-            }
+            if (level == LogLevel.ERROR) Log.e(LOG_TAG, consoleMessage)
+            else Log.d(LOG_TAG, consoleMessage)
+        }
+
+        // 2. БАЗА ДАННЫХ: Фильтруем, что записывать в релизе
+        val shouldRecord = when (level) {
+            LogLevel.ERROR, LogLevel.SYSTEM -> true // Пишем всегда
+            LogLevel.INFO, LogLevel.DEBUG -> BuildConfig.DEBUG // Пишем только если Debug
         }
 
         // 2. Асинхронная запись в БД
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                logDao.insert(
-                    LogEntity(
-                        timestamp = formattedTime,
-                        level = level.name,
-                        tag = tag,
-                        message = message
+        if (shouldRecord) {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    logDao.insert(
+                        LogEntity(
+                            timestamp = formattedTime,
+                            level = level.name,
+                            tag = tag,
+                            message = message
+                        )
                     )
-                )
-            } catch (e: Exception) {
-                if (BuildConfig.DEBUG) {
-                    Log.e(LOG_TAG, "Database log error: ${e.message}")
+                } catch (e: Exception) {
+                    if (BuildConfig.DEBUG) {
+                        Log.e(LOG_TAG, "Database log error: ${e.message}")
+                    }
                 }
             }
         }
@@ -95,7 +115,8 @@ class AppLogger @Inject constructor(
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
 
-                context.startActivity(Intent.createChooser(intent, "Отправить логи FatLess"))
+                val dialogTitle = context.getString(R.string.settings_logs_chooser_title)
+                context.startActivity(Intent.createChooser(intent, dialogTitle))
 
             } catch (e: Exception) {
                 if (BuildConfig.DEBUG) {

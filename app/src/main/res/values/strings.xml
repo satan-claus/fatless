@@ -158,6 +158,9 @@
     <string name="settings_version_format">Версия %1$s (Джон-Эдишн)</string>
     <string name="settings_volume_label">Уровень громкости</string>
     <string name="settings_volume_format">%1$d%%</string>
+    <string name="settings_logs_title">Экспорт логов</string>
+    <string name="settings_logs_subtitle">Отправить файл отладки разработчику</string>
+    <string name="settings_logs_chooser_title">Отправить логи FatLess</string>
 
     <!-- SETUP SCREEN -->
     <string name="setup_title">Добро пожаловать!</string>

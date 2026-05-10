@@ -12,10 +12,10 @@ fun formatDuration(seconds: Int): String {
 }
 
 /**
- * Форматирование времени для записи в БД логов: "10.05 07:34:12"
+ * Форматирование времени для записи в БД логов: "10.05.26 07:45:12.123"
  */
 fun formatLogTime(timestamp: Long): String {
-    val sdf = SimpleDateFormat("dd.MM HH:mm:ss", Locale.getDefault())
+    val sdf = SimpleDateFormat("dd.MM.yy HH:mm:ss.SSS", Locale.getDefault())
     return sdf.format(Date(timestamp))
 }
 
