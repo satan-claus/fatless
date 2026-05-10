@@ -84,19 +84,24 @@ class MainActivity : ComponentActivity() {
     private fun checkAndRequestPermissions() {
         val permissionsToRequest = mutableListOf<String>()
 
-        // 1. Опасное разрешение (нужно подтверждение юзера)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            permissionsToRequest.add(android.Manifest.permission.ACTIVITY_RECOGNITION)
-        }
+        // 1. Шаги (ACTIVITY_RECOGNITION) - Нужно для всех (minSdk 29+)
+        permissionsToRequest.add(android.Manifest.permission.ACTIVITY_RECOGNITION)
 
-        // 2. Уведомления (нужно подтверждение для Android 13+)
+        // 2. Уведомления (Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissionsToRequest.add(android.Manifest.permission.POST_NOTIFICATIONS)
         }
 
-        // 3. GPS (Нужны для старта TrackingService на Android 14+)
+        // 3. GPS (Нужен для Карт и для Bluetooth на Android 10-11)
         permissionsToRequest.add(android.Manifest.permission.ACCESS_FINE_LOCATION)
         permissionsToRequest.add(android.Manifest.permission.ACCESS_COARSE_LOCATION)
+
+        // 4. Bluetooth (Android 12+)
+        // На API < 31 эти разрешения вызовут крэш, если их добавить в список
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            permissionsToRequest.add(android.Manifest.permission.BLUETOOTH_SCAN)
+            permissionsToRequest.add(android.Manifest.permission.BLUETOOTH_CONNECT)
+        }
 
         // Фильтруем те, что уже даны
         val notGranted = permissionsToRequest.filter {
