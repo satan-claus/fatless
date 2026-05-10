@@ -7,9 +7,12 @@ import com.niked.fatless.domain.model.BleDevice
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
@@ -18,16 +21,20 @@ class BleViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _devices = MutableStateFlow<List<BleDevice>>(emptyList())
-    val devices = _devices.asStateFlow()
+    val devices: StateFlow<List<BleDevice>> = _devices.asStateFlow()
 
     private val _isScanning = MutableStateFlow(false)
-    val isScanning = _isScanning.asStateFlow()
+    val isScanning: StateFlow<Boolean> = _isScanning.asStateFlow()
 
+    // Ссылка на текущую работу сканера для её остановки
     private var scanJob: Job? = null
 
-    fun isBtEnabled(): Boolean {
-        return bleManager.isBtEnabled()
-    }
+    // Статус подключения (0 - откл, 1 - коннект, 2 - подкл)
+    val connectionState: StateFlow<Int> = bleManager.connectionState
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+
+    // Пробрасываем поток на экран
+    val deviceData = bleManager.lastData.stateIn(viewModelScope, SharingStarted.Lazily, "")
 
     fun startScan() {
         if (_isScanning.value) return
@@ -35,20 +42,17 @@ class BleViewModel @Inject constructor(
         _devices.value = emptyList()
         _isScanning.value = true
 
+        // Сохраняем Job, чтобы иметь над ним контроль
         scanJob = bleManager.startScanning()
             .onEach { newDevice ->
                 val currentList = _devices.value.toMutableList()
                 val existingIndex = currentList.indexOfFirst { it.address == newDevice.address }
 
                 if (existingIndex != -1) {
-                    // ОБНОВЛЯЕМ уровень сигнала у уже найденного
                     currentList[existingIndex] = newDevice
                 } else {
-                    // Добавляем новое
                     currentList.add(newDevice)
                 }
-
-                // СОРТИРУЕМ: самые мощные (близкие) — сверху
                 _devices.value = currentList.sortedByDescending { it.rssi }
             }
             .launchIn(viewModelScope)
@@ -56,11 +60,26 @@ class BleViewModel @Inject constructor(
 
     fun stopScan() {
         scanJob?.cancel()
+        scanJob = null
         _isScanning.value = false
     }
 
+    fun connectToDevice(address: String) {
+        // BLE требует тишины в эфире при коннекте
+        stopScan()
+        bleManager.connect(address)
+    }
+
+    fun disconnect() {
+        bleManager.disconnect()
+    }
+
+    fun isBtEnabled() = bleManager.isBtEnabled()
+
     override fun onCleared() {
         super.onCleared()
+        // Подстраховка при закрытии экрана
         stopScan()
     }
 }
+

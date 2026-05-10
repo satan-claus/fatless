@@ -1,5 +1,6 @@
 package com.niked.fatless.ui.screen
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,6 +25,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -61,12 +66,22 @@ fun BleScanScreen(
     val context = LocalContext.current
     val devices by viewModel.devices.collectAsState()
     val isScanning by viewModel.isScanning.collectAsState()
+    val connectionState by viewModel.connectionState.collectAsState()
+    val deviceData by viewModel.deviceData.collectAsState()
 
-    // Фильтруем список: убираем мусор со слишком слабым сигналом
-    val filteredDevices = remember(devices) {
-        devices.filter { it.rssi > -100 }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Реакция на ошибку подключения
+    LaunchedEffect(connectionState) {
+        if (connectionState == -1) {
+            snackbarHostState.showSnackbar(
+                message = "Ошибка подключения. Датчик недоступен.",
+                duration = SnackbarDuration.Short
+            )
+        }
     }
 
+    // Первичный запуск
     LaunchedEffect(Unit) {
         if (!viewModel.isBtEnabled()) {
             (context as? MainActivity)?.askToEnableBluetooth()
@@ -75,13 +90,17 @@ fun BleScanScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = stringResource(R.string.ble_scan_title),
-                        style = AppTypography.titleMedium
-                    )
+                    val titleText = when (connectionState) {
+                        2 -> "Подключено"
+                        1 -> "Подключение..."
+                        -1 -> "Ошибка"
+                        else -> stringResource(id = R.string.ble_scan_title)
+                    }
+                    Text(text = titleText, style = AppTypography.titleMedium)
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
@@ -91,7 +110,7 @@ fun BleScanScreen(
                 actions = {
                     if (isScanning) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(size = 24.dp),
                             strokeWidth = 2.dp,
                             color = AppPrimary
                         )
@@ -108,67 +127,90 @@ fun BleScanScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .background(AppBackground)
+                .padding(paddingValues = padding)
+                .background(color = AppBackground)
         ) {
-            // Проверяем именно отфильтрованный список
-            if (filteredDevices.isEmpty() && !isScanning) {
+            if (devices.isEmpty() && !isScanning) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
-                        text = stringResource(R.string.ble_scan_empty),
+                        text = stringResource(id = R.string.ble_scan_empty),
                         color = AppTextTertiary
                     )
                 }
             }
 
+            // Внутри Column, перед LazyColumn
+            AnimatedVisibility(visible = connectionState == 2) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    color = Color.Black,
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Live Data (Hex):",
+                            color = AppSecondary,
+                            style = AppTypography.labelSmall
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = deviceData,
+                            color = Color.Green,
+                            style = AppTypography.bodySmall,
+                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                        )
+                    }
+                }
+            }
+
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                contentPadding = PaddingValues(all = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(space = 12.dp)
             ) {
-                // Выводим только то, что прошло фильтр
-                items(filteredDevices, key = { it.address }) { device ->
-                    BleDeviceItem(device = device, onClick = {
-                        viewModel.stopScan()
-                        // TODO Тут будет навигация
-                    })
+                items(items = devices, key = { it.address }) { device ->
+                    BleDeviceItem(
+                        device = device,
+                        onClick = { viewModel.connectToDevice(address = device.address) }
+                    )
                 }
             }
         }
     }
 }
 
-
 @Composable
 fun BleDeviceItem(device: BleDevice, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         color = AppSurface,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(size = 16.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(all = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .background(AppSecondary.copy(alpha = 0.1f), RoundedCornerShape(10.dp)),
+                    .size(size = 40.dp)
+                    .background(color = AppSecondary.copy(alpha = 0.1f), shape = RoundedCornerShape(size = 10.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_sensors_24dp),
+                    painter = painterResource(id = R.drawable.ic_sensors_24dp),
                     contentDescription = null,
                     tint = AppSecondary
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(width = 16.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(weight = 1f)) {
                 Text(
-                    text = device.name ?: stringResource(R.string.ble_scan_unknown),
+                    text = device.name ?: stringResource(id = R.string.ble_scan_unknown),
                     style = AppTypography.bodyLarge,
                     color = AppTextPrimary
                 )
@@ -182,7 +224,7 @@ fun BleDeviceItem(device: BleDevice, onClick: () -> Unit) {
             Text(
                 text = "${device.rssi} dBm",
                 style = AppTypography.bodySmall,
-                color = if (device.rssi > -70) Color(0xFF4CAF50) else AppTextTertiary
+                color = if (device.rssi > -70) Color(color = 0xFF4CAF50) else AppTextTertiary
             )
         }
     }
