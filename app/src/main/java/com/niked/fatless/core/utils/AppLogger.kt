@@ -15,17 +15,22 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object AppLogger {
+@Singleton
+class AppLogger @Inject constructor(
+    private val logDao: LogDao
+) {
 
     /**
-     * Основной метод записи лога в БД и консоль
+     * Основной метод записи лога
      */
-    fun log(dao: LogDao, level: LogLevel, tag: String, message: String) {
+    fun log(level: LogLevel, tag: String, message: String) {
         val currentTime = System.currentTimeMillis()
         val formattedTime = formatLogTime(currentTime)
 
-        // 1. Вывод в Logcat (КОТалоги) через твой LOG_TAG
+        // 1. Вывод в консоль (КОТалоги)
         if (BuildConfig.DEBUG) {
             val consoleMessage = "[$level] [$tag] $message"
             if (level == LogLevel.ERROR) {
@@ -35,10 +40,10 @@ object AppLogger {
             }
         }
 
-        // 2. Асинхронная запись в базу данных Room
+        // 2. Асинхронная запись в БД
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                dao.insert(
+                logDao.insert(
                     LogEntity(
                         timestamp = formattedTime,
                         level = level.name,
@@ -48,38 +53,35 @@ object AppLogger {
                 )
             } catch (e: Exception) {
                 if (BuildConfig.DEBUG) {
-                    Log.e(LOG_TAG, "Failed to save log to DB: ${e.message}")
+                    Log.e(LOG_TAG, "Database log error: ${e.message}")
                 }
             }
         }
     }
 
     /**
-     * Выгрузка логов в файл, очистка БД и запуск Share Intent
+     * Формирование файла, очистка БД и шаринг
      */
-    fun shareLogs(context: Context, dao: LogDao, scope: CoroutineScope) {
+    fun shareLogs(context: Context, scope: CoroutineScope) {
         scope.launch(Dispatchers.IO) {
             try {
-                val logs = dao.getAll()
-                if (logs.isEmpty()) {
-                    // Можно добавить Toast "Логи пусты", но это по желанию
-                    return@launch
-                }
+                val logs = logDao.getAll()
+                if (logs.isEmpty()) return@launch
 
-                // 1. Формируем текст файла
+                // Формируем текст
                 val logText = logs.joinToString("\n") { log ->
                     "${log.timestamp} | ${log.level} | ${log.tag}: ${log.message}"
                 }
 
-                // 2. Создаем временный файл в кэше с таймстемпом в имени
+                // Создаем файл в кэше через Formatter
                 val fileName = "fatless_log_${formatFileNameTime(System.currentTimeMillis())}.txt"
                 val file = File(context.cacheDir, fileName)
                 file.writeText(logText)
 
-                // 3. Чистим таблицу логов в БД
-                dao.clearAll()
+                // Чистим базу сразу после выгрузки
+                logDao.clearAll()
 
-                // 4. Запускаем шаринг через FileProvider
+                // Шаринг через FileProvider
                 val uri = FileProvider.getUriForFile(
                     context,
                     "${context.packageName}.fileprovider",
@@ -93,11 +95,11 @@ object AppLogger {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
 
-                context.startActivity(Intent.createChooser(intent, "Share FatLess Logs"))
+                context.startActivity(Intent.createChooser(intent, "Отправить логи FatLess"))
 
             } catch (e: Exception) {
                 if (BuildConfig.DEBUG) {
-                    Log.e(LOG_TAG, "Error during log sharing: ${e.message}")
+                    Log.e(LOG_TAG, "Sharing error: ${e.message}")
                 }
             }
         }
