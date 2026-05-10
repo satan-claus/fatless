@@ -14,10 +14,10 @@ import com.niked.fatless.core.utils.Constants
 import com.niked.fatless.core.utils.Constants.ACTION_START_TRACKING
 import com.niked.fatless.core.utils.Constants.ACTION_STOP_TRACKING
 import com.niked.fatless.core.utils.Constants.LogLevel
-import com.niked.fatless.data.local.dao.LocationDao
-import com.niked.fatless.data.local.entities.LocationEntity
 import com.niked.fatless.domain.location.ILocationClient
 import com.niked.fatless.domain.model.ActivityType
+import com.niked.fatless.domain.model.UserLocation
+import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.domain.repository.ISettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +31,7 @@ import javax.inject.Inject
 class TrackingService : LifecycleService() {
 
     @Inject lateinit var locationClient: ILocationClient
-    @Inject lateinit var locationDao: LocationDao
+    @Inject lateinit var activityRepository: IActivityRepository
     @Inject lateinit var settingsRepository: ISettingsRepository
     @Inject lateinit var logger: AppLogger
 
@@ -82,23 +82,26 @@ class TrackingService : LifecycleService() {
         val hasSteps = currentSteps > lastStepCount
         lastStepCount = currentSteps
 
-        // ОПРЕДЕЛЯЕМ ТИП АКТИВНОСТИ
+        // 1. Определяем тип активности (наш Enum)
         val type = resolveActivityType(location.speed, hasSteps)
 
+        // 2. Создаем чистую доменную модель UserLocation
+        val userLocation = UserLocation(
+            latitude = location.latitude,
+            longitude = location.longitude,
+            speed = location.speed,
+            type = type,
+            timestamp = System.currentTimeMillis()
+        )
+
         lifecycleScope.launch(Dispatchers.IO) {
-            locationDao.insertPoint(
-                LocationEntity(
-                    sessionId = currentSessionId,
-                    latitude = location.latitude,
-                    longitude = location.longitude,
-                    speed = location.speed,
-                    activityType = type.id,
-                    timestamp = System.currentTimeMillis()
-                )
+            // ВЫЗОВ РЕПОЗИТОРИЯ: передаем ID сессии и доменную модель
+            activityRepository.saveLocationPoint(
+                sessionId = currentSessionId,
+                location = userLocation
             )
         }
 
-        // Обновляем уведомление (опционально: пишем текущую скорость)
         updateNotification(location.speed)
     }
 

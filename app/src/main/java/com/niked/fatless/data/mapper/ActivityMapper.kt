@@ -3,6 +3,9 @@ package com.niked.fatless.data.mapper
 import com.niked.fatless.data.local.entities.DailyActivityEntity
 import com.niked.fatless.domain.model.DailyActivity
 
+/**
+ * Маппер для активности дня (История)
+ */
 fun DailyActivityEntity.toDomain(): DailyActivity {
     return DailyActivity(
         date = this.date,

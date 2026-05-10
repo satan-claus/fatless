@@ -9,16 +9,17 @@ sealed class TrackSegment(
     class Walk(points: List<GeoPoint>) : TrackSegment(points, ActivityType.WALK)
     class Bike(points: List<GeoPoint>) : TrackSegment(points, ActivityType.BIKE)
     class Transport(points: List<GeoPoint>) : TrackSegment(points, ActivityType.TRANSPORT)
+    class Stay(points: List<GeoPoint>) : TrackSegment(points, ActivityType.STAY)
 
-    // Вспомогательный метод для маппинга
     companion object {
         fun create(type: ActivityType, points: List<GeoPoint>): TrackSegment {
             return when (type) {
                 ActivityType.WALK -> Walk(points)
                 ActivityType.BIKE -> Bike(points)
                 ActivityType.TRANSPORT -> Transport(points)
-                ActivityType.STAY -> Transport(emptyList())
+                ActivityType.STAY -> Stay(points)
             }
         }
     }
 }
+

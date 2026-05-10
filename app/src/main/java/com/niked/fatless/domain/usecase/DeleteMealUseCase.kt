@@ -11,16 +11,14 @@ class DeleteMealUseCase @Inject constructor(
     private val activityRepository: IActivityRepository
 ) {
     suspend operator fun invoke(entry: MealEntry) {
-        // 1. Откатываем калории в общей статистике (используем ПРАВИЛЬНЫЕ имена полей)
         activityRepository.saveNutrition(
             date = LocalDate.now().toString(),
-            cal = -entry.totalCalories,
-            p = -entry.totalProteins,
-            f = -entry.totalFats,
-            c = -entry.totalCarbs
+            consumedCalories = -entry.totalCalories.toFloat(),
+            proteins = -entry.totalProteins,
+            fats = -entry.totalFats,
+            carbs = -entry.totalCarbs
         )
 
-        // 2. Удаляем запись из дневника по ID
         nutritionRepository.deleteMeal(entry.id)
     }
 }
