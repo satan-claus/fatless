@@ -39,6 +39,7 @@ class TrackingService : LifecycleService() {
     @Inject lateinit var logger: AppLogger
 
     private var lastStepCount: Int = 0
+    private var lastSavedLocation: Location? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -79,6 +80,22 @@ class TrackingService : LifecycleService() {
     }
 
     private fun processLocation(location: Location) {
+        // 1. ФИЛЬТР ТОЧНОСТИ
+        if (location.accuracy > 20) {
+            logger.log(LogLevel.DEBUG, "GPS", "Точка отброшена (низкая точность: ${location.accuracy}м)")
+            return
+        }
+
+        // 2. ФИЛЬТР ДИСТАНЦИИ
+        val lastLoc = lastSavedLocation
+        if (lastLoc != null && location.distanceTo(lastLoc) < 3f) {
+            // Не логируем это часто, чтобы не забивать базу, просто выходим
+            return
+        }
+
+        // Если прошли фильтры — запоминаем и работаем дальше
+        lastSavedLocation = location
+
         val currentSteps = settingsRepository.todaySteps
         // Если шагов стало больше, чем было при прошлой точке - значит идем
         val hasSteps = currentSteps > lastStepCount

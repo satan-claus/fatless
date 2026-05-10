@@ -94,6 +94,11 @@
     <string name="history_summary_goals">Цель: %1$d дн.</string>
     <string name="history_view_map">Посмотреть маршрут на карте</string>
 
+    <!-- MAP SCREEN -->
+    <string name="map_title">Маршрут прогулки</string>
+    <string name="map_marker_start">Старт</string>
+    <string name="map_marker_finish">Финиш</string>
+
     <!-- WORKOUT SCREENS -->
     <string name="workout_create_title">Новая тренировка</string>
     <string name="workout_create_subtitle_default">Конструктор</string>

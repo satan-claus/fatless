@@ -1,5 +1,6 @@
 package com.niked.fatless.ui.screen
 
+import android.graphics.Paint
 import android.graphics.drawable.GradientDrawable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,8 +19,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.niked.fatless.R
 import com.niked.fatless.domain.model.ActivityType
 import com.niked.fatless.ui.theme.AppBackground
 import com.niked.fatless.ui.theme.AppSurface
@@ -36,12 +40,13 @@ fun MapScreen(
     onBackClick: () -> Unit,
     viewModel: MapViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val segments by viewModel.trackSegments.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Маршрут прогулки", style = AppTypography.titleMedium) },
+                title = { Text(stringResource(R.string.map_title), style = AppTypography.titleMedium) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -84,8 +89,20 @@ fun MapScreen(
                         if (segment.points.size >= 2 && segment.type != ActivityType.STAY) {
                             val polyline = Polyline(mapView).apply {
                                 setPoints(segment.points)
-                                outlinePaint.color = segment.type.color.toArgb()
-                                outlinePaint.strokeWidth = segment.type.strokeWidth
+
+                                // СГЛАЖИВАНИЕ И ВИЗУАЛ
+                                outlinePaint.apply {
+                                    // Добавляем прозрачность (0.8f), чтобы линии не "давили"
+                                    color = segment.type.color.copy(alpha = 0.8f).toArgb()
+                                    strokeWidth = segment.type.strokeWidth
+
+                                    // Скругляем концы и соединения (убирает острые углы)
+                                    strokeCap = Paint.Cap.ROUND
+                                    strokeJoin = Paint.Join.ROUND
+                                    // Включаем антиалиасинг
+                                    isAntiAlias = true
+                                }
+
                                 isGeodesic = true
                             }
                             mapView.overlays.add(polyline)
@@ -100,11 +117,11 @@ fun MapScreen(
                             // Рисуем кружок программно, чтобы не плодить drawable
                             icon = GradientDrawable().apply {
                                 shape = GradientDrawable.OVAL
-                                setSize(40, 40)
+                                setSize(45, 45)
                                 setColor(android.graphics.Color.GREEN)
-                                setStroke(4, android.graphics.Color.WHITE)
+                                setStroke(5, android.graphics.Color.WHITE)
                             }
-                            title = "Старт"
+                            title = context.getString(R.string.map_marker_start)
                         }
                         mapView.overlays.add(startMarker)
                     }
@@ -116,11 +133,11 @@ fun MapScreen(
                             setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                             icon = GradientDrawable().apply {
                                 shape = GradientDrawable.OVAL
-                                setSize(40, 40)
+                                setSize(45, 45)
                                 setColor(android.graphics.Color.RED)
-                                setStroke(4, android.graphics.Color.WHITE)
+                                setStroke(5, android.graphics.Color.WHITE)
                             }
-                            title = "Финиш"
+                            title = context.getString(R.string.map_marker_finish)
                         }
                         mapView.overlays.add(endMarker)
                     }
