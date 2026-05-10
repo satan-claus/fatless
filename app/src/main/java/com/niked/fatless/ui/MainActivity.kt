@@ -52,6 +52,12 @@ class MainActivity : ComponentActivity() {
 
         checkAndRequestPermissions()
 
+        // Инициализация OSMDroid
+        org.osmdroid.config.Configuration.getInstance().load(
+            applicationContext,
+            android.preference.PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        )
+
         setContent {
             FatLessTheme {
                 FatLessNavGraph(settingsRepository = settingsRepository)
@@ -87,6 +93,10 @@ class MainActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissionsToRequest.add(android.Manifest.permission.POST_NOTIFICATIONS)
         }
+
+        // 3. GPS (Нужны для старта TrackingService на Android 14+)
+        permissionsToRequest.add(android.Manifest.permission.ACCESS_FINE_LOCATION)
+        permissionsToRequest.add(android.Manifest.permission.ACCESS_COARSE_LOCATION)
 
         // Фильтруем те, что уже даны
         val notGranted = permissionsToRequest.filter {

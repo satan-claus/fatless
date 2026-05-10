@@ -41,4 +41,9 @@ object Constants {
     const val STEP_CHANNEL_ID = "step_tracker_channel"
     const val STEP_CHANNEL_NAME = "Шагомер FatLess"
     const val STEP_NOTIFICATION_ID = 1001
+
+    // Константы для GPS трекера
+    const val ACTION_START_TRACKING = "ACTION_START_TRACKING"
+    const val ACTION_STOP_TRACKING = "ACTION_STOP_TRACKING"
+    const val LOCATION_NOTIFICATION_ID = 5001
 }

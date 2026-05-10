@@ -30,3 +30,9 @@ val ColorCalories = Color(0xFF2196F3) // Синий (Центр/Калории)
 val ColorSteps = Color(0xFF2196F3)      // Синий (обычный день)
 val ColorStepsToday = Color(0xFFFF9800) // Оранжевый (сегодня)
 val ColorOverSteps = Color(0xFF673AB7)  // Фиолетовый (оверстеп)
+
+// Цвета для GPS трекинга
+val ColorTrackWalk = Color(0xFF00C853)      // Сочный зеленый (Активность)
+val ColorTrackBike = Color(0xFF00B0FF)      // Яркий голубой (Вело)
+val ColorTrackTransport = Color(0xFF9E9E9E)  // Серый (Транспорт)
+val ColorTrackRun = Color(0xFFFF5252)       // Красный (Бег - на будущее)

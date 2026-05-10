@@ -1,4 +1,4 @@
-package com.niked.fatless.util
+package com.niked.fatless.core.utils
 
 import android.content.Context
 import android.content.Intent
@@ -8,8 +8,6 @@ import com.niked.fatless.BuildConfig
 import com.niked.fatless.R
 import com.niked.fatless.core.utils.Constants.LOG_TAG
 import com.niked.fatless.core.utils.Constants.LogLevel
-import com.niked.fatless.core.utils.formatFileNameTime
-import com.niked.fatless.core.utils.formatLogTime
 import com.niked.fatless.data.local.dao.LogDao
 import com.niked.fatless.data.local.entity.LogEntity
 import kotlinx.coroutines.CoroutineScope

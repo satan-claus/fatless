@@ -12,6 +12,7 @@ import com.niked.fatless.ui.MainActivity
 import com.niked.fatless.ui.screen.DashboardScreen
 import com.niked.fatless.ui.screen.FoodFormScreen
 import com.niked.fatless.ui.screen.HistoryScreen
+import com.niked.fatless.ui.screen.MapScreen
 import com.niked.fatless.ui.screen.NutritionScreen
 import com.niked.fatless.ui.screen.SettingsScreen
 import com.niked.fatless.ui.screen.SetupProfileScreen
@@ -76,7 +77,20 @@ fun FatLessNavGraph(
             FoodFormScreen(onBackClick = { navController.popBackStack() })
         }
         composable(Screen.History.route) {
-            HistoryScreen(onBackClick = { navController.popBackStack() })
+            HistoryScreen(
+                onBackClick = { navController.popBackStack() },
+                onMapClick = { sessionId ->
+                    navController.navigate(Screen.Map.passSessionId(sessionId))
+                }
+            )
+        }
+        composable(
+            route = Screen.Map.route,
+            arguments = listOf(navArgument("sessionId") { type = NavType.LongType })
+        ) {
+            MapScreen(
+                onBackClick = { navController.popBackStack() }
+            )
         }
         // Экран "Дневник питания"
         composable(Screen.Nutrition.route) {

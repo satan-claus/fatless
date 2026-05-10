@@ -19,12 +19,12 @@ import androidx.core.graphics.toColorInt
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.niked.fatless.R
+import com.niked.fatless.core.utils.AppLogger
 import com.niked.fatless.core.utils.Constants
 import com.niked.fatless.core.utils.Constants.LogLevel
 import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.domain.repository.ISettingsRepository
 import com.niked.fatless.ui.MainActivity
-import com.niked.fatless.util.AppLogger
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

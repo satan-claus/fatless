@@ -20,5 +20,6 @@ data class DailyActivityEntity(
     val carbs: Float = 0f,
     val weight: Float = 0f,
     // 8 интервалов по 3 часа
-    val hourlySteps: String = "0,0,0,0,0,0,0,0"
+    val hourlySteps: String = "0,0,0,0,0,0,0,0",
+    val sessionId: Long = 0
 )

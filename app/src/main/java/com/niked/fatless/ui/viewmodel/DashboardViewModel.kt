@@ -1,8 +1,18 @@
 package com.niked.fatless.ui.viewmodel
 
+import android.Manifest
+import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.niked.fatless.core.location.TrackingService
+import com.niked.fatless.core.utils.AppLogger
+import com.niked.fatless.core.utils.Constants.ACTION_START_TRACKING
+import com.niked.fatless.core.utils.Constants.LogLevel
+import com.niked.fatless.core.utils.Constants.ACTION_STOP_TRACKING
 import com.niked.fatless.core.utils.Constants.PREF_TODAY_BURNED_CALORIES
 import com.niked.fatless.core.utils.Constants.PREF_TODAY_STEPS
 import com.niked.fatless.core.utils.Constants.PREF_USER_WEIGHT
@@ -35,6 +45,7 @@ class DashboardViewModel @Inject constructor(
     private val nutritionRepository: INutritionRepository,
     private val settingsRepository: ISettingsRepository,
     private val workoutRepository: IWorkoutRepository,
+    private val logger: AppLogger,
 ) : ViewModel() {
 
     // Таймер даты
@@ -86,6 +97,9 @@ class DashboardViewModel @Inject constructor(
     private val _weight = MutableStateFlow(settingsRepository.userWeight)
     val weight = _weight.asStateFlow()
 
+    private val _isTracking = MutableStateFlow(false)
+    val isTracking: StateFlow<Boolean> = _isTracking.asStateFlow()
+
     private var prefsListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
 
     init {
@@ -110,6 +124,29 @@ class DashboardViewModel @Inject constructor(
         settingsRepository.userWeight = newWeight
         viewModelScope.launch {
             activityRepository.saveWeight(LocalDate.now().toString(), newWeight)
+        }
+    }
+
+    fun toggleTracking(context: Context) {
+        // Проверка перед запуском, чтобы не словить крэш
+        val hasFine = ContextCompat.checkSelfPermission(context,
+            Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        if (!hasFine) {
+            // Тут можно либо лог записать, либо тост показать
+            logger.log(LogLevel.ERROR, "UI", "Попытка запуска GPS без разрешений")
+            return
+        }
+        val intent = Intent(context, TrackingService::class.java)
+        if (_isTracking.value) {
+            intent.action = ACTION_STOP_TRACKING
+            context.startService(intent)
+            _isTracking.value = false
+            logger.log(LogLevel.SYSTEM, "UI", "Пользователь остановил трекинг")
+        } else {
+            intent.action = ACTION_START_TRACKING
+            context.startService(intent)
+            _isTracking.value = true
+            logger.log(LogLevel.SYSTEM, "UI", "Пользователь запустил трекинг")
         }
     }
 
