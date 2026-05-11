@@ -55,8 +55,11 @@ class BleManager @Inject constructor(
 
     fun isBtEnabled(): Boolean = adapter?.isEnabled == true
 
-    private val _lastData = MutableStateFlow("")
-    val lastData = _lastData.asStateFlow()
+    private val _dataLog = MutableStateFlow<List<String>>(emptyList())
+    val dataLog = _dataLog.asStateFlow()
+
+    private val _accelerometerData = MutableSharedFlow<Triple<Int, Int, Int>>()
+    val accelerometerData = _accelerometerData.asSharedFlow()
 
     @SuppressLint("MissingPermission")
     fun startScanning(): Flow<BleDevice> = callbackFlow {
@@ -82,6 +85,9 @@ class BleManager @Inject constructor(
 
     @SuppressLint("MissingPermission")
     fun connect(address: String) {
+        clearDataLog()
+        resetConnectionState()
+
         val device = adapter?.getRemoteDevice(address) ?: return
         closeGatt()
 
@@ -97,9 +103,55 @@ class BleManager @Inject constructor(
         }
     }
 
+    fun resetConnectionState() {
+        managerScope.launch {
+            _connectionState.emit(0)
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    fun sendMagicKick() {
+        val currentGatt = gatt ?: return
+        logger.log(LogLevel.SYSTEM, "BLE", "Раздаю пендели...")
+
+        managerScope.launch {
+            currentGatt.services.forEach { service ->
+                service.characteristics.forEach { char ->
+                    // Если в характеристику можно писать (WRITE или WRITE_NO_RESPONSE)
+                    if (char.properties and 0x08 != 0 || char.properties and 0x04 != 0) {
+                        logger.log(LogLevel.DEBUG, "BLE", "Пендель в ${char.uuid.toString().take(8)}")
+                        char.value = byteArrayOf(0x01)
+                        currentGatt.writeCharacteristic(char)
+                        delay(500) // Между ручными пенделями пауза поменьше
+                    }
+                }
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    fun sendCustomKick(value: Byte) {
+        // Используем 12b1 — она чаще всего бывает управляющей
+        val charUuid = UUID.fromString("a0d812b1-515e-4596-b280-dfe639929552")
+        val serviceUuid = UUID.fromString("a0d812b0-515e-4596-b280-dfe639929552")
+
+        val char = gatt?.getService(serviceUuid)?.getCharacteristic(charUuid)
+        if (char != null) {
+            logger.log(LogLevel.SYSTEM, "BLE", "Пробую команду: ${String.format("%02X", value)}")
+            char.value = byteArrayOf(value)
+            gatt?.writeCharacteristic(char)
+        }
+    }
+
     @SuppressLint("MissingPermission")
     fun disconnect() {
         gatt?.disconnect()
+    }
+
+    fun clearDataLog() {
+        managerScope.launch {
+            _dataLog.value = emptyList()
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -111,7 +163,10 @@ class BleManager @Inject constructor(
 
     @SuppressLint("MissingPermission")
     private fun enableNotifications(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
+        // 1. Говорим Android-системе: "Слушай этот канал"
         gatt.setCharacteristicNotification(characteristic, true)
+
+        // 2. Говорим железке: "Шли данные" (через дескриптор 2902)
         val descriptor = characteristic.getDescriptor(CLIENT_CONFIG_UUID)
         if (descriptor != null) {
             descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
@@ -126,6 +181,13 @@ class BleManager @Inject constructor(
 
             if (status != BluetoothGatt.GATT_SUCCESS) {
                 logger.log(LogLevel.ERROR, "BLE", "Ошибка GATT: $status")
+
+                // ГАРАНТИРОВАННЫЙ ПРОБРОС ОШИБКИ
+                managerScope.launch {
+                    _connectionState.emit(0)  // Сначала сброс
+                    _connectionState.emit(-1) // Потом ошибка
+                }
+
                 closeGatt()
                 return
             }
@@ -143,29 +205,36 @@ class BleManager @Inject constructor(
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             if (status != BluetoothGatt.GATT_SUCCESS) return
 
-            logger.log(LogLevel.INFO, "BLE", "Глубокий анализ WSH...")
+            managerScope.launch {
+                // 1. Только БАТАРЕЙКА (самый легкий запрос)
+                gatt.getService(BATTERY_SERVICE_UUID)?.getCharacteristic(BATTERY_LEVEL_CHAR_UUID)?.let {
+                    gatt.readCharacteristic(it)
+                    delay(1000)
+                }
 
-            gatt.services.forEach { service ->
-                logger.log(LogLevel.DEBUG, "BLE", "--- Сервис: ${service.uuid}")
-
-                service.characteristics.forEach { char ->
-                    val props = mutableListOf<String>()
-                    if (char.properties and 0x02 != 0) props.add("READ")
-                    if (char.properties and 0x10 != 0) props.add("NOTIFY")
-
-                    logger.log(LogLevel.DEBUG, "BLE", "  |> Хар-ка: ${char.uuid} [${props.joinToString("|")}]")
-
-                    // ЕСЛИ ЕСТЬ NOTIFY — ПОДПИСЫВАЕМСЯ НА ВСЁ ПОДРЯД
-                    if (char.properties and 0x10 != 0) {
-                        logger.log(LogLevel.SYSTEM, "BLE", "Подписываюсь на ${char.uuid}")
-                        enableNotifications(gatt, char)
-                    }
-
-                    // Если есть READ и это не батарейка (её уже читали) — тоже пробуем
-                    if (char.properties and 0x02 != 0 && char.uuid != BATTERY_LEVEL_CHAR_UUID) {
-                        gatt.readCharacteristic(char)
+                // 2. Только ПОДПИСКИ (слушаем, что датчик сам готов отдать)
+                gatt.services.forEach { service ->
+                    service.characteristics.forEach { char ->
+                        if (char.properties and 0x10 != 0) { // NOTIFY
+                            logger.log(LogLevel.SYSTEM, "BLE", "Слушаю канал: ${char.uuid.toString().take(8)}")
+                            enableNotifications(gatt, char)
+                            delay(1000)
+                        }
                     }
                 }
+                logger.log(LogLevel.SYSTEM, "BLE", "Готов. Жду твоего пенделя.")
+            }
+        }
+
+        override fun onDescriptorWrite(
+            gatt: BluetoothGatt,
+            descriptor: BluetoothGattDescriptor,
+            status: Int
+        ) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                logger.log(LogLevel.DEBUG, "BLE", "Датчик подтвердил подписку на ${descriptor.characteristic.uuid.toString().take(8)}")
+            } else {
+                logger.log(LogLevel.ERROR, "BLE", "Датчик ОТКЛОНИЛ подписку: $status")
             }
         }
 
@@ -173,16 +242,23 @@ class BleManager @Inject constructor(
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic
         ) {
-            val data = characteristic.value
-            if (data != null) {
-                val hexString = data.joinToString(" ") { String.format("%02X", it) }
+            val data = characteristic.value ?: return
+            val uuid = characteristic.uuid.toString().take(8)
 
-                // Обновляем поток для UI
-                managerScope.launch {
-                    _lastData.emit(hexString)
-                }
+            // Формируем HEX и DEC (для первого байта)
+            val hexString = data.joinToString(" ") { String.format("%02X", it) }
+            val decValue = if (data.isNotEmpty()) data[0].toInt() and 0xFF else 0
 
-                logger.log(LogLevel.INFO, "BLE", "ДАННЫЕ [${characteristic.uuid.toString().take(8)}]: $hexString")
+            val logLine = "[$uuid] HEX: $hexString | DEC: $decValue"
+
+            // Пишем в системный лог для истории
+            logger.log(LogLevel.INFO, "BLE_DATA", logLine)
+
+            // Обновляем UI-поток
+            managerScope.launch {
+                val currentList = _dataLog.value.toMutableList()
+                currentList.add(0, logLine)
+                _dataLog.value = currentList.take(30) // Держим побольше строк для сравнения
             }
         }
 

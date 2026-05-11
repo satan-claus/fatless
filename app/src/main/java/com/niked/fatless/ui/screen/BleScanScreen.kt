@@ -1,6 +1,7 @@
 package com.niked.fatless.ui.screen
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,10 +21,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -67,21 +72,36 @@ fun BleScanScreen(
     val devices by viewModel.devices.collectAsState()
     val isScanning by viewModel.isScanning.collectAsState()
     val connectionState by viewModel.connectionState.collectAsState()
-    val deviceData by viewModel.deviceData.collectAsState()
+    val dataLog by viewModel.dataLog.collectAsState()
+    val lastCmd by viewModel.lastCommand.collectAsState()
+    val accelData by viewModel.accelData.collectAsState(initial = Triple(0, 0, 0))
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Реакция на ошибку подключения
+    // Белый список твоих датчиков (Anicall и WSH)
+    val myDevices = remember { listOf("E0:56:BD:A8:14:DE", "B4:77:45:53:EC:9B") }
+
+    // 🎯 Фильтруем список: только именованные, свои или те, что в радиусе метра
+    val displayDevices = remember(devices) {
+        devices.filter { device ->
+            val isMine = myDevices.contains(device.address)
+            val hasName = !device.name.isNullOrBlank() &&
+                !device.name.contains("Unknown", ignoreCase = true)
+            val isVeryClose = device.rssi > -85
+
+            isMine || hasName || isVeryClose
+        }
+    }
+
     LaunchedEffect(connectionState) {
         if (connectionState == -1) {
             snackbarHostState.showSnackbar(
-                message = "Ошибка подключения. Датчик недоступен.",
+                message = "Ошибка 133: Датчик не отвечает",
                 duration = SnackbarDuration.Short
             )
         }
     }
 
-    // Первичный запуск
     LaunchedEffect(Unit) {
         if (!viewModel.isBtEnabled()) {
             (context as? MainActivity)?.askToEnableBluetooth()
@@ -130,7 +150,52 @@ fun BleScanScreen(
                 .padding(paddingValues = padding)
                 .background(color = AppBackground)
         ) {
-            if (devices.isEmpty() && !isScanning) {
+            // Черная консоль с логами (показываем только при коннекте)
+            AnimatedVisibility(visible = connectionState == 2) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth().height(450.dp).padding(16.dp),
+                    color = Color.Black,
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, AppSecondary.copy(alpha = 0.5f))
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        // ШАПКА КОНСОЛИ
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("ANICALL MONITOR", color = AppSecondary, style = AppTypography.titleSmall)
+
+                            // Наша кнопка "Пенделя"
+                            Button(
+                                onClick = { viewModel.triggerNextKick() },
+                                colors = ButtonDefaults.buttonColors(containerColor = AppPrimary)
+                            ) {
+                                Text("KICK (0x${String.format("%02X", lastCmd)})", color = Color.Black)
+                            }
+                        }
+
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = Color.DarkGray)
+
+                        // СПИСОК ДАННЫХ
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            items(dataLog) { line ->
+                                Text(
+                                    text = line,
+                                    color = if (line.contains("12b5")) Color(0xFF4CAF50) else Color.Green,
+                                    style = AppTypography.bodySmall,
+                                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                    modifier = Modifier.padding(vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Список найденных устройств
+            if (displayDevices.isEmpty() && !isScanning) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
                         text = stringResource(id = R.string.ble_scan_empty),
@@ -139,38 +204,12 @@ fun BleScanScreen(
                 }
             }
 
-            // Внутри Column, перед LazyColumn
-            AnimatedVisibility(visible = connectionState == 2) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    color = Color.Black,
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Live Data (Hex):",
-                            color = AppSecondary,
-                            style = AppTypography.labelSmall
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            text = deviceData,
-                            color = Color.Green,
-                            style = AppTypography.bodySmall,
-                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
-                        )
-                    }
-                }
-            }
-
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(all = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(space = 12.dp)
             ) {
-                items(items = devices, key = { it.address }) { device ->
+                items(items = displayDevices, key = { it.address }) { device ->
                     BleDeviceItem(
                         device = device,
                         onClick = { viewModel.connectToDevice(address = device.address) }
@@ -178,6 +217,23 @@ fun BleScanScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun AccelBar(label: String, value: Int, color: Color) {
+    // Акселерометр обычно выдает от -16384 до 16384
+    // Переводим это в диапазон от 0.0 до 1.0, где 0.5 - это покой
+    val progress = ((value + 16384f) / 32768f).coerceIn(0f, 1f)
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(label, color = color, modifier = Modifier.width(20.dp), style = AppTypography.labelSmall)
+        LinearProgressIndicator(
+            progress = progress,
+            modifier = Modifier.fillMaxWidth().height(10.dp),
+            color = color,
+            trackColor = color.copy(alpha = 0.2f)
+        )
     }
 }
 
@@ -196,7 +252,10 @@ fun BleDeviceItem(device: BleDevice, onClick: () -> Unit) {
             Box(
                 modifier = Modifier
                     .size(size = 40.dp)
-                    .background(color = AppSecondary.copy(alpha = 0.1f), shape = RoundedCornerShape(size = 10.dp)),
+                    .background(
+                        color = AppSecondary.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(size = 10.dp)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -210,9 +269,9 @@ fun BleDeviceItem(device: BleDevice, onClick: () -> Unit) {
 
             Column(modifier = Modifier.weight(weight = 1f)) {
                 Text(
-                    text = device.name ?: stringResource(id = R.string.ble_scan_unknown),
+                    text = device.name ?: "Близкое устройство без имени",
                     style = AppTypography.bodyLarge,
-                    color = AppTextPrimary
+                    color = if (device.name == null) AppSecondary else AppTextPrimary
                 )
                 Text(
                     text = device.address,

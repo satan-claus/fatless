@@ -34,10 +34,23 @@ class BleViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
     // Пробрасываем поток на экран
-    val deviceData = bleManager.lastData.stateIn(viewModelScope, SharingStarted.Lazily, "")
+    val dataLog = bleManager.dataLog.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = emptyList()
+    )
+
+    val accelData = bleManager.accelerometerData
+        .stateIn(viewModelScope, SharingStarted.Lazily, Triple(0, 0, 0))
+
+    private var currentCommand = 1
+    private val _lastCommand = MutableStateFlow(1)
+    val lastCommand = _lastCommand.asStateFlow()
 
     fun startScan() {
         if (_isScanning.value) return
+
+        bleManager.resetConnectionState()
 
         _devices.value = emptyList()
         _isScanning.value = true
@@ -68,6 +81,18 @@ class BleViewModel @Inject constructor(
         // BLE требует тишины в эфире при коннекте
         stopScan()
         bleManager.connect(address)
+    }
+
+    fun triggerMagicKick() {
+        // Шлем волшебные пендели по всем "полужопиям"
+        bleManager.sendMagicKick()
+    }
+
+    fun triggerNextKick() {
+        bleManager.sendCustomKick(currentCommand.toByte())
+        _lastCommand.value = currentCommand
+        currentCommand++ // Инкремент для следующего раза
+        if (currentCommand > 255) currentCommand = 1 // Зацикливаем
     }
 
     fun disconnect() {

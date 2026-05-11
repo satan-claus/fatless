@@ -217,32 +217,34 @@ fun SettingsScreen(
                 }
             }
 
-            // КНОПКА СКАНЕРА BLE
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onBleScanClick() }
-                    .padding(vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_bluetooth_24dp),
-                    contentDescription = null,
-                    tint = AppSecondary,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text(
-                        text = stringResource(R.string.settings_ble_title),
-                        style = AppTypography.bodyMedium,
-                        color = AppTextPrimary
+            if(BuildConfig.DEBUG) {
+                // КНОПКА СКАНЕРА BLE
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onBleScanClick() }
+                        .padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_bluetooth_24dp),
+                        contentDescription = null,
+                        tint = AppSecondary,
+                        modifier = Modifier.size(20.dp)
                     )
-                    Text(
-                        text = stringResource(R.string.settings_ble_subtitle),
-                        style = AppTypography.labelSmall,
-                        color = AppTextTertiary
-                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = stringResource(R.string.settings_ble_title),
+                            style = AppTypography.bodyMedium,
+                            color = AppTextPrimary
+                        )
+                        Text(
+                            text = stringResource(R.string.settings_ble_subtitle),
+                            style = AppTypography.labelSmall,
+                            color = AppTextTertiary
+                        )
+                    }
                 }
             }
 
