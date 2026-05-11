@@ -116,5 +116,20 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <receiver
+            android:name=".widget.StepWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <!-- Говорим системе, что это виджет -->
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <!-- Ссылка на файл с настройками размеров (сейчас его создадим) -->
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/step_widget_info" />
+        </receiver>
+
     </application>
 </manifest>
