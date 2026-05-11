@@ -15,19 +15,12 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.LinearProgressIndicator
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
-import androidx.glance.layout.Alignment
-import androidx.glance.layout.Column
-import androidx.glance.layout.Row
-import androidx.glance.layout.Spacer
-import androidx.glance.layout.fillMaxSize
-import androidx.glance.layout.fillMaxWidth
-import androidx.glance.layout.height
-import androidx.glance.layout.padding
-import androidx.glance.layout.width
+import androidx.glance.layout.*
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import com.niked.fatless.R
 import com.niked.fatless.core.utils.Constants.PREFS_NAME
 import com.niked.fatless.core.utils.Constants.PREF_STEP_GOAL
 import com.niked.fatless.core.utils.Constants.PREF_TODAY_STEPS
@@ -36,41 +29,66 @@ import com.niked.fatless.ui.MainActivity
 class StepWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        // Достаем данные из твоих настроек по константам
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val stepsToday = prefs.getInt(PREF_TODAY_STEPS, 0)
         val goal = prefs.getInt(PREF_STEP_GOAL, 10000)
 
+        val isOverstep = stepsToday >= goal
+
+        // Ресурсы из strings.xml
+        val labelText = if (isOverstep) context.getString(R.string.widget_oversteps)
+        else context.getString(R.string.widget_steps_today)
+
+        val statusText = if (isOverstep) context.getString(R.string.widget_goal_reached)
+        else context.getString(R.string.widget_goal_prefix, goal)
+
         provideContent {
             GlanceTheme {
-                StepWidgetContent(steps = stepsToday, goal = goal)
+                StepWidgetContent(
+                    steps = stepsToday,
+                    goal = goal,
+                    label = labelText,
+                    status = statusText,
+                    isOverstep = isOverstep
+                )
             }
         }
     }
 
     @SuppressLint("RestrictedApi")
     @Composable
-    private fun StepWidgetContent(steps: Int, goal: Int) {
-        // Вычисляем прогресс (для бара максимум 1.0)
+    private fun StepWidgetContent(
+        steps: Int,
+        goal: Int,
+        label: String,
+        status: String,
+        isOverstep: Boolean
+    ) {
         val progress = (steps.toFloat() / goal).coerceIn(0f, 1f)
 
-        // ЦВЕТОВАЯ ЛОГИКА
-        val isOverstep = steps >= goal
-        val activeColor = if (isOverstep) Color(0xFFBB86FC) else Color(0xFFFFA500) // Фиолетовый vs Оранжевый
+        // ТВОЯ ПАЛИТРА
+        val colorToday = Color(0xFFFF9800)      // ColorStepsToday (Оранжевый)
+        val colorOverstep = Color(0xFF673AB7)   // ColorOverSteps (Фиолетовый)
+        val widgetBg = Color(0xFFF5F5F7)        // AppBackground
+        val textPrimary = Color(0xFF1A1D24)     // AppTextPrimary
+        val textTertiary = Color(0xFF939BAA)    // AppTextTertiary
+
+        val activeColor = if (isOverstep) colorOverstep else colorToday
 
         Row(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(Color(0xFF1C1C1E))
+                .background(widgetBg)
                 .padding(16.dp)
                 .clickable(actionStartActivity<MainActivity>()),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Инфо о шагах
             Column(modifier = GlanceModifier.defaultWeight()) {
                 Text(
-                    text = if (isOverstep) "СВЕРХШАГИ!" else "ШАГИ СЕГОДНЯ",
+                    text = label,
                     style = TextStyle(
-                        color = ColorProvider(if (isOverstep) activeColor else Color.Gray),
+                        color = ColorProvider(if (isOverstep) activeColor else textTertiary),
                         fontSize = 10.sp,
                         fontWeight = if (isOverstep) FontWeight.Bold else FontWeight.Normal
                     )
@@ -78,8 +96,8 @@ class StepWidget : GlanceAppWidget() {
                 Text(
                     text = steps.toString(),
                     style = TextStyle(
-                        color = ColorProvider(Color.White),
-                        fontSize = 24.sp,
+                        color = ColorProvider(textPrimary),
+                        fontSize = 26.sp,
                         fontWeight = FontWeight.Bold
                     )
                 )
@@ -87,21 +105,21 @@ class StepWidget : GlanceAppWidget() {
 
             Spacer(modifier = GlanceModifier.width(16.dp))
 
+            // Прогресс
             Column(modifier = GlanceModifier.defaultWeight()) {
                 LinearProgressIndicator(
                     progress = progress,
                     modifier = GlanceModifier.fillMaxWidth().height(8.dp),
-                    // Красим бар в зависимости от прогресса
                     color = ColorProvider(activeColor),
-                    backgroundColor = ColorProvider(Color.Gray.copy(alpha = 0.2f))
+                    backgroundColor = ColorProvider(Color(0xFFEDEDEF)) // AppDisabledBg
                 )
 
                 Spacer(modifier = GlanceModifier.height(4.dp))
 
                 Text(
-                    text = if (isOverstep) "ЦЕЛЬ ВЫПОЛНЕНА" else "ЦЕЛЬ: $goal",
+                    text = status,
                     style = TextStyle(
-                        color = ColorProvider(if (isOverstep) activeColor else Color.Gray),
+                        color = ColorProvider(if (isOverstep) activeColor else textTertiary),
                         fontSize = 10.sp
                     )
                 )
