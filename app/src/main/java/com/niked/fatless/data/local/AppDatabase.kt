@@ -1,7 +1,10 @@
 package com.niked.fatless.data.local
 
+import android.content.Context
 import androidx.room.Database
+import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.niked.fatless.core.utils.Constants.DATABASE_NAME
 import com.niked.fatless.data.local.dao.WorkoutDao
 import com.niked.fatless.data.local.entities.IntervalEntity
 import com.niked.fatless.data.local.entities.WorkoutEntity
@@ -41,4 +44,23 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun locationDao(): LocationDao
     abstract fun logDao(): LogDao
     abstract fun workoutDao(): WorkoutDao
+
+    companion object {
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getDatabase(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    DATABASE_NAME
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
+                INSTANCE = instance
+                instance
+            }
+        }
+    }
 }

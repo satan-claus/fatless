@@ -14,8 +14,8 @@ android {
         applicationId = "com.niked.fatless"
         minSdk = 29
         targetSdk = 36
-        versionCode = 75
-        versionName = "1.0.75"
+        versionCode = 77
+        versionName = "1.0.77"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -90,6 +90,9 @@ dependencies {
 
     // Карты для GPS-трекера
     implementation("org.osmdroid:osmdroid-android:6.1.18")
+
+    // Widget
+    implementation("androidx.glance:glance-appwidget:1.0.0")
 
     // Тесты
     testImplementation(libs.junit)

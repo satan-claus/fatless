@@ -99,6 +99,12 @@
     <string name="map_marker_start">Старт</string>
     <string name="map_marker_finish">Финиш</string>
 
+    <string name="widget_steps_today">ШАГИ СЕГОДНЯ</string>
+    <string name="widget_oversteps">СВЕРХШАГИ!</string>
+    <string name="widget_goal_prefix">ЦЕЛЬ: %1$d</string>
+    <string name="widget_goal_reached">ЦЕЛЬ ВЫПОЛНЕНА</string>
+    <string name="widget_goal_label">из %1$d</string>
+
     <!-- WORKOUT SCREENS -->
     <string name="workout_create_title">Новая тренировка</string>
     <string name="workout_create_subtitle_default">Конструктор</string>
