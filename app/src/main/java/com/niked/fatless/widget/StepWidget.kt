@@ -35,7 +35,6 @@ class StepWidget : GlanceAppWidget() {
 
         val isOverstep = stepsToday >= goal
 
-        // Ресурсы из strings.xml
         val labelText = if (isOverstep) context.getString(R.string.widget_oversteps)
         else context.getString(R.string.widget_steps_today)
 
