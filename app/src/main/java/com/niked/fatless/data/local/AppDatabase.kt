@@ -14,12 +14,16 @@ import com.niked.fatless.data.local.dao.ExerciseDao
 import com.niked.fatless.data.local.dao.FoodDao
 import com.niked.fatless.data.local.dao.LocationDao
 import com.niked.fatless.data.local.dao.LogDao
+import com.niked.fatless.data.local.dao.ShopDao
+import com.niked.fatless.data.local.dao.ShoppingDao
 import com.niked.fatless.data.local.entities.DailyActivityEntity
 import com.niked.fatless.data.local.entities.ExerciseTypeEntity
 import com.niked.fatless.data.local.entities.FoodCategoryEntity
 import com.niked.fatless.data.local.entities.FoodDiaryEntity
 import com.niked.fatless.data.local.entities.FoodEntity
 import com.niked.fatless.data.local.entities.LocationEntity
+import com.niked.fatless.data.local.entities.ShopEntity
+import com.niked.fatless.data.local.entities.ShoppingListEntity
 import com.niked.fatless.data.local.entity.LogEntity
 
 @Database(
@@ -32,6 +36,8 @@ import com.niked.fatless.data.local.entity.LogEntity
         IntervalEntity::class,
         LocationEntity::class,
         LogEntity::class,
+        ShopEntity::class,
+        ShoppingListEntity::class,
         WorkoutEntity::class,
     ],
     version = DATABASE_VERSION,
@@ -43,6 +49,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun foodDao(): FoodDao
     abstract fun locationDao(): LocationDao
     abstract fun logDao(): LogDao
+    abstract fun shopDao(): ShopDao
+    abstract fun shoppingDao(): ShoppingDao
     abstract fun workoutDao(): WorkoutDao
 
     companion object {
