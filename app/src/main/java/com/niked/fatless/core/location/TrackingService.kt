@@ -41,9 +41,7 @@ class TrackingService : LifecycleService() {
     @Inject lateinit var activityRepository: IActivityRepository
     @Inject lateinit var settingsRepository: ISettingsRepository
     @Inject lateinit var logger: AppLogger
-    // Наш список покупок
     @Inject lateinit var shoppingDao: ShoppingDao
-    // Наш справочник магазинов
     @Inject lateinit var shopDao: ShopDao
 
     private var lastStepCount: Int = 0
@@ -57,15 +55,16 @@ class TrackingService : LifecycleService() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
+
         when (intent?.action) {
             ACTION_START_TRACKING -> startTracking()
             ACTION_STOP_TRACKING -> stopTracking()
         }
-        return super.onStartCommand(intent, flags, startId)
+        return START_STICKY
     }
 
     private fun startTracking() {
-        // Фиксируем шаги на момент старта
         lastStepCount = settingsRepository.todaySteps
 
         val initialId = LocalDate.now().toSessionId()
@@ -76,15 +75,15 @@ class TrackingService : LifecycleService() {
             .setContentText("Запись маршрута активна...")
             .setSmallIcon(R.drawable.ic_directions_run_24dp)
             .setOngoing(true)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .build()
 
         startForeground(Constants.LOCATION_NOTIFICATION_ID, notification)
 
-        locationClient.getLocationUpdates(3000L) // Раз в 3 секунды для города — самое то
+        locationClient.getLocationUpdates(3000L)
             .onStart { logger.log(LogLevel.SYSTEM, "GPS", ">>> Поток запрошен у системы") }
             .catch { e -> logger.log(LogLevel.ERROR, "GPS", ">>> КРИТИЧЕСКАЯ ОШИБКА ПОТОКА: ${e.message}") }
             .onEach { location ->
-                // Логируем ВООБЩЕ всё, что прилетает от спутников
                 logger.log(LogLevel.DEBUG, "GPS", "СЫРАЯ ТОЧКА: lat=${location.latitude}, acc=${location.accuracy}м")
                 processLocation(location)
             }
@@ -92,32 +91,46 @@ class TrackingService : LifecycleService() {
     }
 
     private fun processLocation(location: Location) {
-        // 1. ЛОГ ТОЧНОСТИ
-        if (location.accuracy > 50) { // Для города 50м — это ок, 20м бывает жестковато
-            logger.log(LogLevel.DEBUG, "GPS", "!!! МИМО: Низкая точность (${location.accuracy}м)")
+        // Вычисляем текущую скорость в км/ч.
+        // Если системная скорость кривая или 0, подстрахуемся расчетом по времени и дистанции,
+        // но для фильтрации берем базовое значение км/ч
+        val currentSpeedKmH = location.speed * 3.6f
+        // Признак того, что мы в транспорте/поезде
+        val isFastMovement = currentSpeedKmH > 15f
+
+        // 1. АДАПТИВНЫЙ ФИЛЬТР ТОЧНОСТИ
+        // В поезде/машине расширяем шлюз до 100 метров, чтобы не терять трек из-за экранирования вагона.
+        // Пешком держим строгие 30 метров, чтобы не было "дрейфа" на месте.
+        val maxAllowedAccuracy = if (isFastMovement) 100f else 30f
+
+        if (location.accuracy > maxAllowedAccuracy) {
+            logger.log(LogLevel.DEBUG, "GPS", "!!! МИМО: Низкая точность (${location.accuracy}м > лимита ${maxAllowedAccuracy}м)")
             return
         }
 
-        // 2. ЛОГ ДИСТАНЦИИ
+        // 2. АДАПТИВНЫЙ ФИЛЬТР ДИСТАНЦИИ
         val lastLoc = lastSavedLocation
         if (lastLoc != null) {
             val distance = location.distanceTo(lastLoc)
-            if (distance < 3f) {
-                logger.log(LogLevel.DEBUG, "GPS", "!!! МИМО: Слишком малый сдвиг (${String.format("%.1f", distance)}м)")
+            // Если летим на поезде, нет смысла писать точки каждые 3 метра (забьем базу). Пишем от 15 метров.
+            // Если стоим/идем — пишем от 3 метров.
+            val minRequiredDistance = if (isFastMovement) 15f else 3f
+
+            if (distance < minRequiredDistance) {
+                logger.log(LogLevel.DEBUG, "GPS", "!!! МИМО: Малый сдвиг (${String.format("%.1f", distance)}м < требуемых ${minRequiredDistance}м)")
                 return
             }
         }
 
-        // Если прошли фильтры
+        // Если прошли фильтры — фиксируем точку
         lastSavedLocation = location
-        logger.log(LogLevel.SYSTEM, "GPS", "✅ ТОЧКА ПРИНЯТА: Скорость=${location.speed * 3.6f} км/ч")
+        logger.log(LogLevel.SYSTEM, "GPS", "ТОЧКА ПРИНЯТА: Скорость=$currentSpeedKmH км/ч, Точность=${location.accuracy}м")
 
         val currentSteps = settingsRepository.todaySteps
-        // Если шагов стало больше, чем было при прошлой точке - значит идем
         val hasSteps = currentSteps > lastStepCount
         lastStepCount = currentSteps
 
-        val type = resolveActivityType(location.speed, hasSteps)
+        val type = resolveActivityType(location, hasSteps)
 
         val userLocation = UserLocation(
             latitude = location.latitude,
@@ -127,7 +140,6 @@ class TrackingService : LifecycleService() {
             timestamp = System.currentTimeMillis()
         )
 
-        // Динамический ID: 2026-05-10 -> 20260510
         val dynamicSessionId = LocalDate.now().toSessionId()
 
         lifecycleScope.launch(Dispatchers.IO) {
@@ -142,18 +154,45 @@ class TrackingService : LifecycleService() {
         }
 
         updateNotification(location.speed)
-
         checkNearbyShops(location)
     }
 
-    private fun resolveActivityType(speedMs: Float, hasSteps: Boolean): ActivityType {
-        val speedKmH = speedMs * 3.6f
+    private fun resolveActivityType(location: Location, hasSteps: Boolean): ActivityType {
+        // Берем системную скорость
+        var speedKmH = location.speed * 3.6f
+
+        // ПОДСТРАХОВКА: Считаем реальную скорость по дельте времени и расстояния
+        val lastLoc = lastSavedLocation
+        if (lastLoc != null) {
+            val distanceMeters = location.distanceTo(lastLoc)
+            val timeSeconds = (location.time - lastLoc.time) / 1000f
+
+            // Защита от деления на ноль
+            if (timeSeconds > 0.5f) {
+                val calculatedSpeedKmH = (distanceMeters / timeSeconds) * 3.6f
+
+                // Если системная скорость равна 0 (GPS затупил в вагоне),
+                // или она в 2 раза отличается от математически расчетной — верим математике
+                if (speedKmH <= 0f || Math.abs(speedKmH - calculatedSpeedKmH) > speedKmH * 0.5f) {
+                    speedKmH = calculatedSpeedKmH
+                }
+            }
+        }
+
+        // ОГРАНИЧИТЕЛЬ ХАОСА
+        // Физический предел обычного поезда/автомобиля в маршруте — ну вряд ли больше 140 км/ч.
+        // Если цифра улетает в космос, мягко гасим её до средней скорости транспорта.
+        if (speedKmH > 150f) {
+            speedKmH = 60f
+        }
+
+        // ОПРЕДЕЛЯЕМ АКТИВНОСТЬ ПО ЧЕСТНОЙ СКОРОСТИ
         return when {
-            // Идем, если есть шаги и скорость не как у ракеты
+            // Идем, если есть шаги и скорость адекватная
             hasSteps && speedKmH < 15f -> ActivityType.WALK
             // Велик/Самокат: шагов нет, скорость средняя
             !hasSteps && speedKmH in 5f..25f -> ActivityType.BIKE
-            // Транспорт: летим быстро
+            // Транспорт/Поезд: летим стабильно быстро
             speedKmH >= 25f -> ActivityType.TRANSPORT
             // Стоим
             else -> ActivityType.STAY
@@ -248,7 +287,7 @@ class TrackingService : LifecycleService() {
             .setAutoCancel(true)
             .build()
 
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         // Используем shopId, чтобы уведомления от разных магазов не затирали друг друга
         manager.notify(shopId + 100, notification)
     }

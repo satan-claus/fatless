@@ -26,20 +26,37 @@ class DefaultLocationClient(
                 throw ILocationClient.LocationException("GPS/Network disabled")
             }
 
+            // Создаем единый лисенер для всех провайдеров
             val listener = LocationListener { location ->
                 launch { send(location) }
             }
 
-            // Запрашиваем обновления по GPS
-            locationManager.requestLocationUpdates(
-                LocationManager.GPS_PROVIDER,
-                interval,
-                5f, // Минимум 5 метров между точками
-                listener
-            )
+            // ЗАПРОС ПО GPS (Основной)
+            // 0f, чтобы система отдавала абсолютно ВСЕ точки во времени.
+            // Фильтровать дистанцию будем в TrackingService.
+            if (isGpsEnabled) {
+                locationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER,
+                    interval,
+                    // Забираем всё без ограничений по метрам
+                    0f,
+                    listener
+                )
+            }
 
-            // Закрываем лавочку, когда Flow прекращает работу
+            // ЗАПРОС ПО СЕТИ (Страховка для транспорта/помещений)
+            // Если GPS отвалится в глухом лесу или вагоне, вышки связи подстрахуют
+            if (isNetworkEnabled) {
+                locationManager.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER,
+                    interval,
+                    0f,
+                    listener
+                )
+            }
+
             awaitClose {
+                // Чистим за собой при закрытии потока
                 locationManager.removeUpdates(listener)
             }
         }

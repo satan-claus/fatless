@@ -14,8 +14,8 @@ android {
         applicationId = "com.niked.fatless"
         minSdk = 29
         targetSdk = 36
-        versionCode = 79
-        versionName = "1.0.79"
+        versionCode = 81
+        versionName = "1.0.81"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
