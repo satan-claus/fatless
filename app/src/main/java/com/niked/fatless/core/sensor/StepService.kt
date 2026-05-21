@@ -16,6 +16,7 @@ import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.toColorInt
+import androidx.glance.appwidget.updateAll
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.niked.fatless.R
@@ -25,6 +26,7 @@ import com.niked.fatless.core.utils.Constants.LogLevel
 import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.domain.repository.ISettingsRepository
 import com.niked.fatless.ui.MainActivity
+import com.niked.fatless.widget.StepWidget
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -67,6 +69,11 @@ class StepService : LifecycleService(), SensorEventListener {
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
 
         val notification = createNotification(settingsRepository.todaySteps, settingsRepository.currentManualSteps)
+
+        lifecycleScope.launch(Dispatchers.Default) {
+            // Пинаем виджет каждые 5-10 шагов, чтобы не высадить батарейку
+            StepWidget().updateAll(applicationContext)
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(
