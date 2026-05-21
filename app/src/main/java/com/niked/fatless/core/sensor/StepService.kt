@@ -16,9 +16,7 @@ import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.toColorInt
-import androidx.glance.appwidget.updateAll
 import androidx.lifecycle.LifecycleService
-import androidx.lifecycle.lifecycleScope
 import com.niked.fatless.R
 import com.niked.fatless.core.utils.AppLogger
 import com.niked.fatless.core.utils.Constants
@@ -38,6 +36,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
+import androidx.glance.appwidget.updateAll
 
 @AndroidEntryPoint
 class StepService : LifecycleService(), SensorEventListener {
@@ -48,7 +47,8 @@ class StepService : LifecycleService(), SensorEventListener {
     @Inject
     lateinit var activityRepository: IActivityRepository
 
-    @Inject lateinit var logger: AppLogger
+    @Inject
+    lateinit var logger: AppLogger
 
     private lateinit var sensorManager: SensorManager
     private var wakeLock: PowerManager.WakeLock? = null
@@ -56,8 +56,6 @@ class StepService : LifecycleService(), SensorEventListener {
 
     override fun onCreate() {
         super.onCreate()
-
-        // ЛОГ: Старт сервиса
         logger.log(LogLevel.SYSTEM, "SERVICE", "StepService создан (onCreate)")
 
         createNotificationChannel()
@@ -70,9 +68,13 @@ class StepService : LifecycleService(), SensorEventListener {
 
         val notification = createNotification(settingsRepository.todaySteps, settingsRepository.currentManualSteps)
 
-        lifecycleScope.launch(Dispatchers.Default) {
-            // Пинаем виджет каждые 5-10 шагов, чтобы не высадить батарейку
-            StepWidget().updateAll(applicationContext)
+        // Принудительно обновляем виджет при старте сервиса (после перезагрузки или сна)
+        serviceScope.launch {
+            try {
+                StepWidget().updateAll(applicationContext)
+            } catch (e: Exception) {
+                // Игнорируем, если виджет не вынесен на экран
+            }
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -91,7 +93,6 @@ class StepService : LifecycleService(), SensorEventListener {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
-        // ЛОГ: Команды управления
         if (intent?.action != null) {
             logger.log(LogLevel.SYSTEM, "SERVICE", "Получена команда: ${intent.action}")
         }
@@ -118,7 +119,7 @@ class StepService : LifecycleService(), SensorEventListener {
     private fun reRegisterSensor() {
         val stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
         sensorManager.unregisterListener(this)
-        sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_NORMAL)
+        sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
@@ -126,19 +127,18 @@ class StepService : LifecycleService(), SensorEventListener {
             val totalStepsSinceBoot = event.values[0].toInt()
             val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
-            // 1. СМЕНА ДНЯ (Сброс и сохранение)
+            // 1. СМЕНА ДНЯ
             if (settingsRepository.lastStepResetDate != today) {
                 val yesterdayDate = settingsRepository.lastStepResetDate
                 val yesterdaySteps = settingsRepository.todaySteps
                 val yesterdayCalories = settingsRepository.todayBurnedCalories
-                val yesterdayWeight = settingsRepository.userWeight // Берем вес из префсов
-                val hourlyData = settingsRepository.todayHourlySteps // Берем накопленные часы
+                val yesterdayWeight = settingsRepository.userWeight
+                val hourlyData = settingsRepository.todayHourlySteps
 
-                // ЛОГ: Обнаружена смена даты
                 logger.log(LogLevel.SYSTEM, "SERVICE", "Смена дня: $yesterdayDate -> $today. Шаги за вчера: $yesterdaySteps")
 
                 if (yesterdayDate.isNotEmpty() && (yesterdaySteps > 0 || yesterdayCalories > 0)) {
-                    lifecycleScope.launch(Dispatchers.IO) {
+                    serviceScope.launch {
                         try {
                             activityRepository.saveSteps(
                                 date = yesterdayDate,
@@ -154,16 +154,20 @@ class StepService : LifecycleService(), SensorEventListener {
                     }
                 }
 
-                // СБРОС ДАННЫХ ДЛЯ НОВОГО ДНЯ
                 settingsRepository.stepBaseCount = totalStepsSinceBoot
                 settingsRepository.lastStepResetDate = today
                 settingsRepository.todaySteps = 0
                 settingsRepository.todayBurnedCalories = 0f
                 settingsRepository.todayHourlySteps = "0,0,0,0,0,0,0,0"
                 if (!settingsRepository.isManualTracking) settingsRepository.manualBaseSteps = -1
+
+                // Сразу обнуляем виджет утром
+                serviceScope.launch {
+                    try { StepWidget().updateAll(applicationContext) } catch (e: Exception) {}
+                }
             }
 
-            // 2. ИНИЦИАЛИЗАЦИЯ (Защита от ребута)
+            // 2. ИНИЦИАЛИЗАЦИЯ
             if (settingsRepository.stepBaseCount <= 0) {
                 logger.log(LogLevel.SYSTEM, "SERVICE", "Инициализация stepBaseCount: $totalStepsSinceBoot")
                 settingsRepository.stepBaseCount = totalStepsSinceBoot
@@ -173,7 +177,7 @@ class StepService : LifecycleService(), SensorEventListener {
                 settingsRepository.stepBaseCount = totalStepsSinceBoot - settingsRepository.todaySteps
             }
 
-            // 3. РАСЧЕТ ДЕЛЬТЫ И ОБНОВЛЕНИЕ ДАННЫХ (Активный режим)
+            // 3. РАСЧЕТ ДЕЛЬТЫ И ОБНОВЛЕНИЕ ДАННЫХ
             val dailySteps = totalStepsSinceBoot - settingsRepository.stepBaseCount
             if (dailySteps >= 0 && dailySteps != settingsRepository.todaySteps) {
                 val delta = dailySteps - settingsRepository.todaySteps
@@ -190,16 +194,24 @@ class StepService : LifecycleService(), SensorEventListener {
                     settingsRepository.todayHourlySteps = stepsArray.joinToString(",")
                 }
 
-                // РАСЧЕТ КАЛОРИЙ
                 val weight = settingsRepository.userWeight
                 val met = settingsRepository.currentMetModifier
                 val calorieIncrement = delta * weight * (met / 7000f)
 
-                // ПИШЕМ В ПРЕФСЫ
                 settingsRepository.todaySteps = dailySteps
                 settingsRepository.todayBurnedCalories += calorieIncrement
+
+                // ЖИВОЙ ПИНК ВИДЖЕТА: Обновляем каждые 10 шагов, чтобы пройти лимиты Android на IPC
+                if (dailySteps % 10 == 0) {
+                    serviceScope.launch {
+                        try {
+                            StepWidget().updateAll(applicationContext)
+                        } catch (e: Exception) {
+                            // Игнорим, если виджет удален с экрана
+                        }
+                    }
+                }
             } else if (dailySteps < 0) {
-                // ЛОГ: Аномалия
                 logger.log(LogLevel.ERROR, "SENSOR", "Отрицательные шаги: dailySteps = $dailySteps. Проверь базу данных!")
             }
 
@@ -281,10 +293,10 @@ class StepService : LifecycleService(), SensorEventListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        // ЛОГ: Уничтожение сервиса
         logger.log(LogLevel.SYSTEM, "SERVICE", "StepService уничтожен (onDestroy)")
         serviceScope.cancel()
         wakeLock?.release()
         sensorManager.unregisterListener(this)
     }
 }
+

@@ -1,11 +1,13 @@
 package com.niked.fatless.ui
 
 import android.bluetooth.BluetoothAdapter
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -25,6 +27,7 @@ import com.niked.fatless.ui.theme.FatLessTheme
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import android.provider.Settings
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -128,14 +131,31 @@ class MainActivity : ComponentActivity() {
 
         // 2. ЗАПУСКАЕМ ПИНАТЕЛЬ (Worker)
         val restartWorkRequest = PeriodicWorkRequestBuilder<StepRestartWorker>(
-            15, TimeUnit.MINUTES // Интервал 15 минут (минимум для Android)
+            15, TimeUnit.MINUTES
         ).build()
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "StepServiceRestart",
-            ExistingPeriodicWorkPolicy.KEEP, // Если уже работает — не перезапускать
+            ExistingPeriodicWorkPolicy.KEEP,
             restartWorkRequest
         )
+
+        // Запрос системного разрешения на игнорирование оптимизации батареи
+        // Это спасет воркер и сервис от принудительной блокировки китайским "крестиком"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+            if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
+                try {
+                    val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                        data = android.net.Uri.parse("package:$packageName")
+                    }
+                    startActivity(intent)
+                    logger.log(LogLevel.SYSTEM, "SERVICE", "Запрошено разрешение на игнорирование оптимизации батареи")
+                } catch (e: Exception) {
+                    logger.log(LogLevel.ERROR, "SERVICE", "Не удалось открыть системное окно оптимизации: ${e.message}")
+                }
+            }
+        }
     }
 
     private val enableBtLauncher = registerForActivityResult(
