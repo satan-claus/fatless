@@ -20,6 +20,27 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    val propsFile = rootProject.projectDir.resolve("local.properties")
+    val props = mutableMapOf<String, String>()
+
+    if (propsFile.exists()) {
+        propsFile.readLines().forEach { line ->
+            if (line.contains("=") && !line.startsWith("#")) {
+                val parts = line.split("=", limit = 2)
+                props[parts[0].trim()] = parts[1].trim()
+            }
+        }
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file("${rootProject.projectDir.parentFile}/fatless-secure-key.jks")
+            storePassword = props["STORE_PASSWORD"] ?: ""
+            keyAlias = props["KEY_ALIAS"] ?: ""
+            keyPassword = props["KEY_PASSWORD"] ?: ""
+        }
+    }
+
     buildTypes {
         debug {
             buildConfigField("boolean", "IS_DEBUG", "true")
@@ -35,7 +56,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
