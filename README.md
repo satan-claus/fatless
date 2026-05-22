@@ -26,3 +26,46 @@
 
 ## 💼 Контакты:
 Готов к обсуждению сложных архитектурных вызовов, работы с системными сервисами, Bluetooth LE, базами данных и оптимизации фоновых процессов под Android.
+
+
+## 📸 Галерея интерфейса / Скриншоты (UI & UX Gallery)
+
+### 📊 Главный экран и Мониторинг активности (Dashboard & Metrics)
+<p align="center">
+  <img src="screenshots/screen_dashboard_activity.jpg" width="30%" alt="Мониторинг шагов" />
+  <img src="screenshots/screen_maps.jpg" width="30%" alt="Плавный GPS трек" />
+  <img src="screenshots/screen_settings.jpg" width="30%" alt="Настройки приложения" />
+</p>
+
+### 🍏 Дневник питания и База продуктов (Nutrition & Calorie Tracker)
+<p align="center">
+  <img src="screenshots/screen_dashboard_nutrition.jpg" width="30%" alt="Статистика БЖУК" />
+  <img src="screenshots/screen_nutrition_history.jpg" width="30%" alt="История питания" />
+  <img src="screenshots/screen_nutrition_add_new.jpg" width="30%" alt="Добавление приема пищи" />
+  <img src="screenshots/screen_food_add_new.jpg" width="30%" alt="Создание нового продукта" />
+</p>
+
+### 🏋️‍♂️ Конструктор тренировок и Выполнение упражнений (Workouts & Training)
+<p align="center">
+  <img src="screenshots/screen_workout_start.jpg" width="23%" alt="Старт тренировки" />
+  <img src="screenshots/screen_workout_01.jpg" width="23%" alt="Выполнение упражнения 1" />
+  <img src="screenshots/screen_workout_02.jpg" width="23%" alt="Выполнение упражнения 2" />
+  <img src="screenshots/screen_workout_finish.jpg" width="23%" alt="Финиш тренировки" />
+</p>
+<p align="center">
+  <img src="screenshots/screen_create_workout_01.jpg" width="48%" alt="Конструктор комплексов 1" />
+  <img src="screenshots/screen_create_workout_02.jpg" width="48%" alt="Конструктор комплексов 2" />
+</p>
+
+### 📅 Календарь истории (History Archive)
+<p align="center">
+  <img src="screenshots/screen_history_01.jpg" width="48%" alt="Архив активности 1" />
+  <img src="screenshots/screen_history_02.jpg" width="48%" alt="Архив активности 2" />
+</p>
+
+### 🔔 Системный контур и Уведомления (Foreground Services & Notifications)
+<p align="center">
+  <img src="screenshots/screen_notification_mini.jpg" width="30%" alt="Компактный статус" />
+  <img src="screenshots/screen_notification_full.jpg" width="30%" alt="Развернутый трекер" />
+  <img src="screenshots/screen_notification_tracker_record.jpg" width="30%" alt="Активная запись GPS" />
+</p>
