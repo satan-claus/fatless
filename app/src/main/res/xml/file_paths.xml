@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Мы используем cacheDir, поэтому нужен cache-path -->
+    <cache-path name="fatless_cache_logs" path="." />
+    <!-- На всякий случай для filesDir -->
+    <files-path name="fatless_files_logs" path="." />
+</paths>

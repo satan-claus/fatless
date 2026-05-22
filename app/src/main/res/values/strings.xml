@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FatLess</string>
+
+    <string name="app_slogan_honest">Поможем не раскабанеть окончательно</string>
+    <string name="app_slogan_size">Хватит расширяться — пора сужаться!</string>
+    <string name="app_slogan_control">Держи габариты под контролем</string>
+
+    <!-- BLE SCREEN -->
+    <string name="ble_scan_title">Поиск датчиков</string>
+    <string name="ble_scan_empty">Датчики не найдены</string>
+    <string name="ble_scan_unknown">Неизвестное устройство</string>
+
+    <!-- DASHBOARD SCREEN -->
+    <string name="dashboard_title">Dashboard</string>
+    <string name="dashboard_subtitle">Твои показатели сегодня</string>
+    <string name="dashboard_workouts_title">Тренировки</string>
+
+    <!-- DAILY SUMMARY CARD -->
+    <string name="daily_summary_today">Сегодня</string>
+    <string name="daily_summary_steps_format">%1$d / %2$d шагов</string>
+    <string name="daily_summary_distance_format">%.2f км</string>
+    <string name="daily_summary_burned_format">%1$d ккал</string>
+    <string name="button_create_workout">СОЗДАТЬ ТРЕНИРОВКУ</string>
+
+    <!-- NUTRITION SCREEN -->
+    <string name="nutrition_title">Дневник питания</string>
+    <string name="nutrition_proteins">Белки</string>
+    <string name="nutrition_fats">Жиры</string>
+    <string name="nutrition_carbs">Угли</string>
+    <string name="nutrition_search_placeholder">Что съели?</string>
+    <string name="nutrition_section_today">СЕГОДНЯ:</string>
+    <string name="nutrition_kcal_label">кКал</string>
+
+    <!-- NUTRITION COMPONENTS -->
+    <string name="nutrition_diary_empty_title">Дневник пуст</string>
+    <string name="nutrition_diary_empty_subtitle">Воспользуйтесь поиском выше,\nчтобы добавить приём пищи</string>
+    <string name="nutrition_create_food_not_found">Продукт «%1$s» не найден</string>
+    <string name="nutrition_create_food_action">Нажмите здесь, чтобы добавить его\nв свой справочник</string>
+    <string name="add_food_dialog_question">Сколько грамм съели?</string>
+    <string name="add_food_dialog_btn_confirm">ДОБАВИТЬ</string>
+    <string name="add_food_dialog_btn_dismiss">ОТМЕНА</string>
+    <string name="diary_item_details_format">%1$s %2$s | %3$s кКал</string>
+    <string name="diary_item_macros_format">Б:%1$s Ж:%2$s У:%3$s</string>
+    <string name="food_result_macros_format">Б: %1$s | Ж: %2$s | У: %3$s (на 100%4$s)</string>
+    <string name="food_result_calories_format">%1$s кКал</string>
+    <string name="food_dialog_question">Сколько %1$s съели?</string>
+
+    <!-- FOOD FORM SCREEN -->
+    <string name="food_form_title_new">Новый продукт</string>
+    <string name="food_form_title_edit">Редактирование</string>
+    <string name="food_form_subtitle_add">Добавить в справочник</string>
+    <string name="food_form_label_name">Название продукта</string>
+    <string name="food_form_label_calories">Калории (кКал)</string>
+    <string name="food_form_section_unit">Единица измерения:</string>
+    <string name="food_form_section_macros">БЖУ на 100г (или 1шт):</string>
+    <string name="food_form_section_category">Категория:</string>
+    <string name="food_form_macro_p_short">Б</string>
+    <string name="food_form_macro_f_short">Ж</string>
+    <string name="food_form_macro_c_short">У</string>
+
+    <!-- HISTORY -->
+    <string name="history_title_steps">Активность</string>
+    <string name="history_title_nutrition">Питание</string>
+    <string name="history_average_label">В среднем: %1$d</string>
+    <string name="history_day_today">Сегодня</string>
+    <string name="history_unit_steps">шагов</string>
+    <string name="history_unit_kcal">ккал</string>
+    <string name="history_bar_today_label">Сегодня</string>
+    <string name="history_title">История</string>
+    <string name="history_no_data">Нет записей за этот день</string>
+    <string name="history_energy_balance">Энергетический баланс</string>
+    <string name="history_macronutrients">Макронутриенты</string>
+    <string name="history_consumed_format">Съедено: %1$d ккал</string>
+    <string name="history_burned_format">Сжёг: %1$d ккал</string>
+    <string name="history_proteins">Белки</string>
+    <string name="history_fats">Жиры</string>
+    <string name="history_carbs">Углеводы</string>
+    <string name="history_grams_format">%1$dг</string>
+    <string name="history_weight_chart">Динамика веса</string>
+    <string name="history_weight_format">%1$.1f кг</string>
+    <string name="history_activity_chart_title">Активность по часам</string>
+    <string name="history_interval_0">00</string>
+    <string name="history_interval_1">03</string>
+    <string name="history_interval_2">06</string>
+    <string name="history_interval_3">09</string>
+    <string name="history_interval_4">12</string>
+    <string name="history_interval_5">15</string>
+    <string name="history_interval_6">18</string>
+    <string name="history_interval_7">21</string>
+    <string name="history_month_summary">Итоги месяца</string>
+    <string name="history_summary_weight">Ср. вес: %1$.1f кг</string>
+    <string name="history_summary_dist">Всего: %1$.1f км</string>
+    <string name="history_summary_goals">Цель: %1$d дн.</string>
+    <string name="history_view_map">Посмотреть маршрут на карте</string>
+
+    <!-- MAP SCREEN -->
+    <string name="map_title">Маршрут прогулки</string>
+    <string name="map_marker_start">Старт</string>
+    <string name="map_marker_finish">Финиш</string>
+
+    <string name="widget_steps_today">ШАГИ СЕГОДНЯ</string>
+    <string name="widget_oversteps">СВЕРХШАГИ!</string>
+    <string name="widget_goal_prefix">ЦЕЛЬ: %1$d</string>
+    <string name="widget_goal_reached">ЦЕЛЬ ВЫПОЛНЕНА</string>
+    <string name="widget_goal_label">из %1$d</string>
+
+    <!-- WORKOUT SCREENS -->
+    <string name="workout_create_title">Новая тренировка</string>
+    <string name="workout_create_subtitle_default">Конструктор</string>
+    <string name="workout_create_section_name">НАЗВАНИЕ</string>
+    <string name="workout_create_name_placeholder">Например: Утренняя пахота</string>
+    <string name="workout_create_section_intervals">ИНТЕРВАЛЫ</string>
+    <string name="workout_create_btn_add_interval">ДОБАВИТЬ ИНТЕРВАЛ</string>
+    <string name="workout_status_ready_sub">Общее время</string>
+    <string name="workout_status_progress">Прошло %1$s из %2$s</string>
+    <string name="workout_status_running_meta">● %1$s</string>
+    <string name="workout_status_paused">ПАУЗА</string>
+    <string name="workout_status_completed">ЗАВЕРШЕНА</string>
+    <string name="workout_ready_hint">Приготовьтесь</string>
+    <string name="workout_section_intervals">Интервалы</string>
+
+    <!-- WORKOUT COMPONENTS -->
+    <string name="workout_item_meta_format">%1$d интервалов • %2$s</string>
+    <string name="workout_interval_card_reps_goal">Цель: %1$d повт.</string>
+    <string name="workout_interval_card_steps_label">Шаги: %1$d</string>
+    <string name="workout_interval_name_placeholder">Назови эту пытку…</string>
+    <string name="workout_interval_label_time">ВРЕМЯ:</string>
+    <string name="workout_interval_label_goal">ЦЕЛЬ:</string>
+    <string name="workout_interval_label_steps">ШАГИ:</string>
+    <string name="workout_interval_unit_minutes">мин</string>
+    <string name="workout_interval_unit_seconds">сек</string>
+    <string name="workout_interval_unit_reps">повт</string>
+    <string name="workout_interval_status_time_only">только время</string>
+    <string name="workout_interval_status_steps_active">активно</string>
+    <string name="workout_interval_status_steps_off">выключено</string>
+    <string name="workout_timer_state_ready">ГОТОВО К СТАРТУ</string>
+    <string name="workout_timer_state_running">ВЫПОЛНЯЕТСЯ</string>
+    <string name="workout_timer_state_paused">НА ПАУЗЕ</string>
+    <string name="workout_timer_state_completed">ТРЕНИРОВКА ЗАВЕРШЕНА</string>
+    <string name="workout_timer_hint_completed">ОТЛИЧНАЯ РАБОТА!</string>
+    <string name="workout_btn_start">СТАРТ</string>
+    <string name="workout_btn_pause">ПАУЗА</string>
+    <string name="workout_btn_next">ГОТОВО / СЛЕДУЮЩИЙ</string>
+    <string name="workout_btn_resume">ПРОДОЛЖИТЬ</string>
+    <string name="workout_btn_reset">СБРОСИТЬ</string>
+    <string name="workout_btn_restart">ЗАПУСТИТЬ ЗАНОВО</string>
+    <string name="workout_btn_to_menu">В МЕНЮ</string>
+
+    <!-- EXERCISE NAMES -->
+    <string name="exercise_walk">Ходьба</string>
+    <string name="exercise_run">Бег</string>
+    <string name="exercise_sprint">Спринт</string>
+    <string name="exercise_cycling">Велосипед</string>
+
+    <!-- SETTINGS -->
+    <string name="settings_title">Настройки</string>
+    <string name="settings_subtitle">Конфигурация</string>
+    <string name="settings_dialog_title">Внимание</string>
+    <string name="settings_dialog_text">Для точных расчетов расстояния и калорий необходимо заполнить данные в секции Биометрия.</string>
+    <string name="settings_dialog_confirm">ПОНЯЛ</string>
+    <string name="settings_section_biometrics">Биометрия</string>
+    <string name="settings_section_workout">Тренировка</string>
+    <string name="settings_section_goal">Цель по шагам</string>
+    <string name="settings_section_app">Приложение</string>
+    <string name="settings_label_height">Рост</string>
+    <string name="settings_label_weight">Вес</string>
+    <string name="settings_unit_cm">см</string>
+    <string name="settings_unit_kg">кг</string>
+    <string name="settings_unit_steps">шагов</string>
+    <string name="settings_sound_title">Звуковые сигналы</string>
+    <string name="settings_sound_subtitle">Пищать на последних секундах</string>
+    <string name="settings_auto_finish_title">Автозавершение по цели</string>
+    <string name="settings_auto_finish_subtitle">Переключать интервал при достижении нормы шагов</string>
+    <string name="settings_version_format">Версия %1$s (Джон-Эдишн)</string>
+    <string name="settings_volume_label">Уровень громкости</string>
+    <string name="settings_volume_format">%1$d%%</string>
+    <string name="settings_logs_title">Экспорт логов</string>
+    <string name="settings_logs_subtitle">Отправить файл отладки разработчику</string>
+    <string name="settings_logs_chooser_title">Отправить логи FatLess</string>
+    <string name="settings_ble_title">Подключить датчик</string>
+    <string name="settings_ble_subtitle">Поиск внешних пульсометров и весов</string>
+
+    <!-- SETUP SCREEN -->
+    <string name="setup_title">Добро пожаловать!</string>
+    <string name="setup_subtitle">Введите ваши данные, чтобы Слоник мог точно считать калории</string>
+    <string name="setup_height_label">Рост (см)</string>
+    <string name="setup_weight_label">Вес (кг)</string>
+    <string name="setup_button">Погнали!</string>
+
+    <!-- Диалог ввода веса -->
+    <string name="weight_dialog_title">Ваш вес сегодня</string>
+    <string name="weight_dialog_label">Вес в кг</string>
+    <string name="weight_dialog_confirm">Сохранить</string>
+    <string name="weight_dialog_dismiss">Отмена</string>
+
+    <!-- CONTENT DESCRIPTIONS (PODVAL) -->
+    <string name="content_description_add_new_food">Добавить новый продукт</string>
+    <string name="content_description_burned_calories">Сожженные калории</string>
+    <string name="content_description_clear_search">Очистить поиск</string>
+    <string name="content_description_completed">Выполнено</string>
+    <string name="content_description_edit_food">Редактировать продукт</string>
+    <string name="content_description_delete_food">Удалить продукт</string>
+    <string name="content_description_delete_entry">Удалить запись</string>
+    <string name="content_description_delete_meal">Удалить прием пищи</string>
+    <string name="content_description_edit">Редактировать тренировку</string>
+    <string name="content_description_location">Местоположение</string>
+    <string name="content_description_open_workout">Открыть тренировку</string>
+    <string name="content_description_remove_interval">Удалить интервал</string>
+    <string name="content_description_save">Сохранить</string>
+    <string name="content_description_save_workout">Сохранить тренировку</string>
+    <string name="content_description_search">Поиск</string>
+    <string name="content_description_settings">Настройки</string>
+    <string name="content_description_switch_to_steps">Переключить график на статистику шагов</string>
+    <string name="content_description_switch_to_nutrition">Переключить график на статистику питания</string>
+    <string name="content_description_toggle">Переключатель</string>
+    <string name="content_description_volume_slider">Регулятор громкости</string>
+    <string name="content_description_prev_month">Предыдущий месяц</string>
+    <string name="content_description_next_month">Следующий месяц</string>
+    <string name="content_description_calendar_day">Выбрать день %1$d</string>
+    <string name="content_description_edit_weight">Иконка веса, нажать для редактирования</string>
+    <string name="content_description_arrow_edit">Стрелка редактирования параметров</string>
+    <string name="content_description_open_history">Открыть календарь истории активности</string>
+    <string name="content_description_prev_week">Перейти на предыдущую неделю</string>
+    <string name="content_description_next_week">Перейти на следующую неделю</string>
+
+
+    <!-- Дни недели: Описания для TalkBack -->
+    <string name="content_description_day_mon">Понедельник</string>
+    <string name="content_description_day_tue">Вторник</string>
+    <string name="content_description_day_wed">Среда</string>
+    <string name="content_description_day_thu">Четверг</string>
+    <string name="content_description_day_fri">Пятница</string>
+    <string name="content_description_day_sat">Суббота</string>
+    <string name="content_description_day_sun">Воскресенье</string>
+
+
+
+    <!-- Единицы измерения и описание -->
+    <string name="weight_unit_kg">%1$d кг</string>
+    <string name="weight_unit_kg_float">%1$.1f кг</string>
+
+
+    <!-- Дни недели: Видимые метки -->
+    <string name="day_mon_short">Пн</string>
+    <string name="day_tue_short">Вт</string>
+    <string name="day_wed_short">Ср</string>
+    <string name="day_thu_short">Чт</string>
+    <string name="day_fri_short">Пт</string>
+    <string name="day_sat_short">Сб</string>
+    <string name="day_sun_short">Вс</string>
+
+    // Единицы измерения
+    <string name="unit_gr">гр</string>
+    <string name="unit_ml">мл</string>
+    <string name="unit_pc">шт</string>
+</resources>

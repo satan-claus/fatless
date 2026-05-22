@@ -1,0 +1,162 @@
+package com.niked.fatless.ui.navigation
+
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.niked.fatless.domain.repository.ISettingsRepository
+import com.niked.fatless.ui.MainActivity
+import com.niked.fatless.ui.screen.BleScanScreen
+import com.niked.fatless.ui.screen.DashboardScreen
+import com.niked.fatless.ui.screen.FoodFormScreen
+import com.niked.fatless.ui.screen.HistoryScreen
+import com.niked.fatless.ui.screen.MapScreen
+import com.niked.fatless.ui.screen.NutritionScreen
+import com.niked.fatless.ui.screen.SettingsScreen
+import com.niked.fatless.ui.screen.SetupProfileScreen
+import com.niked.fatless.ui.screen.WorkoutScreen
+import com.niked.fatless.ui.screen.WorkoutCreateScreen
+
+@Composable
+fun FatLessNavGraph(
+    settingsRepository: ISettingsRepository
+) {
+    val navController = rememberNavController()
+    val context = LocalContext.current
+
+    val startDestination = if (settingsRepository.isFirstLaunch) Screen.SetupProfile.route else Screen.Dashboard.route
+
+    NavHost(
+        navController = navController,
+        startDestination = startDestination
+    ) {
+        // ЭКРАН СКАНЕРА
+        composable(Screen.BleScan.route) {
+            BleScanScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+        // Dashboard - главный экран
+        composable(Screen.Dashboard.route) {
+            DashboardScreen(
+                onAddWorkoutClick = {
+                    navController.navigate(Screen.WorkoutCreate.route)
+                },
+                onEditWorkoutClick = { id ->
+                    navController.navigate(Screen.WorkoutCreate.editRoute(id))
+                },
+                onExitClick = {
+                    (context as? MainActivity)?.minimizeApp()
+                },
+                onHistoryClick = {
+                    navController.navigate(Screen.History.route)
+                },
+                onNutritionClick = {
+                    navController.navigate(Screen.Nutrition.route)
+                },
+                onSettingsClick = {
+                    navController.navigate(Screen.Settings.route)
+                },
+                onWorkoutClick = { id ->
+                    navController.navigate(Screen.WorkoutTimer.createRoute(id))
+                }
+            )
+        }
+        // Экран добавления/удаления/редактирования справочника продуктов
+        composable(
+            route = Screen.FoodForm.route,
+            arguments = listOf(
+                navArgument("initName") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("foodId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) {
+            FoodFormScreen(onBackClick = { navController.popBackStack() })
+        }
+        composable(Screen.History.route) {
+            HistoryScreen(
+                onBackClick = { navController.popBackStack() },
+                onMapClick = { sessionId ->
+                    navController.navigate(Screen.Map.passSessionId(sessionId))
+                }
+            )
+        }
+        composable(
+            route = Screen.Map.route,
+            arguments = listOf(navArgument("sessionId") { type = NavType.LongType })
+        ) {
+            MapScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+        // Экран "Дневник питания"
+        composable(Screen.Nutrition.route) {
+            NutritionScreen(
+                onBackClick = { navController.popBackStack() },
+                // Переход на создание (передаем имя)
+                onFoodCreateClick = { name ->
+                    navController.navigate(Screen.FoodForm.createForNew(name))
+                },
+                // Переход на редактирование (передаем ID)
+                onFoodEditClick = { id ->
+                    navController.navigate(Screen.FoodForm.createForEdit(id))
+                }
+            )
+        }
+        // Экран настроек
+        composable(Screen.Settings.route) {
+            SettingsScreen(
+                onBackClick = { navController.popBackStack() },
+                onBleScanClick = {
+                    navController.navigate(Screen.BleScan.route)
+                }
+            )
+        }
+        // Экран первоначальных установок
+        composable(Screen.SetupProfile.route) {
+            SetupProfileScreen(onSuccess = {
+                // Уходим на Дашборд и ЧИСТИМ стек, чтобы нельзя было вернуться назад
+                navController.navigate(Screen.Dashboard.route) {
+                    popUpTo(route = Screen.SetupProfile.route) { inclusive = true }
+                }
+            })
+        }
+        // Конструктор (Создание)
+        composable(
+            // Маршрут: "workout_create?workoutId={workoutId}"
+            route = Screen.WorkoutCreate.route,
+            arguments = listOf(
+                navArgument("workoutId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) {
+            WorkoutCreateScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+        // Сам таймер (Процесс)
+        composable(
+            route = Screen.WorkoutTimer.route,
+            arguments = listOf(
+                navArgument("workoutId") { type = NavType.StringType }
+            )
+        ) {
+            WorkoutScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+    }
+}
