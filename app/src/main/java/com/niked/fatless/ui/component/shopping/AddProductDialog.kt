@@ -1,13 +1,18 @@
 package com.niked.fatless.ui.component.shopping
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -15,54 +20,82 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.niked.fatless.R
 import com.niked.fatless.domain.model.FoodItem
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddProductDialog(
-    // Передаем список доступных продуктов из базы
     foodItems: List<FoodItem>,
     onDismiss: () -> Unit,
     onConfirm: (name: String, category: String, foodId: String) -> Unit
 ) {
-    // Стейты для управления выпадающим меню
-    var expanded by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
     var selectedFood by remember { mutableStateOf<FoodItem?>(null) }
+
+    // Фильтруем список на лету в фоновом режиме памяти
+    val filteredFoodItems = remember(searchQuery, foodItems) {
+        if (searchQuery.isBlank()) {
+            foodItems
+        } else {
+            foodItems.filter { it.name.contains(searchQuery, ignoreCase = true) }
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.dialog_add_product_title)) },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                // Выпадающий контейнер Material 3
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded }
-                ) {
-                    OutlinedTextField(
-                        // Показываем имя выбранного продукта или подсказку
-                        value = selectedFood?.name ?: stringResource(R.string.dialog_select_food_placeholder),
-                        onValueChange = {},
-                        readOnly = true, // Запрещаем ввод букв руками
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier.fillMaxWidth().menuAnchor()
-                    )
+                // ЧИСТОЕ ПОЛЕ ВВОДА
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text(stringResource(R.string.dialog_select_food_placeholder)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
 
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        foodItems.forEach { food ->
-                            DropdownMenuItem(
-                                text = { Text("${food.name} (${food.categoryName})") },
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // ОПТИМИЗАЦИЯ ТОРМОЗОВ: LazyColumn рендерит только видимые строки, ничего не виснет!
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp) // Жестко ограничиваем высоту контейнера
+                ) {
+                    items(items = filteredFoodItems, key = { it.id }) { food ->
+                        val isSelected = selectedFood?.id == food.id
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    selectedFood = food
+                                    // При клике подставляем имя в поиск
+                                    searchQuery = food.name
+                                }
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = isSelected,
                                 onClick = {
                                     selectedFood = food
-                                    expanded = false
+                                    searchQuery = food.name
                                 }
                             )
+                            Column(modifier = Modifier.padding(start = 8.dp)) {
+                                Text(text = food.name, style = MaterialTheme.typography.bodyMedium)
+                                Text(
+                                    text = food.categoryName,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
@@ -72,11 +105,9 @@ fun AddProductDialog(
             TextButton(
                 onClick = {
                     selectedFood?.let { food ->
-                        // Продукт выбран — пробрасываем его реальные параметры и строковый ID (например, "m1")
                         onConfirm(food.name, food.categoryName, food.id)
                     }
                 },
-                // Кнопка заблокирована, пока юзер не выберет продукт
                 enabled = selectedFood != null
             ) {
                 Text(stringResource(R.string.dialog_btn_add))
