@@ -3,14 +3,14 @@ package com.niked.fatless.data.mapper
 import com.niked.fatless.data.local.entities.FoodDiaryEntity
 import com.niked.fatless.data.local.entities.FoodEntity
 import com.niked.fatless.data.local.relation.FoodWithCategory
-import com.niked.fatless.domain.model.Food
+import com.niked.fatless.domain.model.FoodItem
 import com.niked.fatless.domain.model.MeasureUnit
 import com.niked.fatless.domain.model.MealEntry
 
 /**
  * 1. Поиск: База (Relation) -> Домен (Food)
  */
-fun FoodWithCategory.toDomain() = Food(
+fun FoodWithCategory.toDomain() = FoodItem(
     id = food.id,
     name = food.name,
     proteins = food.proteins,
@@ -42,7 +42,7 @@ fun FoodDiaryEntity.toDomain() = MealEntry(
  * 3. Сохранение продукта: Домен (Food) -> База (FoodEntity)
  * Тот самый потеряшка!
  */
-fun Food.toEntity() = FoodEntity(
+fun FoodItem.toEntity() = FoodEntity(
     id = id,
     name = name,
     proteins = proteins,
@@ -57,7 +57,7 @@ fun Food.toEntity() = FoodEntity(
 /**
  * 4. Создание записи для дневника (Food -> FoodDiaryEntity)
  */
-fun createDiaryEntity(food: Food, quantity: Int): FoodDiaryEntity {
+fun createDiaryEntity(food: FoodItem, quantity: Int): FoodDiaryEntity {
     val ratio = if (food.unit == MeasureUnit.PIECES) quantity.toFloat() else quantity / 100f
 
     return FoodDiaryEntity(

@@ -14,8 +14,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ShoppingViewModel @Inject constructor(
+    private val foodRepository: IShoppingRepository,
     private val shoppingRepository: IShoppingRepository
 ) : ViewModel() {
+
+    val availableFoods = foodRepository.getAvailableFoodItems()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // 1. Стрим данных для Compose. Автоматически обновляет UI при любых изменениях в Room
     val shoppingItems = shoppingRepository.getAllItems()
@@ -34,7 +38,7 @@ class ShoppingViewModel @Inject constructor(
 
 
     // 2. Метод добавления нового товара
-    fun addItem(name: String, category: String, foodId: Int) {
+    fun addItem(name: String, category: String, foodId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val newItem = ShoppingItem(
                 id = 0,

@@ -235,6 +235,7 @@
     <!-- Описания элементов для доступности (Content Descriptions) -->
     <string name="content_description_delete_shopping_item">Удалить товар из списка покупок</string>
     <string name="content_description_delete_shop">Удалить геозону магазина</string>
+    <string name="content_description_add">Создать новую запись</string>
 
     <string name="purchased_at_time">Куплено в %s</string>
     <string name="shop_info_subtitle">Категория: %1$s • Радиус: %2$dм</string>
@@ -248,6 +249,19 @@
     <string name="content_description_day_sat">Суббота</string>
     <string name="content_description_day_sun">Воскресенье</string>
 
+
+    <string name="dialog_add_product_title">Добавить покупку</string>
+    <string name="dialog_add_shop_title">Новая геозона</string>
+    <string name="dialog_field_name">Название товара</string>
+    <string name="dialog_field_category">Категория</string>
+    <string name="dialog_field_food_id">ID продукта (число)</string>
+    <string name="dialog_field_shop_name">Название магазина</string>
+    <string name="dialog_field_radius">Радиус (метров)</string>
+    <string name="dialog_field_latitude">Широта (Latitude)</string>
+    <string name="dialog_field_longitude">Долгота (Longitude)</string>
+    <string name="dialog_btn_add">Добавить</string>
+    <string name="dialog_btn_cancel">Отмена</string>
+    <string name="dialog_select_food_placeholder">Выберите продукт из базы…</string>
 
 
     <!-- Единицы измерения и описание -->

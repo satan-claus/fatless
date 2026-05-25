@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -42,6 +43,8 @@ import com.niked.fatless.R
 import com.niked.fatless.domain.model.Shop
 import com.niked.fatless.domain.model.ShoppingItem
 import com.niked.fatless.ui.component.WorkoutTopBar
+import com.niked.fatless.ui.component.shopping.AddProductDialog
+import com.niked.fatless.ui.component.shopping.AddShopDialog
 import com.niked.fatless.ui.viewmodel.ShoppingViewModel
 import java.util.Date
 
@@ -51,6 +54,9 @@ fun ShoppingScreen(
     onBackClick: () -> Unit,
     viewModel: ShoppingViewModel = hiltViewModel()
 ) {
+    var showAddProductDialog by remember { mutableStateOf(false) }
+    var showAddShopDialog by remember { mutableStateOf(false) }
+
     var selectedTab by remember { mutableStateOf(0) }
 
     val tabs = listOf(
@@ -67,6 +73,18 @@ fun ShoppingScreen(
                 onBackClick = onBackClick,
                 actions = {}
             )
+        },
+        floatingActionButton = {
+            androidx.compose.material3.FloatingActionButton(
+                onClick = {
+                    if (selectedTab == 0) showAddProductDialog = true else showAddShopDialog = true
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.content_description_add)
+                )
+            }
         }
     ) { paddingValues ->
         Column(
@@ -87,6 +105,29 @@ fun ShoppingScreen(
             when (selectedTab) {
                 0 -> ProductsTabContent(viewModel = viewModel)
                 1 -> ShopsTabContent(viewModel = viewModel)
+            }
+
+            val availableFoods by viewModel.availableFoods.collectAsState()
+
+            if (showAddProductDialog) {
+                AddProductDialog(
+                    foodItems = availableFoods,
+                    onDismiss = { showAddProductDialog = false },
+                    onConfirm = { name, category, foodId ->
+                        viewModel.addItem(name, category, foodId)
+                        showAddProductDialog = false
+                    }
+                )
+            }
+
+            if (showAddShopDialog) {
+                AddShopDialog(
+                    onDismiss = { showAddShopDialog = false },
+                    onConfirm = { name, category, radius, lat, lon ->
+                        viewModel.addShop(name, category, radius, lat, lon)
+                        showAddShopDialog = false
+                    }
+                )
             }
         }
     }

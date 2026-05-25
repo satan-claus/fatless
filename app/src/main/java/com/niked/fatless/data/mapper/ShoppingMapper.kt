@@ -2,6 +2,7 @@ package com.niked.fatless.data.mapper
 
 import com.niked.fatless.data.local.entities.ShopEntity
 import com.niked.fatless.data.local.entities.ShoppingListEntity
+import com.niked.fatless.domain.model.MeasureUnit
 import com.niked.fatless.domain.model.Shop
 import com.niked.fatless.domain.model.ShoppingItem
 
@@ -61,5 +62,26 @@ object ShoppingMapper {
 
     fun mapToDomainShopList(entities: List<ShopEntity>): List<Shop> {
         return entities.map { mapToDomain(it) }
+    }
+
+    // --- 🧬 МАППИНГ СОСТАВНОГО ОБЪЕКТА FoodWithCategory ---
+    fun mapToDomain(relation: com.niked.fatless.data.local.relation.FoodWithCategory): com.niked.fatless.domain.model.FoodItem {
+        val entity = relation.food
+
+        val mappedUnit = MeasureUnit.entries.find { it.label == entity.unit }
+            ?: MeasureUnit.GRAMS
+
+        return com.niked.fatless.domain.model.FoodItem(
+            id = entity.id,
+            name = entity.name,
+            proteins = entity.proteins,
+            fats = entity.fats,
+            carbs = entity.carbs,
+            calories = entity.calories,
+            categoryName = relation.categoryName,
+            categoryId = entity.categoryId,
+            unit = mappedUnit,
+            isCustom = entity.isCustom
+        )
     }
 }

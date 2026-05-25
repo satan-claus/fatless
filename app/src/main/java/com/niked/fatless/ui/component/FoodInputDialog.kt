@@ -21,14 +21,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.niked.fatless.R
-import com.niked.fatless.domain.model.Food
+import com.niked.fatless.domain.model.FoodItem
 import com.niked.fatless.domain.model.getReadableUnit
 import com.niked.fatless.ui.theme.AppTextTertiary
 import com.niked.fatless.ui.theme.AppTypography
 
 @Composable
 fun FoodInputDialog(
-    food: Food,
+    food: FoodItem,
     onDismiss: () -> Unit,
     onConfirm: (Int) -> Unit
 ) {

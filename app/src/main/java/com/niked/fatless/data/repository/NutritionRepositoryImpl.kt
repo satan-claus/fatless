@@ -4,7 +4,7 @@ import com.niked.fatless.data.local.dao.FoodDao
 import com.niked.fatless.data.mapper.createDiaryEntity
 import com.niked.fatless.data.mapper.toDomain
 import com.niked.fatless.data.mapper.toEntity
-import com.niked.fatless.domain.model.Food
+import com.niked.fatless.domain.model.FoodItem
 import com.niked.fatless.domain.model.FoodCategory
 import com.niked.fatless.domain.model.MealEntry
 import com.niked.fatless.domain.repository.IActivityRepository
@@ -19,17 +19,17 @@ class NutritionRepositoryImpl @Inject constructor(
     private val activityRepository: IActivityRepository
 ) : INutritionRepository {
 
-    override fun searchProducts(query: String): Flow<List<Food>> {
+    override fun searchProducts(query: String): Flow<List<FoodItem>> {
         return foodDao.searchProductsWithCategory(query).map { list ->
             list.map { it.toDomain() }
         }
     }
 
-    override suspend fun addProductToLibrary(food: Food) {
+    override suspend fun addProductToLibrary(food: FoodItem) {
         foodDao.insertProduct(food.toEntity())
     }
 
-    override suspend fun getProductById(id: String): Food? {
+    override suspend fun getProductById(id: String): FoodItem? {
         return foodDao.getProductWithCategoryById(id)?.toDomain()
     }
 
@@ -59,7 +59,7 @@ class NutritionRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun addMeal(food: Food, amount: Int): MealEntry {
+    override suspend fun addMeal(food: FoodItem, amount: Int): MealEntry {
         val entity = createDiaryEntity(food, amount)
         val id = foodDao.insertDiaryEntry(entity)
         // Просто возвращаем доменную модель, чтобы UseCase знал, ЧТО мы сохранили

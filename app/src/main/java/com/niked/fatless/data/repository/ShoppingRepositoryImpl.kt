@@ -1,8 +1,10 @@
 package com.niked.fatless.data.repository
 
+import com.niked.fatless.data.local.dao.FoodDao
 import com.niked.fatless.data.local.dao.ShopDao
 import com.niked.fatless.data.local.dao.ShoppingDao
 import com.niked.fatless.data.mapper.ShoppingMapper
+import com.niked.fatless.domain.model.FoodItem
 import com.niked.fatless.domain.model.Shop
 import com.niked.fatless.domain.model.ShoppingItem
 import com.niked.fatless.domain.repository.IShoppingRepository
@@ -11,6 +13,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class ShoppingRepositoryImpl @Inject constructor(
+    private val foodDao: FoodDao,
     private val shopDao: ShopDao,
     private val shoppingDao: ShoppingDao
 ) : IShoppingRepository {
@@ -47,5 +50,13 @@ class ShoppingRepositoryImpl @Inject constructor(
 
     override suspend fun deleteShop(shop: Shop) {
         shopDao.deleteShop(shop.id)
+    }
+
+    override fun getAvailableFoodItems(): Flow<List<FoodItem>> {
+        return foodDao.searchProductsWithCategory("").map { list ->
+            list.map { FoodWithCategory ->
+                ShoppingMapper.mapToDomain(FoodWithCategory)
+            }
+        }
     }
 }

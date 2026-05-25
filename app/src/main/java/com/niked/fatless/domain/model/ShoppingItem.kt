@@ -2,7 +2,7 @@ package com.niked.fatless.domain.model
 
 data class ShoppingItem(
     val id: Int,
-    val foodId: Int,
+    val foodId: String,
     val name: String,
     val category: String,
     val isCompleted: Boolean,

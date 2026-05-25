@@ -3,7 +3,7 @@ package com.niked.fatless.ui.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.niked.fatless.domain.model.Food
+import com.niked.fatless.domain.model.FoodItem
 import com.niked.fatless.domain.model.MeasureUnit
 import com.niked.fatless.domain.repository.INutritionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -73,7 +73,7 @@ class FoodFormViewModel @Inject constructor(
         val state = _uiState.value
         if (state.name.isBlank()) return
 
-        val food = Food(
+        val food = FoodItem(
             id = foodId ?: UUID.randomUUID().toString(),
             name = state.name,
             proteins = state.proteins.replace(",", ".").toFloatOrNull() ?: 0f,

@@ -24,7 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.niked.fatless.R
-import com.niked.fatless.domain.model.Food
+import com.niked.fatless.domain.model.FoodItem
 import com.niked.fatless.ui.theme.AppBorder
 import com.niked.fatless.ui.theme.AppError
 import com.niked.fatless.ui.theme.AppPrimary
@@ -35,7 +35,7 @@ import com.niked.fatless.ui.theme.AppTypography
 
 @Composable
 fun FoodResultItem(
-    food: Food,
+    food: FoodItem,
     onClick: () -> Unit,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit

@@ -1,5 +1,6 @@
 package com.niked.fatless.domain.repository
 
+import com.niked.fatless.domain.model.FoodItem
 import com.niked.fatless.domain.model.Shop
 import com.niked.fatless.domain.model.ShoppingItem
 import kotlinx.coroutines.flow.Flow
@@ -18,4 +19,6 @@ interface IShoppingRepository {
     suspend fun insertShop(shop: Shop)
 
     suspend fun deleteShop(shop: Shop)
+
+    fun getAvailableFoodItems(): Flow<List<FoodItem>>
 }

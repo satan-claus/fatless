@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 data class ShoppingListEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     // Ссылка на ID из справочника FoodEntity
-    val foodId: Int,
+    val foodId: String,
     // "Пиво", "Хлеб"
     val name: String,
     // "Напитки", "Продукты", "Аптека" — это наш ключ для поиска магазина
