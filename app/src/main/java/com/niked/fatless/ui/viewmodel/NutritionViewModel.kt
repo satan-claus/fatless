@@ -3,7 +3,7 @@ package com.niked.fatless.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.niked.fatless.domain.repository.INutritionRepository
-import com.niked.fatless.domain.model.Food
+import com.niked.fatless.domain.model.FoodItem
 import com.niked.fatless.domain.model.MealEntry
 import com.niked.fatless.domain.usecase.AddMealUseCase
 import com.niked.fatless.domain.usecase.DeleteMealUseCase
@@ -46,7 +46,7 @@ class NutritionViewModel @Inject constructor(
     val searchResults = _searchQuery
         .debounce(300L)
         .flatMapLatest { query ->
-            if (query.isBlank()) flowOf(emptyList<Food>())
+            if (query.isBlank()) flowOf(emptyList<FoodItem>())
             else nutritionRepository.searchProducts(query)
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
@@ -73,7 +73,7 @@ class NutritionViewModel @Inject constructor(
     }
 
     // Добавление еды
-    fun addMeal(food: Food, amount: Int) {
+    fun addMeal(food: FoodItem, amount: Int) {
         viewModelScope.launch {
             addMealUseCase(food, amount)
             onQueryChange("")

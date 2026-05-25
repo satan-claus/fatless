@@ -2,7 +2,7 @@ package com.niked.fatless.core.location
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.Context
+import android.app.PendingIntent
 import android.content.Intent
 import android.location.Location
 import android.os.Build
@@ -18,11 +18,13 @@ import com.niked.fatless.core.utils.Constants.LogLevel
 import com.niked.fatless.core.utils.toSessionId
 import com.niked.fatless.data.local.dao.ShopDao
 import com.niked.fatless.data.local.dao.ShoppingDao
+import com.niked.fatless.data.mapper.ShoppingMapper
 import com.niked.fatless.domain.location.ILocationClient
 import com.niked.fatless.domain.model.ActivityType
 import com.niked.fatless.domain.model.UserLocation
 import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.domain.repository.ISettingsRepository
+import com.niked.fatless.ui.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
@@ -230,43 +232,60 @@ class TrackingService : LifecycleService() {
     }
 
     private fun checkNearbyShops(location: Location) {
-        // Используем уже имеющийся в сервисе lifecycleScope
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // 2. Берем все магазины из базы
+                // 1. Берём все магазины из базы данных (List<ShopEntity>)
                 val allShops = shopDao.getAllShops()
+                logger.log(LogLevel.DEBUG, "GEOFENCE_TEST", "1. Магазинов в базе: ${allShops.size}")
 
-                allShops.forEach { shop ->
-                    val shopLoc = Location("").apply {
-                        latitude = shop.latitude
-                        longitude = shop.longitude
+                if (allShops.isEmpty()) return@launch
+                val now = System.currentTimeMillis()
+
+                allShops.forEach { shopEntity ->
+                    // Через маппер превращаем Entity в доменную модель, чтобы получить чистый List<String>
+                    val shop = ShoppingMapper.mapToDomain(shopEntity)
+
+                    // Список для сбора названий ВСЕХ некупленных товаров, подходящих под этот магазин
+                    val finalItemsToBuy = mutableListOf<String>()
+
+                    // Пробегаемся по каждой категории, которую поддерживает этот магазин
+                    shop.categories.forEach { category ->
+                        val hasItems = shoppingDao.hasItemsForCategory(category)
+                        if (hasItems) {
+                            // Если в этой категории есть активные товары — поднимаем их из Room
+                            val items = shoppingDao.getItemsForCategory(category)
+                            finalItemsToBuy.addAll(items.map { it.name })
+                        }
                     }
 
-                    val distance = location.distanceTo(shopLoc)
+                    // ЛОГ 2: Смотрим, нашли ли хоть что-то активное для этого магазина
+                    logger.log(LogLevel.DEBUG, "GEOFENCE_TEST", "2. Магазин: ${shop.name}, Поддерживает: ${shop.categories}, Активных продуктов к покупке: ${finalItemsToBuy.size}")
 
-                    // 3. Если мы в радиусе (например, 500м)
-                    if (distance <= shop.radius) {
-                        logger.log(LogLevel.DEBUG, "GPS", "Дистанция до ${shop.name}: ${distance.toInt()}м (Цель: ${shop.radius}м)")
+                    // Если в поддерживаемых категориях магазина нашёлся хоть один некупленный товар
+                    if (finalItemsToBuy.isNotEmpty()) {
+                        val shopLoc = Location("").apply {
+                            latitude = shop.latitude
+                            longitude = shop.longitude
+                        }
 
-                        val now = System.currentTimeMillis()
-                        val lastNotified = notifiedShops[shop.id] ?: 0L
+                        // Вычисляем дистанцию до физической точки
+                        val distance = location.distanceTo(shopLoc)
+                        logger.log(LogLevel.DEBUG, "GEOFENCE_TEST", "3. Проверка геозоны ${shop.name}: Дистанция: ${distance.toInt()}м, Радиус лимита: ${shop.radius.toInt()}м")
 
-                        // Проверка: не беспокоили ли мы тебя этим магазом последние 20 минут?
-                        if (now - lastNotified > 20 * 60 * 1000) {
+                        // Проверяем радиус срабатывания
+                        if (distance <= shop.radius) {
+                            val lastNotified = notifiedShops[shop.id] ?: 0L
 
-                            // Проверяем, есть ли НЕКУПЛЕННЫЕ товары в категории этого магазина
-                            // (Убедись, что в ShoppingDao есть метод getItemsForCategory)
-                            val itemsToBuy = shoppingDao.getItemsForCategory(shop.category)
+                            // Анти-спам защита (20 минут)
+                            if (now - lastNotified > 20 * 60 * 1000) {
+                                // Очищаем от дубликатов на всякий случай и склеиваем в красивую строку
+                                val itemsString = finalItemsToBuy.distinct().joinToString(", ")
 
-                            if (itemsToBuy.isNotEmpty()) {
-                                // Формируем список товаров строкой через запятую
-                                val itemsString = itemsToBuy.joinToString(", ") { it.name }
-
-                                // ПИЛИКАЕМ!
+                                // ПИЛИКАЕМ В ШТОРКУ ОДНИМ ОБЩИМ ПУШЕМ!
                                 sendShoppingAlert(shop.name, itemsString, shop.id)
 
                                 notifiedShops[shop.id] = now
-                                logger.log(LogLevel.SYSTEM, "GPS", "Напоминание по магазину ${shop.name}: $itemsString")
+                                logger.log(LogLevel.SYSTEM, "GPS", "🔔 Сработал дозор [${shop.name}]: $itemsString")
                             }
                         }
                     }
@@ -278,17 +297,27 @@ class TrackingService : LifecycleService() {
     }
 
     private fun sendShoppingAlert(shopName: String, items: String, shopId: Int) {
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            this, shopId, intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
         val notification = NotificationCompat.Builder(this, "location")
-            .setContentTitle("Рядом $shopName")
+            .setContentTitle("Рядом $shopName 🛒")
             .setContentText("Купить: $items")
-            .setSmallIcon(R.drawable.ic_shopping_cart_24dp)
+            .setStyle(NotificationCompat.BigTextStyle().bigText("Не забудьте купить:\n$items"))
+            .setSmallIcon(R.drawable.ic_shopping_cart_24dp) // Убедись, что иконка тележки есть в drawable
             .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setVibrate(longArrayOf(1000, 1000, 1000))
+            .setContentIntent(pendingIntent)
+            .setVibrate(longArrayOf(500, 500, 500)) // Мягкая вибрация при приближении
             .setAutoCancel(true)
             .build()
 
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        // Используем shopId, чтобы уведомления от разных магазов не затирали друг друга
+        // Сдвиг +100, чтобы не пересекаться с ID основного трекинг-уведомления
         manager.notify(shopId + 100, notification)
     }
 }

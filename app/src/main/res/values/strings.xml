@@ -181,6 +181,14 @@
     <string name="settings_ble_title">Подключить датчик</string>
     <string name="settings_ble_subtitle">Поиск внешних пульсометров и весов</string>
 
+    <!-- SHOPPING SCREEN -->
+    <string name="shopping_screen_title">Список покупок</string>
+    <string name="shopping_screen_subtitle">Умный дозор за геозонами</string>
+    <!-- Состояния пустых списков -->
+    <string name="shopping_list_empty">Список покупок пуст 🛒</string>
+    <string name="shops_list_empty">Список магазинов пуст. Добавьте первую геозону!</string>
+
+
     <!-- SETUP SCREEN -->
     <string name="setup_title">Добро пожаловать!</string>
     <string name="setup_subtitle">Введите ваши данные, чтобы Слоник мог точно считать калории</string>
@@ -210,7 +218,6 @@
     <string name="content_description_save">Сохранить</string>
     <string name="content_description_save_workout">Сохранить тренировку</string>
     <string name="content_description_search">Поиск</string>
-    <string name="content_description_settings">Настройки</string>
     <string name="content_description_switch_to_steps">Переключить график на статистику шагов</string>
     <string name="content_description_switch_to_nutrition">Переключить график на статистику питания</string>
     <string name="content_description_toggle">Переключатель</string>
@@ -223,7 +230,15 @@
     <string name="content_description_open_history">Открыть календарь истории активности</string>
     <string name="content_description_prev_week">Перейти на предыдущую неделю</string>
     <string name="content_description_next_week">Перейти на следующую неделю</string>
+    <string name="content_description_open_shopping_list">Открыть список покупок</string>
+    <string name="content_description_settings">Открыть настройки приложения</string>
+    <!-- Описания элементов для доступности (Content Descriptions) -->
+    <string name="content_description_delete_shopping_item">Удалить товар из списка покупок</string>
+    <string name="content_description_delete_shop">Удалить геозону магазина</string>
+    <string name="content_description_add">Создать новую запись</string>
 
+    <string name="purchased_at_time">Куплено в %s</string>
+    <string name="shop_info_subtitle">Категория: %1$s • Радиус: %2$dм</string>
 
     <!-- Дни недели: Описания для TalkBack -->
     <string name="content_description_day_mon">Понедельник</string>
@@ -234,6 +249,20 @@
     <string name="content_description_day_sat">Суббота</string>
     <string name="content_description_day_sun">Воскресенье</string>
 
+
+    <string name="dialog_add_product_title">Добавить покупку</string>
+    <string name="dialog_add_shop_title">Новая геозона</string>
+    <string name="dialog_field_name">Название товара</string>
+    <string name="dialog_field_category">Категория</string>
+    <string name="dialog_field_food_id">ID продукта (число)</string>
+    <string name="dialog_field_shop_name">Название магазина</string>
+    <string name="dialog_field_radius">Радиус (метров)</string>
+    <string name="dialog_field_latitude">Широта (Latitude)</string>
+    <string name="dialog_field_longitude">Долгота (Longitude)</string>
+    <string name="dialog_btn_add">Добавить</string>
+    <string name="dialog_btn_cancel">Отмена</string>
+    <string name="dialog_select_food_placeholder">Выберите продукт из базы…</string>
+    <string name="dialog_select_categories_label">Выберите категории для этого магазина:</string>
 
 
     <!-- Единицы измерения и описание -->
@@ -254,4 +283,8 @@
     <string name="unit_gr">гр</string>
     <string name="unit_ml">мл</string>
     <string name="unit_pc">шт</string>
+
+    <!-- Вкладки (Табы) -->
+    <string name="tab_title_products">Покупки</string>
+    <string name="tab_title_shops">Магазины</string>
 </resources>

@@ -69,3 +69,18 @@
   <img src="screenshots/screen_notification_full.jpg" width="30%" alt="Развернутый трекер" />
   <img src="screenshots/screen_notification_tracker_record.jpg" width="30%" alt="Активная запись GPS" />
 </p>
+
+### 🛒 Умный дозор и Список покупок (Contextual Geofencing & UI)
+<p align="center">
+  <img src="screenshots/screen_shop_list.jpg" width="30%" alt="Список покупок" />
+  <img src="screenshots/screen_settings.jpg" width="30%" alt="Геозоны магазинов" />
+  <img src="screenshots/screen_shopping_add.jpg" width="30%" alt="Поиск продукта в базе" />
+</p>
+<p align="center">
+  <img src="screenshots/screen_shopping_add_selected.jpg" width="30%" alt="Продукт выбран из базы" />
+  <img src="screenshots/screen_shop_add.jpg" width="30%" alt="Добавление новой геозоны" />
+</p>
+
+*   **Контекстный Geofencing (Дозор в фоне):** Автоматически анализирует активные товары в списке покупок и подтягивает координаты подходящих торговых точек, полностью исключая лишние холостые проверки и экономя батарею.
+*   **Оптимизированный живой поиск:** Обработка тяжелого справочника продуктов из базы данных вынесена в `LazyColumn`, что гарантирует плавный ввод текста без фризов интерфейса.
+*   **Выбор категорий в стиле hh.ru:** Интерактивные кликабельные чипсы (Chips) для быстрого присвоения категорий при создании новой геозоны магазина.

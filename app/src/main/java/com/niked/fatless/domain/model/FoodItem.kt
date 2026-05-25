@@ -9,7 +9,7 @@ enum class MeasureUnit(val label: String) {
     MILLILITERS("мл")
 }
 
-data class Food(
+data class FoodItem(
     val id: String,
     val name: String,
     val proteins: Float,
@@ -22,7 +22,7 @@ data class Food(
     val isCustom: Boolean = false
 )
 
-fun Food.getReadableUnit(context: Context): String {
+fun FoodItem.getReadableUnit(context: Context): String {
     val resId = when (this.unit) {
         MeasureUnit.GRAMS -> R.string.unit_gr
         MeasureUnit.MILLILITERS -> R.string.unit_ml

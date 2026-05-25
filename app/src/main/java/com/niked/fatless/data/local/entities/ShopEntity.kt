@@ -9,7 +9,7 @@ data class ShopEntity(
     // "Красное и Белое", "Магнит"
     val name: String,
     // "Пиво", "Продукты" — должна совпадать с категорией в списке
-    val category: String,
+    val categories: String,
     val latitude: Double,
     val longitude: Double,
     // Радиус срабатывания в метрах

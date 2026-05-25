@@ -39,7 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.niked.fatless.R
-import com.niked.fatless.domain.model.Food
+import com.niked.fatless.domain.model.FoodItem
 import com.niked.fatless.ui.component.CreateNewFoodHint
 import com.niked.fatless.ui.component.DiaryItem
 import com.niked.fatless.ui.component.EmptyDiaryHint
@@ -73,7 +73,7 @@ fun NutritionScreen(
     val diaryEntries by viewModel.diaryEntries.collectAsState()
 
     var isSearching by remember { mutableStateOf(false) }
-    var selectedFood by remember { mutableStateOf<Food?>(null) }
+    var selectedFood by remember { mutableStateOf<FoodItem?>(null) }
 
     var startAnim by remember { mutableStateOf(false) }
     LaunchedEffect(uiState.totalCalories) {

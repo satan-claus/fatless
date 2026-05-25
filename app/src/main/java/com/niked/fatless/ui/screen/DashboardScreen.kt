@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,8 +41,9 @@ import com.niked.fatless.ui.component.WorkoutItem
 import com.niked.fatless.ui.component.WorkoutTopBar
 import com.niked.fatless.ui.component.fatlesshistory.FatLessHistoryComponent
 import com.niked.fatless.ui.theme.AppBackground
+import com.niked.fatless.ui.theme.AppPrimary
 import com.niked.fatless.ui.theme.AppSecondary
-import com.niked.fatless.ui.theme.AppTextPrimary
+import com.niked.fatless.ui.theme.AppTextTertiary
 import com.niked.fatless.ui.theme.AppTypography
 import com.niked.fatless.ui.theme.ColorTrackRun
 import com.niked.fatless.ui.viewmodel.DashboardViewModel
@@ -54,6 +56,7 @@ fun DashboardScreen(
     onHistoryClick: () -> Unit,
     onNutritionClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onShoppingClick: () -> Unit,
     onWorkoutClick: (String) -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
@@ -95,11 +98,21 @@ fun DashboardScreen(
                 subTitle = stringResource(R.string.dashboard_subtitle),
                 onBackClick = onExitClick,
                 actions = {
+                    // 🛒 КНОПКА СПИСКА ПОКУПОК
+                    IconButton(onClick = onShoppingClick) {
+                        Icon(
+                            imageVector = Icons.Default.ShoppingCart,
+                            contentDescription = stringResource(R.string.content_description_open_shopping_list),
+                            tint = AppPrimary
+                        )
+                    }
+
+                    // ⚙️ КНОПКА НАСТРОЕК
                     IconButton(onClick = onSettingsClick) {
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = stringResource(R.string.content_description_settings),
-                            tint = AppTextPrimary
+                            tint = AppTextTertiary
                         )
                     }
                 }
