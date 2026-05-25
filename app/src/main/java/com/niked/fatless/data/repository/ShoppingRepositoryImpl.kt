@@ -48,5 +48,4 @@ class ShoppingRepositoryImpl @Inject constructor(
     override suspend fun deleteShop(shop: Shop) {
         shopDao.deleteShop(shop.id)
     }
-
 }
