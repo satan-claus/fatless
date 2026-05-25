@@ -2,6 +2,7 @@ package com.niked.fatless.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.niked.fatless.domain.model.Shop
 import com.niked.fatless.domain.model.ShoppingItem
 import com.niked.fatless.domain.repository.IShoppingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,6 +24,14 @@ class ShoppingViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    val shopItems = shoppingRepository.getAllShops()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
 
     // 2. Метод добавления нового товара
     fun addItem(name: String, category: String, foodId: Int) {
@@ -59,6 +68,26 @@ class ShoppingViewModel @Inject constructor(
                 isCompleted = newCompletedState,
                 completedAt = completedAtTimestamp
             )
+        }
+    }
+
+    fun addShop(name: String, category: String, radius: Float, lat: Double, lon: Double) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val newShop = Shop(
+                id = 0,
+                name = name,
+                category = category,
+                radius = radius,
+                latitude = lat,
+                longitude = lon
+            )
+            shoppingRepository.insertShop(newShop)
+        }
+    }
+
+    fun deleteShop(shop: Shop) {
+        viewModelScope.launch(Dispatchers.IO) {
+            shoppingRepository.deleteShop(shop)
         }
     }
 }

@@ -22,11 +22,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,9 +39,11 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.niked.fatless.R
+import com.niked.fatless.domain.model.Shop
 import com.niked.fatless.domain.model.ShoppingItem
 import com.niked.fatless.ui.component.WorkoutTopBar
 import com.niked.fatless.ui.viewmodel.ShoppingViewModel
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,7 +51,12 @@ fun ShoppingScreen(
     onBackClick: () -> Unit,
     viewModel: ShoppingViewModel = hiltViewModel()
 ) {
-    val items by viewModel.shoppingItems.collectAsState()
+    var selectedTab by remember { mutableStateOf(0) }
+
+    val tabs = listOf(
+        stringResource(R.string.tab_title_products),
+        stringResource(R.string.tab_title_shops)
+    )
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -54,44 +65,95 @@ fun ShoppingScreen(
                 title = stringResource(R.string.shopping_screen_title),
                 subTitle = stringResource(R.string.shopping_screen_subtitle),
                 onBackClick = onBackClick,
-                actions = {
-                }
+                actions = {}
             )
         }
     ) { paddingValues ->
-        if (items.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(stringResource(R.string.shopping_list_empty), color = Color.Gray)
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(paddingValues),
-                contentPadding = PaddingValues(vertical = 8.dp)
-            ) {
-                items(items = items, key = { it.id }) { item ->
-                    ShoppingItemRow(
-                        item = item,
-                        onCheckedChange = { viewModel.toggleItemCompletion(item) },
-                        onDeleteClick = { viewModel.deleteItem(item) }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            TabRow(selectedTabIndex = selectedTab) {
+                tabs.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        text = { Text(text = title, style = MaterialTheme.typography.titleSmall) }
                     )
                 }
+            }
+
+            when (selectedTab) {
+                0 -> ProductsTabContent(viewModel = viewModel)
+                1 -> ShopsTabContent(viewModel = viewModel)
             }
         }
     }
 }
 
 @Composable
-fun ShoppingItemRow(
+private fun ProductsTabContent(viewModel: ShoppingViewModel) {
+    val items by viewModel.shoppingItems.collectAsState()
+
+    if (items.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(stringResource(R.string.shopping_list_empty), color = Color.Gray)
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(vertical = 8.dp)
+        ) {
+            items(items = items, key = { it.id }) { item ->
+                ShoppingItemRow(
+                    item = item,
+                    onCheckedChange = { viewModel.toggleItemCompletion(item) },
+                    onDeleteClick = { viewModel.deleteItem(item) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ShopsTabContent(viewModel: ShoppingViewModel) {
+    val shops by viewModel.shopItems.collectAsState()
+
+    if (shops.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(stringResource(R.string.shops_list_empty), color = Color.Gray)
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(vertical = 8.dp)
+        ) {
+            items(items = shops, key = { it.id }) { shop ->
+                ShopItemRow(
+                    shop = shop,
+                    onDeleteClick = { viewModel.deleteShop(shop) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ShoppingItemRow(
     item: ShoppingItem,
     onCheckedChange: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
     val completedTimeText = remember(item.completedAt) {
         item.completedAt?.let { timestamp ->
-            java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date(timestamp))
+            java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(Date(timestamp))
         } ?: ""
     }
 
@@ -141,6 +203,43 @@ fun ShoppingItemRow(
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = stringResource(R.string.content_description_delete_shopping_item),
+                    tint = Color.Gray.copy(alpha = 0.7f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ShopItemRow(
+    shop: Shop,
+    onDeleteClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = shop.name, style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = stringResource(R.string.shop_info_subtitle, shop.category, shop.radius.toInt()),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+                Text(
+                    text = "GPS: ${shop.latitude}, ${shop.longitude}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Gray
+                )
+            }
+
+            IconButton(onClick = onDeleteClick) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = stringResource(R.string.content_description_delete_shop),
                     tint = Color.Gray.copy(alpha = 0.7f)
                 )
             }

@@ -8,6 +8,9 @@ import com.niked.fatless.data.local.entities.ShopEntity
 
 @Dao
 interface ShopDao {
+    @Query("SELECT * FROM shops ORDER BY id DESC")
+    fun getAllShopsFlow(): kotlinx.coroutines.flow.Flow<List<ShopEntity>>
+
     @Query("SELECT * FROM shops")
     suspend fun getAllShops(): List<ShopEntity>
 
