@@ -13,5 +13,6 @@ data class ShoppingListEntity(
     // "Напитки", "Продукты", "Аптека" — это наш ключ для поиска магазина
     val category: String,
     val isCompleted: Boolean = false,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val completedAt: Long? = null
 )
