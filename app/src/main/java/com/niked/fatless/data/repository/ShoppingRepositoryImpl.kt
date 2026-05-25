@@ -6,8 +6,9 @@ import com.niked.fatless.domain.model.ShoppingItem
 import com.niked.fatless.domain.repository.IShoppingRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
-class ShoppingRepositoryImpl(
+class ShoppingRepositoryImpl @Inject constructor(
     private val shoppingDao: ShoppingDao
 ) : IShoppingRepository {
 

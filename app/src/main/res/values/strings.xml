@@ -181,6 +181,12 @@
     <string name="settings_ble_title">Подключить датчик</string>
     <string name="settings_ble_subtitle">Поиск внешних пульсометров и весов</string>
 
+    <!-- SHOPPING SCREEN -->
+    <string name="shopping_screen_title">Список покупок</string>
+    <string name="shopping_list_empty">Список покупок пуст</string>
+    <string name="shopping_screen_subtitle">Умный дозор за геозонами</string>
+
+
     <!-- SETUP SCREEN -->
     <string name="setup_title">Добро пожаловать!</string>
     <string name="setup_subtitle">Введите ваши данные, чтобы Слоник мог точно считать калории</string>
@@ -210,7 +216,6 @@
     <string name="content_description_save">Сохранить</string>
     <string name="content_description_save_workout">Сохранить тренировку</string>
     <string name="content_description_search">Поиск</string>
-    <string name="content_description_settings">Настройки</string>
     <string name="content_description_switch_to_steps">Переключить график на статистику шагов</string>
     <string name="content_description_switch_to_nutrition">Переключить график на статистику питания</string>
     <string name="content_description_toggle">Переключатель</string>
@@ -223,7 +228,10 @@
     <string name="content_description_open_history">Открыть календарь истории активности</string>
     <string name="content_description_prev_week">Перейти на предыдущую неделю</string>
     <string name="content_description_next_week">Перейти на следующую неделю</string>
-
+    <string name="content_description_delete_shopping_item">Удалить товар из списка покупок</string>
+    <string name="content_description_open_shopping_list">Открыть список покупок</string>
+    <string name="content_description_settings">Открыть настройки приложения</string>
+    <string name="purchased_at_time">Куплено в %s</string>
 
     <!-- Дни недели: Описания для TalkBack -->
     <string name="content_description_day_mon">Понедельник</string>

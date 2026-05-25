@@ -4,11 +4,13 @@ import com.niked.fatless.data.repository.ActivityRepositoryImpl
 import com.niked.fatless.data.repository.ExerciseRepositoryImpl
 import com.niked.fatless.data.repository.NutritionRepositoryImpl
 import com.niked.fatless.data.repository.SettingsRepositoryImpl
+import com.niked.fatless.data.repository.ShoppingRepositoryImpl
 import com.niked.fatless.data.repository.WorkoutRepositoryImpl
 import com.niked.fatless.domain.repository.IActivityRepository
 import com.niked.fatless.domain.repository.IExerciseRepository
 import com.niked.fatless.domain.repository.INutritionRepository
 import com.niked.fatless.domain.repository.ISettingsRepository
+import com.niked.fatless.domain.repository.IShoppingRepository
 import com.niked.fatless.domain.repository.IWorkoutRepository
 import dagger.Binds
 import dagger.Module
@@ -43,6 +45,12 @@ abstract class RepositoryModule {
     abstract fun bindSettingsRepository(
         settingsRepositoryImpl: SettingsRepositoryImpl
     ): ISettingsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindShoppingRepository(
+        shoppingRepositoryImpl: ShoppingRepositoryImpl
+    ): IShoppingRepository
 
     @Binds
     @Singleton

@@ -17,6 +17,7 @@ import com.niked.fatless.ui.screen.MapScreen
 import com.niked.fatless.ui.screen.NutritionScreen
 import com.niked.fatless.ui.screen.SettingsScreen
 import com.niked.fatless.ui.screen.SetupProfileScreen
+import com.niked.fatless.ui.screen.ShoppingScreen
 import com.niked.fatless.ui.screen.WorkoutScreen
 import com.niked.fatless.ui.screen.WorkoutCreateScreen
 
@@ -59,6 +60,9 @@ fun FatLessNavGraph(
                 },
                 onSettingsClick = {
                     navController.navigate(Screen.Settings.route)
+                },
+                onShoppingClick = {
+                    navController.navigate(Screen.ShoppingScreen.route)
                 },
                 onWorkoutClick = { id ->
                     navController.navigate(Screen.WorkoutTimer.createRoute(id))
@@ -130,6 +134,12 @@ fun FatLessNavGraph(
                     popUpTo(route = Screen.SetupProfile.route) { inclusive = true }
                 }
             })
+        }
+        // --- ЭКРАН СПИСКА ПОКУПОК ---
+        composable(Screen.ShoppingScreen.route) {
+            ShoppingScreen(
+                onBackClick = { navController.popBackStack() }
+            )
         }
         // Конструктор (Создание)
         composable(

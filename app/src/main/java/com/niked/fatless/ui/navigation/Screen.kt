@@ -14,6 +14,7 @@ sealed class Screen(val route: String) {
     object Nutrition : Screen(route = "nutrition")
     object Settings : Screen(route = "settings")
     object SetupProfile : Screen(route = "setup_profile")
+    object ShoppingScreen : Screen(route = "shopping")
     object WorkoutCreate : Screen("workout_create?workoutId={workoutId}") {
         // Вызов для создания новой (без ID)
         fun createRoute() = "workout_create"
