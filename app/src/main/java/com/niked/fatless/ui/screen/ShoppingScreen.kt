@@ -54,6 +54,7 @@ fun ShoppingScreen(
     onBackClick: () -> Unit,
     viewModel: ShoppingViewModel = hiltViewModel()
 ) {
+    val availableCategories by viewModel.availableCategories.collectAsState()
     var showAddProductDialog by remember { mutableStateOf(false) }
     var showAddShopDialog by remember { mutableStateOf(false) }
 
@@ -122,9 +123,11 @@ fun ShoppingScreen(
 
             if (showAddShopDialog) {
                 AddShopDialog(
+                    availableCategories = availableCategories,
                     onDismiss = { showAddShopDialog = false },
-                    onConfirm = { name, category, radius, lat, lon ->
-                        viewModel.addShop(name, category, radius, lat, lon)
+                    onConfirm = { name, categories, radius, lat, lon ->
+                        // Передаем список категорий во ViewModel
+                        viewModel.addShop(name, categories, radius, lat, lon)
                         showAddShopDialog = false
                     }
                 )
@@ -266,7 +269,16 @@ private fun ShopItemRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = shop.name, style = MaterialTheme.typography.bodyLarge)
                 Text(
-                    text = stringResource(R.string.shop_info_subtitle, shop.category, shop.radius.toInt()),
+                    text = stringResource(
+                        R.string.shop_info_subtitle,
+                        buildString {
+                            shop.categories.forEachIndexed { index, category ->
+                                append(category)
+                                if (index < shop.categories.lastIndex) append(", ")
+                            }
+                        },
+                        shop.radius.toInt()
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray
                 )

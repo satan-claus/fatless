@@ -262,6 +262,7 @@
     <string name="dialog_btn_add">Добавить</string>
     <string name="dialog_btn_cancel">Отмена</string>
     <string name="dialog_select_food_placeholder">Выберите продукт из базы…</string>
+    <string name="dialog_select_categories_label">Выберите категории для этого магазина:</string>
 
 
     <!-- Единицы измерения и описание -->

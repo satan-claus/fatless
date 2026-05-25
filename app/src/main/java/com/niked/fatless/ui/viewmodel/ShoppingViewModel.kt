@@ -8,6 +8,7 @@ import com.niked.fatless.domain.repository.IShoppingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -17,6 +18,16 @@ class ShoppingViewModel @Inject constructor(
     private val foodRepository: IShoppingRepository,
     private val shoppingRepository: IShoppingRepository
 ) : ViewModel() {
+
+    val availableCategories = foodRepository.getAvailableFoodItems()
+        .map { foodList ->
+            foodList.map { it.categoryName }.distinct().filter { it.isNotBlank() }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     val availableFoods = foodRepository.getAvailableFoodItems()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -75,12 +86,12 @@ class ShoppingViewModel @Inject constructor(
         }
     }
 
-    fun addShop(name: String, category: String, radius: Float, lat: Double, lon: Double) {
+    fun addShop(name: String, categories: List<String>, radius: Float, lat: Double, lon: Double) {
         viewModelScope.launch(Dispatchers.IO) {
             val newShop = Shop(
                 id = 0,
                 name = name,
-                category = category,
+                categories = categories,
                 radius = radius,
                 latitude = lat,
                 longitude = lon

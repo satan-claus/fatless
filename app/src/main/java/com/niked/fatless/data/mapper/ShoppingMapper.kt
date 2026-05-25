@@ -42,7 +42,7 @@ object ShoppingMapper {
         return Shop(
             id = entity.id,
             name = entity.name,
-            category = entity.category,
+            categories = entity.categories.split(",").map { it.trim() },
             radius = entity.radius,
             latitude = entity.latitude,
             longitude = entity.longitude
@@ -53,12 +53,13 @@ object ShoppingMapper {
         return ShopEntity(
             id = domain.id,
             name = domain.name,
-            category = domain.category,
+            categories = domain.categories.joinToString(separator = ","),
             radius = domain.radius,
             latitude = domain.latitude,
             longitude = domain.longitude
         )
     }
+
 
     fun mapToDomainShopList(entities: List<ShopEntity>): List<Shop> {
         return entities.map { mapToDomain(it) }

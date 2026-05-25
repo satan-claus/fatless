@@ -18,6 +18,7 @@ import com.niked.fatless.core.utils.Constants.LogLevel
 import com.niked.fatless.core.utils.toSessionId
 import com.niked.fatless.data.local.dao.ShopDao
 import com.niked.fatless.data.local.dao.ShoppingDao
+import com.niked.fatless.data.mapper.ShoppingMapper
 import com.niked.fatless.domain.location.ILocationClient
 import com.niked.fatless.domain.model.ActivityType
 import com.niked.fatless.domain.model.UserLocation
@@ -231,66 +232,58 @@ class TrackingService : LifecycleService() {
     }
 
     private fun checkNearbyShops(location: Location) {
-        logger.log(LogLevel.DEBUG, "GEOFENCE_TEST",
-            "0.1. Проверяем точку G: latitude = ${location.latitude}; longitude = ${location.longitude}")
-//        // ДОМАШНИЙ ТЕСТ: Жестко подменяем координаты на точку Пятёрочки
-//        location.latitude = 51.595540
-//        location.longitude = 45.696587
-//
-//        logger.log(LogLevel.DEBUG, "GEOFENCE_TEST",
-//            "0.2. Проверяем точку G: latitude = ${location.latitude}; longitude = ${location.longitude}")
-//
-        // Используем Dispatchers.IO, так как идем в БД Room
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // 1. Берем все магазины из базы ( getAllShops() возвращает List<ShopEntity> )
+                // 1. Берём все магазины из базы данных (List<ShopEntity>)
                 val allShops = shopDao.getAllShops()
-                // ЛОГ 1: Проверяем, видит ли Room сам магазин в таблице
                 logger.log(LogLevel.DEBUG, "GEOFENCE_TEST", "1. Магазинов в базе: ${allShops.size}")
 
                 if (allShops.isEmpty()) return@launch
-
                 val now = System.currentTimeMillis()
 
-                allShops.forEach { shop ->
-                    // Проверяем категорию напрямую
-                    val hasItems = shoppingDao.hasItemsForCategory(shop.category)
-                    // Если в этой категории всё куплено — скипаем магазин
-                    if (!hasItems) return@forEach
+                allShops.forEach { shopEntity ->
+                    // Через маппер превращаем Entity в доменную модель, чтобы получить чистый List<String>
+                    val shop = ShoppingMapper.mapToDomain(shopEntity)
 
-                    // ЛОГ 2: Смотрим, какую категорию и какой ответ выдает база
-                    logger.log(LogLevel.DEBUG, "GEOFENCE_TEST", "2. Магазин: ${shop.name}, Категория: '${shop.category}', Найдено продуктов в Room: $hasItems")
+                    // Список для сбора названий ВСЕХ некупленных товаров, подходящих под этот магазин
+                    val finalItemsToBuy = mutableListOf<String>()
 
-                    val shopLoc = Location("").apply {
-                        latitude = shop.latitude
-                        longitude = shop.longitude
+                    // Пробегаемся по каждой категории, которую поддерживает этот магазин
+                    shop.categories.forEach { category ->
+                        val hasItems = shoppingDao.hasItemsForCategory(category)
+                        if (hasItems) {
+                            // Если в этой категории есть активные товары — поднимаем их из Room
+                            val items = shoppingDao.getItemsForCategory(category)
+                            finalItemsToBuy.addAll(items.map { it.name })
+                        }
                     }
 
-                    // Вычисляем дистанцию
-                    val distance = location.distanceTo(shopLoc)
-                    // ФИНАЛЬНЫЙ РЕНТГЕН: Смотрим, какую дистанцию считает телефон на диване
-                    logger.log(LogLevel.DEBUG, "GEOFENCE_TEST", "3. Магазин: ${shop.name}, Расчитанная дистанция: ${distance.toInt()} метров, Радиус лимита: ${shop.radius} метров")
+                    // ЛОГ 2: Смотрим, нашли ли хоть что-то активное для этого магазина
+                    logger.log(LogLevel.DEBUG, "GEOFENCE_TEST", "2. Магазин: ${shop.name}, Поддерживает: ${shop.categories}, Активных продуктов к покупке: ${finalItemsToBuy.size}")
 
-                    // 2. Проверяем радиус (у каждого магазина свой из базы)
-                    if (distance <= shop.radius) {
-                        logger.log(LogLevel.DEBUG, "GPS", "Геозона! Дистанция до ${shop.name}: ${distance.toInt()}м")
+                    // Если в поддерживаемых категориях магазина нашёлся хоть один некупленный товар
+                    if (finalItemsToBuy.isNotEmpty()) {
+                        val shopLoc = Location("").apply {
+                            latitude = shop.latitude
+                            longitude = shop.longitude
+                        }
 
-                        val lastNotified = notifiedShops[shop.id] ?: 0L
+                        // Вычисляем дистанцию до физической точки
+                        val distance = location.distanceTo(shopLoc)
+                        logger.log(LogLevel.DEBUG, "GEOFENCE_TEST", "3. Проверка геозоны ${shop.name}: Дистанция: ${distance.toInt()}м, Радиус лимита: ${shop.radius.toInt()}м")
 
-                        // Анти-спам защита: напоминаем не чаще одного раза в 20 минут для конкретной точки
-                        if (now - lastNotified > 20 * 60 * 1000) {
+                        // Проверяем радиус срабатывания
+                        if (distance <= shop.radius) {
+                            val lastNotified = notifiedShops[shop.id] ?: 0L
 
-                            // 3. Достаем список НЕКУПЛЕННЫХ товаров конкретно под категорию этого магазина
-                            val itemsToBuy = shoppingDao.getItemsForCategory(shop.category)
+                            // Анти-спам защита (20 минут)
+                            if (now - lastNotified > 20 * 60 * 1000) {
+                                // Очищаем от дубликатов на всякий случай и склеиваем в красивую строку
+                                val itemsString = finalItemsToBuy.distinct().joinToString(", ")
 
-                            if (itemsToBuy.isNotEmpty()) {
-                                // Собираем имена товаров (используем поле name)
-                                val itemsString = itemsToBuy.joinToString(", ") { it.name }
-
-                                // ПИЛИКАЕМ В ШТОРКУ!
+                                // ПИЛИКАЕМ В ШТОРКУ ОДНИМ ОБЩИМ ПУШЕМ!
                                 sendShoppingAlert(shop.name, itemsString, shop.id)
 
-                                // Фиксируем время пуша
                                 notifiedShops[shop.id] = now
                                 logger.log(LogLevel.SYSTEM, "GPS", "🔔 Сработал дозор [${shop.name}]: $itemsString")
                             }
