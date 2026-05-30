@@ -14,8 +14,8 @@ android {
         applicationId = "com.niked.fatless"
         minSdk = 29
         targetSdk = 36
-        versionCode = 83
-        versionName = "1.0.83"
+        versionCode = 85
+        versionName = "1.0.85"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -34,9 +34,9 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("${rootProject.projectDir.parentFile}/fatless-secure-key.jks")
+            storeFile = file("C:\\Projects\\FatLess\\fatless-release-key.jks")
             storePassword = props["STORE_PASSWORD"] ?: ""
-            keyAlias = props["KEY_ALIAS"] ?: ""
+            keyAlias = props["KEY_ALIAS"] ?: "PunxNotD3@d"
             keyPassword = props["KEY_PASSWORD"] ?: ""
         }
     }

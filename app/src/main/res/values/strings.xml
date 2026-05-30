@@ -287,4 +287,18 @@
     <!-- Вкладки (Табы) -->
     <string name="tab_title_products">Покупки</string>
     <string name="tab_title_shops">Магазины</string>
+
+    <!-- Экран игры Камень-Ножницы-Бумага -->
+    <string name="game_title_score">%1$s %2$d : %3$d %4$s</string>
+    <string name="game_label_player_name">Джон</string>
+    <string name="game_label_bot_name">Бот</string>
+    <string name="game_label_your_move">Твой ход:</string>
+    <string name="game_label_bot_move">Ход Бота:</string>
+    <string name="game_btn_reset">Обнулить счёт</string>
+
+    <!-- Игровые логи и состояния -->
+    <string name="game_log_start">Сделай свой ход, Чувак!</string>
+    <string name="game_log_draw">🤝 Ничья! Бот тоже выбрал %s</string>
+    <string name="game_log_win">🏆 Ты выиграл! Бот рассчитывал на %s</string>
+    <string name="game_log_loss">🤖 Луз! Бот прочитал тебя и выбрал %s</string>
 </resources>
